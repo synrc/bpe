@@ -23,23 +23,36 @@ that lately converted to Erlang terms. Internally BPE uses Eralng terms
 workflow definition:
 
 ```erlang
+#process{name = 'Wire Transfer',
 
-{process,'Wire Transfer',
-    {stages,[
-        {stage, 'Request',[department], ['Approve'],
-                {wt,request,['WireTransferReq',
-                             {'Invoice',optional},
-                             {'Voucher',optional}]}},
-        {stage, 'Approve',[disbursement], ['Request','Process','Payroll'],
-                {wt,approve,['Signature']}},
-        {stage, 'Payroll',[payroll], ['Process']
-                {wt,payroll,['TaxIssue']}},
-        {stage, 'Process',[disbursement], ['Notify'],
-                {wt,process,['WireTransaction']}},
-        {stage, 'Notify',[disbursement], [],
-                {wt,notify,['Log']}}]},
-    []
-}.
+         stages = [#stage{name = 'Request',
+                          roles = [department],
+                          transitions = ['Approve'],
+                          action = {wt,request,
+                                       ['WireTransferReq',
+                                        {'Invoice',optional},
+                                        {'Voucher',optional}]}},
+                   
+                   #stage{name = 'Approve',
+                          roles = [disbursement],
+                          transitions = ['Request','Process','Payroll'],
+                          action = {wt,approve,['Signature']}},
+
+                   #stage{name = 'Payroll',
+                          roles = [payroll],
+                          transitions = ['Process'],
+                          action = {wt,payroll,['TaxIssue']}},
+
+                   #stage{name = 'Process',
+                          roles = [disbursement],
+                          transitions = ['Notify'],
+                          action = {wt,process,['WireTransaction']}},
+
+                   #stage{name = 'Notify',
+                          roles = [disbursement],
+                          transitions = [],
+                          action = {wt,notify,['Log']}}],
+         rules = []}
 ```
 
 The worklow definiton uses following persistent workflow model which is stored in KVS:
