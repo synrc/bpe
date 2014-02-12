@@ -5,7 +5,7 @@ Overview
 --------
 
 BPE is Synrc Cloud Stack Erlang Application that bring Erlang for for Enterprise.
-It provides infrastructure for Workflow Definitions, Process Orcestration,
+It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
 Workflow Engine
