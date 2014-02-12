@@ -32,7 +32,7 @@ workflow definition:
                                        ['WireTransferReq',
                                         {'Invoice',optional},
                                         {'Voucher',optional}]}},
-                   
+
                    #stage{name = 'Approve',
                           roles = [disbursement],
                           transitions = ['Request','Process','Payroll'],
@@ -79,6 +79,7 @@ create(Process)
 add_stage(Process,Stage)
 remove_stage(Process,Stage)
 delete(Process)
+definitions()
 ```
 Process Instances
 -----------------
@@ -93,6 +94,7 @@ push(Id)
 finish(Id)
 history(Id)
 tasks(Id)
+list()
 ```
 
 Using 'tasks' API you fetch current documents attached to the given
