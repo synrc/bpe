@@ -27,17 +27,17 @@ workflow definition:
 {process,'Wire Transfer',
     {stages,[
         {stage, 'Request',[department], ['Approve'],
-                {wt,request,[{'WireTransferReq',mandatory},
+                {wt,request,['WireTransferReq',
                              {'Invoice',optional},
                              {'Voucher',optional}]}},
         {stage, 'Approve',[disbursement], ['Request','Process','Payroll'],
-                {wt,approve,[{'Signature',mandatory}]}},
+                {wt,approve,['Signature']}},
         {stage, 'Payroll',[payroll], ['Process']
-                {wt,payroll,[{'TaxIssue',mandatory}]}},
+                {wt,payroll,['TaxIssue']}},
         {stage, 'Process',[disbursement], ['Notify'],
-                {wt,process,[{'WireTransaction',mandatory}]}},
+                {wt,process,['WireTransaction']}},
         {stage, 'Notify',[disbursement], [],
-                {wt,notify,[{'Log',mandatory}]}}]},
+                {wt,notify,['Log']}}]},
     []
 }.
 ```
