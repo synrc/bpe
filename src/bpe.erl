@@ -4,48 +4,34 @@
 
 % Instance Management
 
-start(Process, Tasks) -> ok.
-join(Self, Id) -> ok.
-amend(Id, Tasks) -> ok.
-step(Stage) -> ok.
-finish(Id) -> ok.
-history(Id) -> ok.
-tasks(Id) -> ok.
+load(ProcName) -> kvs:get(process,ProcName).
+start(Proc, Docs) ->
+    Id = kvs:next_id("process",1),
+    wf:info(?MODULE,"BPE Start Process ~p: ",[Proc]),
+    Restart = transient,
+    Shutdown = 200,
+    ChildSpec = {Id, {bpe_proc, start_link, [Proc]}, Restart, Shutdown, worker, [bpe_proc]},
+    supervisor:start_child(bpe_sup,ChildSpec).
+
+delete_tasks(Proc, Tasks) ->
+    Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
+                                lists:member(Task#task.id,Tasks) ] }.
+
+join(Proc) -> ok.
+claim(Task, User) -> ok.
+complete(Task) -> ok.
+resolve(Task) -> ok.
+history(Proc) -> ok.
+tasks(Proc, Roles) -> ok.
+task_event(Task) -> ok.
+events(Proc) -> Proc#process.events.
 
 % Process Schema
 
-create(Process) -> ok.
-add_stage(Process,Stage) -> ok.
-add_role(Process,Role) -> ok.
-assign_role(Stage,Role) -> ok.
-delete(Process) -> ok.
+new_task(Proc,GivenTask) -> 
+   Existed = [ Task || Task<- Proc#process.tasks, Task#task.id == GivenTask#task.id],
+   case Existed of
+        [] -> Proc#process{tasks=[GivenTask|Proc#process.tasks]};
+         _ -> {error,exist,Existed} end.
 
-test() ->
-    #process{name='Wire Transfer',stages=[
-        #stage{name='Request',
-               roles=[department],
-               transitions=['Approve'],
-               action={wt,request,['WireTransferReq',
-                                  {'Invoice',optional},
-                                  {'Voucher',optional}]}},
-        #stage{name='Approve',
-               roles=[disbursement],
-               transitions=['Request','Process','Payroll'],
-               action={wt,approve,['Signature']}},
-
-        #stage{name='Payroll',
-               roles=[payroll],
-               transitions=['Process'],
-               action={wt,payroll,['TaxIssue']}},
-
-        #stage{name='Process',
-               roles=[disbursement],
-               transitions=['Notify'],
-               action={wt,process,['WireTransaction']}},
-
-        #stage{name='Notify',
-               roles=[disbursement],
-               transitions=[],
-               action={wt,notify,['Log']}}
-
-    ],rules=[]}.
+delete(Proc) -> ok.
