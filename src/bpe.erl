@@ -5,8 +5,9 @@
 % Instance Management
 
 load(ProcName) -> kvs:get(process,ProcName).
-start(Proc, Docs) ->
+start(Proc0, Docs) ->
     Id = kvs:next_id("process",1),
+    Proc = Proc0#process{id=Id},
     wf:info(?MODULE,"BPE Start Process ~p: ",[Proc]),
     Restart = transient,
     Shutdown = 200,

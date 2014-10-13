@@ -12,19 +12,23 @@ process_flow(Proc,CurrentTaskName) ->
     case Targets of
         [Target] -> 
 
-             kvs:add(history, #history { id   = Proc#process.id,
-                                         name = Proc#process.name,
-                                         task = Proc#process.task }),
+             kvs:add(#history { id   = Proc#process.id,
+                                feed_id = {history,Proc#process.id},
+                                name = Proc#process.name,
+                                task = Target }),
 
-             {reply,{completed,Target},Proc#process{task=Target}};
+             case Target == Proc#process.endTask of
+                  true -> {stop,{closed,Target},Proc#process{task=Target}};
+                  _ -> {reply,{completed,Target},Proc#process{task=Target}}
+             end;
+
         _ -> {reply,{ambiguous,Targets},Proc} end.
 
 handle_call({start},From,#process{}=Proc)     -> process_flow(Proc,Proc#process.beginTask);
 handle_call({complete},From,#process{}=Proc)  -> process_flow(Proc,Proc#process.task);
-handle_call({amend,Docs},From,#process{}=Proc)->
-     {reply,{modified,Proc#process{docs=Docs}}}.
+handle_call({amend,Docs},From,#process{}=Proc)-> {reply,{modified,Proc#process{docs=Docs}}}.
 
-init(#process{} =Process) ->
+init(Process) ->
     wf:info(?MODULE,"Process gen_server INIT ~p",[Process]),
     kvs:put(Process),
     [ wf:reg({Name,Process#process.id}) || {Name,_} <- bpe:events(Process) ],

@@ -10,15 +10,6 @@
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-start_process(Process) ->
-    wf:info(?MODULE,"BPE Start Process ~p: ",[Process]),
-    Restart = transient,
-    Shutdown = 200,
-    ChildSpec = { Process#process.id,
-                  { bpe_proc, start_link, [Process] },
-                  Restart, Shutdown, worker, [bpe_proc] },
-    supervisor:start_child(?MODULE,ChildSpec).
-
 init([]) ->
     RestartStrategy = one_for_one,
     MaxRestarts = 1000,
