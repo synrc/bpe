@@ -10,16 +10,17 @@ start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 process_flow(Proc) ->
 
     Curr = Proc#process.task,
-
+    Term = [],
     Task = bpe:task(Curr,Proc),
     Targets = bpe_task:targets(Curr,Proc),
 
-    wf:info(?MODULE,"Process ~p Task: ~p",[Proc#process.id, Task]),
+    wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
 
-    {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.endEvent} of
-         {[],Curr}             -> bpe_task:handle_task(Task,Curr,[],Proc);
-         {[],_}                -> bpe_task:denied_flow(Proc);
-         {L,_} when is_list(L) -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(L),Proc) end,
+    {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task} of
+         {[],Term} -> bpe_task:already_finished(Proc);
+         {[],Curr} -> bpe_task:handle_task(Task,Curr,Term,Proc);
+         {[],_}    -> bpe_task:denied_flow(Curr,Proc);
+         {List,_}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(List),Proc) end,
 
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
@@ -27,6 +28,7 @@ process_flow(Proc) ->
                        task = {task, Curr} }),
 
     NewProcState = ProcState#process{task = Target},
+
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,FlowReply]),
     kvs:put(NewProcState),
@@ -46,7 +48,7 @@ init(Process) ->
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
     [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
-    {ok, Proc#process{task = Proc#process.beginEvent}}.
+    {ok, Proc}.
 
 handle_cast(Msg, State) ->
     wf:info(?MODULE,"Unknown API async: ~p", [Msg]),

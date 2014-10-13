@@ -9,8 +9,11 @@ targets(Curr,Proc) ->
     Targets = [ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 
                 Source==Curr].
 
-denied_flow(Proc) ->
-    {reply,{denied_flow,Proc#process.name},Proc}.
+denied_flow(Curr,Proc) ->
+    {reply,{denied_flow,Curr},Proc}.
+
+already_finished(Proc) ->
+    {stop,{normal,[]},Proc}.
 
 task_action(Module,CurrentTask,Target,Proc) ->
     Allowed = case erlang:function_exported(Module, action, 2) of
