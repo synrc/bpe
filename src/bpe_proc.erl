@@ -27,14 +27,18 @@ process_flow(Proc) ->
                        task = {task, Curr} }),
 
     NewProcState = ProcState#process{task = Target},
-    FlowReply = {Status,{Reason,Target},NewProcState},
+    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,FlowReply]),
     kvs:put(NewProcState),
     FlowReply.
 
+fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
+fix_reply(P) -> P.
+
 handle_call({start},From,#process{}=Proc)     -> process_flow(Proc);
 handle_call({complete},From,#process{}=Proc)  -> process_flow(Proc);
-handle_call({amend,Docs},From,#process{}=Proc)-> {reply,{modified,Proc#process{docs=Docs}}}.
+handle_call({amend,Docs},From,#process{}=Proc)-> {reply,{modified},Proc#process{docs=Docs}};
+handle_call(Command,From,#process{}=Proc)-> {reply,{unknown,Command},Proc}.
 
 init(Process) ->
     wf:info(?MODULE,"Process ~p spawned ~p",[Process#process.id,self()]),
@@ -72,8 +76,9 @@ handle_info(Info, State=#process{}) ->
     wf:info(?MODULE,"Unrecognized info: ~p", [Info]),
     {noreply, State}.
 
-terminate(Reason, #process{}) ->
-    wf:info(?MODULE,"Terminating session: ~p", [Reason]),
+terminate(Reason, #process{id=Id}) ->
+    wf:info(?MODULE,"Terminating session: ~p", [Id]),
+    spawn(fun()->supervisor:delete_child(bpe_sup,Id) end),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->

@@ -5,7 +5,7 @@
 
 % Instance Management
 
-load(ProcName) -> kvs:get(process,ProcName).
+load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
 
 start(Proc0, Docs) ->
     Id = kvs:next_id("process",1),
@@ -16,8 +16,7 @@ start(Proc0, Docs) ->
     ChildSpec = {Id, {bpe_proc, start_link, [Proc]}, Restart, Shutdown, worker, [bpe_proc]},
     supervisor:start_child(bpe_sup,ChildSpec).
 
-start(Proc) -> gen_server:call(Proc#process.id,{start}).
-complete(Proc) -> gen_server:call(Proc#process.id,{complete}).
+complete(ProcId) -> gen_server:call(ProcId,{complete}).
 amend(Proc,Docs) -> gen_server:call(Proc#process.id,{amend,Docs}).
 
 delete_tasks(Proc, Tasks) ->

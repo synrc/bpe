@@ -23,14 +23,13 @@ that lately converted to Erlang terms. Internally BPE uses Eralng terms
 workflow definition:
 
 ```erlang
-   bpe:start(#process{name="Order11",
-       flows=[
-           #sequenceFlow{source="begin",target="end2"},
-           #sequenceFlow{source="end2",target="end"}],
-       tasks=[
-           #userTask{name="begin"},
-           #userTask{name="end2"},
-           #endEvent{name="end"}],
+bpe:start(
+   #process{name="Order11",
+       flows=[ #sequenceFlow{source="begin",target="end2"},
+               #sequenceFlow{source="end2",target="end"}],
+       tasks=[ #userTask{name="begin"},
+               #userTask{name="end2"},
+               #endEvent{name="end"}],
        task="begin",beginEvent="begin",endEvent="end"},[]).
 
 ```
@@ -92,31 +91,21 @@ bpe_proc:Process 39 spawned <0.12399.0>
           task = {task,"begin"}}]
 ```
 
-Internally the API of process definition looks like:
-
-```erlang
-load(File)
-save(File)
-create(Process)
-add_stage(Process,Stage)
-remove_stage(Process,Stage)
-delete(Process)
-definitions()
-```
 Process Instances
 -----------------
 
 Instantiation of process means creating persistent context of document flow.
 
 ```erlang
-start(Process, Tasks)
-join(Self, Id)
-amend(Id, Tasks)
-push(Id)
-finish(Id)
-history(Id)
-tasks(Id)
-list()
+load(ProcName)
+start(Proc,Docs)
+amend(Proc,Docs)
+complete(Proc)
+history(ProcId)
+task(Name,Proc)
+doc(Name,Proc)
+events(Proc)
+tasks(Proc)
 ```
 
 Using 'tasks' API you fetch current documents attached to the given
