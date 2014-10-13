@@ -23,51 +23,73 @@ that lately converted to Erlang terms. Internally BPE uses Eralng terms
 workflow definition:
 
 ```erlang
-#process{name = 'Wire Transfer',
+   bpe:start(#process{name="Order11",
+       flows=[
+           #sequenceFlow{source="begin",target="end2"},
+           #sequenceFlow{source="end2",target="end"}],
+       tasks=[
+           #userTask{name="begin"},
+           #userTask{name="end2"},
+           #endEvent{name="end"}],
+       task="begin",beginEvent="begin",endEvent="end"},[]).
 
-         stages = [#stage{name = 'Request',
-                          roles = [department],
-                          transitions = ['Approve'],
-                          action = {wt,request,
-                                       ['WireTransferReq',
-                                        {'Invoice',optional},
-                                        {'Voucher',optional}]}},
-
-                   #stage{name = 'Approve',
-                          roles = [disbursement],
-                          transitions = ['Request','Process','Payroll'],
-                          action = {wt,approve,['Signature']}},
-
-                   #stage{name = 'Payroll',
-                          roles = [payroll],
-                          transitions = ['Process'],
-                          action = {wt,payroll,['TaxIssue']}},
-
-                   #stage{name = 'Process',
-                          roles = [disbursement],
-                          transitions = ['Notify'],
-                          action = {wt,process,['WireTransaction']}},
-
-                   #stage{name = 'Notify',
-                          roles = [disbursement],
-                          transitions = [],
-                          action = {wt,notify,['Log']}}],
-         rules = []}
 ```
 
 The worklow definiton uses following persistent workflow model which is stored in KVS:
 
 ```erlang
--record(process,{name,stages,rules}).
--record(stage,{name,role,transitions,action}).
+-record(task,         { name, id, roles, module }).
+-record(userTask,     { name, id, roles, module }).
+-record(serviceTask,  { name, id, roles, module }).
+-record(messageEvent, { name, id, payload }).
+-record(beginEvent ,   { name, id }).
+-record(endEvent,      { name, id }).
+-record(sequenceFlow, { name, id, source, target }).
+-record(history,      { ?ITERATOR(feed,true), name, task }).
+-record(process,      { ?ITERATOR(feed,true), name,
+                        roles=[], tasks=[], events=[], history=[], flows=[],
+                        rules, docs=[],
+                        task,
+                        beginEvent, endEvent }).
 ```
 
-This workflow defition consists of two parts: the workflow discriptive structure
-and the compiled workflow rules in Erlang module wt.
+Sample Session
+--------------
 
 ```erlang
--module(wt). % Wire Transfer module
--export([request,approve,payroll,process,notify]).
+(bpe@127.0.0.1)1> kvs:join().
+ok
+(bpe@127.0.0.1)1> rr(bpe).
+[beginEvent,container,endEvent,history,id_seq,iterator,
+ messageEvent,process,sequenceFlow,serviceTask,task,userTask]
+(bpe@127.0.0.1)2> bpe:start(#process{name="Order11",
+         flows=[#sequenceFlow{source="begin",target="end2"},
+                #sequenceFlow{source="end2",target="end"}],
+         tasks=[#userTask{name="begin"},
+                #userTask{name="end2"},
+                #endEvent{name="end"}],
+         task="begin",beginEvent="begin",endEvent="end"},[]).
+bpe_proc:Process 39 spawned <0.12399.0>
+{ok,<0.12399.0>}
+(bpe@127.0.0.1)3> gen_server:call(pid(0,12399,0),{complete}).
+(bpe@127.0.0.1)4> gen_server:call(pid(0,12399,0),{complete}).
+(bpe@127.0.0.1)5> gen_server:call(pid(0,12399,0),{complete}).
+(bpe@127.0.0.1)5> bpe:history(39).
+[#history{id = 28,version = undefined,container = feed,
+          feed_id = {history,39},
+          prev = 27,next = undefined,feeds = [],guard = true,
+          etc = undefined,name = "Order11",
+          task = {task,"end"}},
+ #history{id = 27,version = undefined,container = feed,
+          feed_id = {history,39},
+          prev = 26,next = 28,feeds = [],guard = true,etc = undefined,
+          name = "Order11",
+          task = {task,"end2"}},
+ #history{id = 26,version = undefined,container = feed,
+          feed_id = {history,39},
+          prev = undefined,next = 27,feeds = [],guard = true,
+          etc = undefined,name = "Order11",
+          task = {task,"begin"}}]
 ```
 
 Internally the API of process definition looks like:

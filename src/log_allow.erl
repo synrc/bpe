@@ -8,5 +8,6 @@
 log_modules() -> [
 %   n2o_websocket,
     bpe,
+    bpe_task,
     bpe_proc
 ].

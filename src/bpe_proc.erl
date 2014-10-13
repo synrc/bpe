@@ -1,4 +1,5 @@
 -module(bpe_proc).
+-author('Maxim Sokhatsky').
 -include("bpe.hrl").
 -behaviour(gen_server).
 -export([start_link/1]).
@@ -6,33 +7,42 @@
 
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
-process_flow(Proc,CurrentTaskName) ->
-    Targets = [ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows,
-            Source==CurrentTaskName],
-    case Targets of
-        [Target] -> 
+process_flow(Proc) ->
 
-             kvs:add(#history { id   = Proc#process.id,
-                                feed_id = {history,Proc#process.id},
-                                name = Proc#process.name,
-                                task = Target }),
+    Curr = Proc#process.task,
 
-             case Target == Proc#process.endTask of
-                  true -> {stop,{closed,Target},Proc#process{task=Target}};
-                  _ -> {reply,{completed,Target},Proc#process{task=Target}}
-             end;
+    Task = bpe:task(Curr,Proc),
+    Targets = bpe_task:targets(Curr,Proc),
 
-        _ -> {reply,{ambiguous,Targets},Proc} end.
+    wf:info(?MODULE,"Process ~p Task: ~p",[Proc#process.id, Task]),
 
-handle_call({start},From,#process{}=Proc)     -> process_flow(Proc,Proc#process.beginTask);
-handle_call({complete},From,#process{}=Proc)  -> process_flow(Proc,Proc#process.task);
+    {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.endEvent} of
+         {[],Curr}             -> bpe_task:handle_task(Task,Curr,[],Proc);
+         {[],_}                -> bpe_task:denied_flow(Proc);
+         {L,_} when is_list(L) -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(L),Proc) end,
+
+    kvs:add(#history { id = kvs:next_id("history",1),
+                       feed_id = {history,ProcState#process.id},
+                       name = ProcState#process.name,
+                       task = {task, Curr} }),
+
+    NewProcState = ProcState#process{task = Target},
+    FlowReply = {Status,{Reason,Target},NewProcState},
+    wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,FlowReply]),
+    kvs:put(NewProcState),
+    FlowReply.
+
+handle_call({start},From,#process{}=Proc)     -> process_flow(Proc);
+handle_call({complete},From,#process{}=Proc)  -> process_flow(Proc);
 handle_call({amend,Docs},From,#process{}=Proc)-> {reply,{modified,Proc#process{docs=Docs}}}.
 
 init(Process) ->
-    wf:info(?MODULE,"Process gen_server INIT ~p",[Process]),
-    kvs:put(Process),
-    [ wf:reg({Name,Process#process.id}) || {Name,_} <- bpe:events(Process) ],
-    {ok, Process}.
+    wf:info(?MODULE,"Process ~p spawned ~p",[Process#process.id,self()]),
+    Proc = case kvs:get(process,Process#process.id) of
+         {ok,Exists} -> Exists;
+         {error,_} -> Process end,
+    [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
+    {ok, Proc#process{task = Proc#process.beginEvent}}.
 
 handle_cast(Msg, State) ->
     wf:info(?MODULE,"Unknown API async: ~p", [Msg]),
@@ -41,6 +51,22 @@ handle_cast(Msg, State) ->
 handle_info({'DOWN', MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
     wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
     {stop, normal, State};
+
+handle_info({amend,Docs}, State=#process{}) ->
+    wf:info(?MODULE,"Apply Frontend Documents: ~p", [Docs]),
+    {noreply, State};
+
+handle_info({messageEvent,Name,ProcId,Message}, ProcState=#process{}) ->
+    wf:info(?MODULE,"messageEvent: ~p", [Message]),
+
+    kvs:add(#history { id   = kvs:next_id("history",1),
+                       feed_id = {history,ProcState#process.id},
+                       name = ProcState#process.name,
+                       task = {event,Name} }),
+
+    bpe:complete(ProcState),
+
+    {noreply, ProcState};
 
 handle_info(Info, State=#process{}) ->
     wf:info(?MODULE,"Unrecognized info: ~p", [Info]),

@@ -12,7 +12,7 @@ metainfo() ->
                  #table{name = userTask, fields=record_info(fields, userTask)},
                  #table{name = serviceTask, fields=record_info(fields, serviceTask)},
                  #table{name = messageEvent, fields=record_info(fields, messageEvent)},
-                 #table{name = startEvent, fields=record_info(fields, startEvent)},
+                 #table{name = beginEvent, fields=record_info(fields, beginEvent)},
                  #table{name = endEvent, fields=record_info(fields, endEvent)}
                 ]
            }.
