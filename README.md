@@ -52,6 +52,8 @@ The worklow definiton uses following persistent workflow model which is stored i
                         beginEvent, endEvent }).
 ```
 
+Full set of BPMN 2.0 fields could be obtainer at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0) page 3-7.
+
 Sample Session
 --------------
 
