@@ -1,6 +1,7 @@
+-include_lib("kvs/include/kvs.hrl").
+
 -ifndef(BPE_HRL).
 -define(BPE_HRL, true).
--include_lib("kvs/include/kvs.hrl").
 
 -record(task,         { name, id, roles, module }).
 -record(userTask,     { name, id, roles, module }).
