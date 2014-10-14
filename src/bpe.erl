@@ -35,7 +35,11 @@ task(Name, Proc) ->
          [] -> [];
          E -> E end.
 
-doc(Rec, Proc) -> [D] = [ Doc || Doc <- Proc#process.docs, element(1,Doc) == element(1,Rec)], D.
+doc(Rec, Proc) ->
+    case [ Doc || Doc <- Proc#process.docs, element(1,Doc) == element(1,Rec)] of
+         [D] -> D;
+         [] -> [];
+         E -> E end.
 
 docs(Proc) -> Proc#process.docs.
 tasks(Proc) -> Proc#process.tasks.

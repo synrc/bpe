@@ -30,7 +30,7 @@ process_flow(Proc) ->
     NewProcState = ProcState#process{task = Target},
 
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,FlowReply]),
+    wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvs:put(NewProcState),
     FlowReply.
 
