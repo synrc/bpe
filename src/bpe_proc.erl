@@ -37,6 +37,7 @@ process_flow(Proc) ->
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
+handle_call({get},From,#process{}=Proc)       -> {reply,Proc,Proc};
 handle_call({start},From,#process{}=Proc)     -> process_flow(Proc);
 handle_call({complete},From,#process{}=Proc)  -> process_flow(Proc);
 handle_call({amend,Docs},From,#process{}=Proc)-> {reply,{modified},Proc#process{docs=Docs}};

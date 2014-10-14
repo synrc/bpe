@@ -20,8 +20,9 @@ start(Proc0, Docs) ->
                   Restart, Shutdown, worker, [bpe_proc] },
     supervisor:start_child(bpe_sup,ChildSpec).
 
-complete(ProcId) -> gen_server:call(ProcId,{complete}).
-amend(Proc,Docs) -> gen_server:call(Proc#process.id,{amend,Docs}).
+process(ProcId)    -> gen_server:call(ProcId,{get}).
+complete(ProcId)   -> gen_server:call(ProcId,{complete}).
+amend(ProcId,Docs) -> gen_server:call(ProcId,{amend,Docs}).
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
