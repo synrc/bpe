@@ -27,7 +27,7 @@ event(ProcId,Event)      -> gen_server:call(ProcId,{event,Event}).
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
-                                lists:member(Task#task.id,Tasks) ] }.
+                                lists:member(Task#task.name,Tasks) ] }.
 
 history(ProcId) -> kvs:entries(kvs:get(feed,{history,ProcId}),history,undefined).
 
@@ -50,15 +50,16 @@ events(Proc) -> Proc#process.events.
 % Process Schema
 
 new_task(Proc,GivenTask) -> 
-   Existed = [ Task || Task<- Proc#process.tasks, Task#task.id == GivenTask#task.id],
+   Existed = [ Task || Task<- Proc#process.tasks, Task#task.name == GivenTask#task.name],
    case Existed of
         [] -> Proc#process{tasks=[GivenTask|Proc#process.tasks]};
          _ -> {error,exist,Existed} end.
 
 delete(Proc) -> ok.
 
-val(Document,Proc,Cond) -> val(Document,Proc,fun(X,Y)-> ok end).
+val(Document,Proc,Cond) -> val(Document,Proc,Cond,fun(X,Y)-> ok end).
 val(Document,Proc,Cond,Action) ->
+%    io:format("val: ~p~n",[Document]),
     case Cond(Document,Proc) of
          true -> Action(Document,Proc),
                  {reply,Proc};

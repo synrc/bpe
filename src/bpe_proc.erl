@@ -8,9 +8,9 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 process_event(Event, Proc) ->
-    Curr = Proc#process.task,
-    Event = bpe:task(Event,Proc),
-    {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,Curr,Curr,Proc),
+    Targets = bpe_task:targets(Event#messageEvent.name,Proc),
+    io:format("Event Targets: ~p",[Targets]),
+    {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
@@ -25,7 +25,7 @@ process_flow(Proc) ->
     wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
     {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task} of
          {[],Term} -> bpe_task:already_finished(Proc);
-         {[],Curr} -> bpe_task:handle_task(Task,Curr,Term,Proc);
+         {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
          {[],_}    -> bpe_task:denied_flow(Curr,Proc);
          {List,_}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(List),Proc) end,
 
