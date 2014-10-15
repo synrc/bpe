@@ -7,15 +7,22 @@
 
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
-process_flow(Proc) ->
+process_event(Event, Proc) ->
+    Curr = Proc#process.task,
+    Event = bpe:task(Event,Proc),
+    {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,Curr,Curr,Proc),
+    NewProcState = ProcState#process{task = Target},
+    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
+    wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
+    kvs:put(NewProcState),
+    FlowReply.
 
+process_flow(Proc) ->
     Curr = Proc#process.task,
     Term = [],
     Task = bpe:task(Curr,Proc),
     Targets = bpe_task:targets(Curr,Proc),
-
     wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
-
     {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task} of
          {[],Term} -> bpe_task:already_finished(Proc);
          {[],Curr} -> bpe_task:handle_task(Task,Curr,Term,Proc);
@@ -37,11 +44,12 @@ process_flow(Proc) ->
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
-handle_call({get},From,#process{}=Proc)       -> {reply,Proc,Proc};
-handle_call({start},From,#process{}=Proc)     -> process_flow(Proc);
-handle_call({complete},From,#process{}=Proc)  -> process_flow(Proc);
-handle_call({amend,Docs},From,#process{}=Proc)-> {reply,{modified},Proc#process{docs=Docs}};
-handle_call(Command,From,#process{}=Proc)-> {reply,{unknown,Command},Proc}.
+handle_call({get},_,Proc)             -> { reply,Proc,Proc };
+handle_call({start},_,Proc)           ->   process_flow(Proc);
+handle_call({complete},_,Proc)        ->   process_flow(Proc);
+handle_call({event,Event},_,Proc)     ->   process_event(Event,Proc);
+handle_call({amend,Form},_,Proc)      ->   process_flow(Proc#process{docs=[Form|Proc#process.docs]});
+handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     wf:info(?MODULE,"Process ~p spawned ~p",[Process#process.id,self()]),

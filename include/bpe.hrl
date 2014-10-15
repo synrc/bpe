@@ -7,9 +7,9 @@
 -record(userTask,     { name, id=[], roles=[], module }).
 -record(serviceTask,  { name, id=[], roles=[], module }).
 -record(receiveTask,  { name, id=[], roles=[], module }).
--record(messageEvent, { name, id=[], payload }).
--record(beginEvent ,   { name, id=[] }).
--record(endEvent,      { name, id=[] }).
+-record(messageEvent, { name, id=[], payload=[], timeout=[], module }).
+-record(beginEvent ,  { name, id=[] }).
+-record(endEvent,     { name, id=[] }).
 -record(sequenceFlow, { name=[], id=[], source, target }).
 -record(history,      { ?ITERATOR(feed,true), name, task }).
 -record(process,      { ?ITERATOR(feed,true), name,

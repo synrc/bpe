@@ -20,9 +20,10 @@ start(Proc0, Docs) ->
                   Restart, Shutdown, worker, [bpe_proc] },
     supervisor:start_child(bpe_sup,ChildSpec).
 
-process(ProcId)    -> gen_server:call(ProcId,{get}).
-complete(ProcId)   -> gen_server:call(ProcId,{complete}).
-amend(ProcId,Docs) -> gen_server:call(ProcId,{amend,Docs}).
+process(ProcId)          -> gen_server:call(ProcId,{get}).
+complete(ProcId)         -> gen_server:call(ProcId,{complete}).
+amend(ProcId,Form)       -> gen_server:call(ProcId,{amend,Form}).
+event(ProcId,Event)      -> gen_server:call(ProcId,{event,Event}).
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
@@ -55,3 +56,11 @@ new_task(Proc,GivenTask) ->
          _ -> {error,exist,Existed} end.
 
 delete(Proc) -> ok.
+
+val(Document,Proc,Cond) -> val(Document,Proc,fun(X,Y)-> ok end).
+val(Document,Proc,Cond,Action) ->
+    case Cond(Document,Proc) of
+         true -> Action(Document,Proc),
+                 {reply,Proc};
+            _ -> {reply,Proc#process.task,Proc} end.
+
