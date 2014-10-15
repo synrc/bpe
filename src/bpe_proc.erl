@@ -67,22 +67,6 @@ handle_info({'DOWN', MonitorRef, _Type, _Object, _Info} = Msg, State = #process{
     wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
     {stop, normal, State};
 
-handle_info({amend,Docs}, State=#process{}) ->
-    wf:info(?MODULE,"Apply Frontend Documents: ~p", [Docs]),
-    {noreply, State};
-
-handle_info({messageEvent,Name,ProcId,Message}, ProcState=#process{}) ->
-    wf:info(?MODULE,"messageEvent: ~p", [Message]),
-
-    kvs:add(#history { id   = kvs:next_id("history",1),
-                       feed_id = {history,ProcState#process.id},
-                       name = ProcState#process.name,
-                       task = {event,Name} }),
-
-    bpe:complete(ProcState),
-
-    {noreply, ProcState};
-
 handle_info(Info, State=#process{}) ->
     wf:info(?MODULE,"Unrecognized info: ~p", [Info]),
     {noreply, State}.
