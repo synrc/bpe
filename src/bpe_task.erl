@@ -31,6 +31,9 @@ handle_task(#beginEvent{},CurrentTask,Target,Proc) ->
 handle_task(#userTask{module=Module},CurrentTask,Target,Proc) -> 
     task_action(Module,CurrentTask,Target,Proc);
 
+handle_task(#receiveTask{module=Module},CurrentTask,Target,Proc) -> 
+    task_action(Module,CurrentTask,Target,Proc);
+
 handle_task(#serviceTask{module=Module},CurrentTask,Target,Proc) -> 
     task_action(Module,CurrentTask,Target,Proc);
 
