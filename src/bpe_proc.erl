@@ -48,7 +48,7 @@ handle_call({get},_,Proc)             -> { reply,Proc,Proc };
 handle_call({start},_,Proc)           ->   process_flow(Proc);
 handle_call({complete},_,Proc)        ->   process_flow(Proc);
 handle_call({event,Event},_,Proc)     ->   process_event(Event,Proc);
-handle_call({amend,Form},_,Proc)      ->   process_flow(Proc#process{docs=[Form|Proc#process.docs]});
+handle_call({amend,Form},_,Proc)      ->   process_flow(Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)});
 handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
@@ -78,3 +78,8 @@ terminate(Reason, #process{id=Id}) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
+plist_setkey(Name,Pos,List,New) ->
+    case lists:keyfind(Name,Pos,List) of
+        false -> [New|List];
+        Element -> lists:keyreplace(Name,Pos,List,New) end.
