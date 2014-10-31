@@ -22,6 +22,7 @@ start(Proc0, Docs) ->
 
 process(ProcId)          -> gen_server:call(ProcId,{get}).
 complete(ProcId)         -> gen_server:call(ProcId,{complete}).
+complete(Stage,ProcId)   -> gen_server:call(ProcId,{complete,Stage}).
 amend(ProcId,Form)       -> gen_server:call(ProcId,{amend,Form}).
 event(ProcId,Event)      -> gen_server:call(ProcId,{event,Event}).
 

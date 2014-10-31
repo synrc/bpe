@@ -4,6 +4,10 @@
 -include("bpe.hrl").
 
 find_flow(List) -> [H|_] = List, H.
+find_flow([],List) -> find_flow(List);
+find_flow(Stage,List) -> case lists:member(Stage,List) of
+                              true -> Stage;
+                              _ -> find_flow(List) end.
 
 targets(Curr,Proc) ->
     Targets = [ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 

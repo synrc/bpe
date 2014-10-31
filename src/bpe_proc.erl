@@ -8,7 +8,7 @@
 
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
-process_event(Event, Proc) ->
+process_event(Event,Proc) ->
     Targets = bpe_task:targets(Event#messageEvent.name,Proc),
     io:format("Event Targets: ~p",[Targets]),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
@@ -18,7 +18,7 @@ process_event(Event, Proc) ->
     kvs:put(NewProcState),
     FlowReply.
 
-process_flow(Proc) ->
+process_flow(Stage,Proc) ->
     Curr = Proc#process.task,
     Term = [],
     Task = bpe:task(Curr,Proc),
@@ -28,7 +28,7 @@ process_flow(Proc) ->
          {[],Term} -> bpe_task:already_finished(Proc);
          {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
          {[],_}    -> bpe_task:denied_flow(Curr,Proc);
-         {List,_}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(List),Proc) end,
+         {List,_}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc) end,
 
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
@@ -46,10 +46,11 @@ fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
 handle_call({get},_,Proc)             -> { reply,Proc,Proc };
-handle_call({start},_,Proc)           ->   process_flow(Proc);
-handle_call({complete},_,Proc)        ->   process_flow(Proc);
+handle_call({start},_,Proc)           ->   process_flow([],Proc);
+handle_call({complete},_,Proc)        ->   process_flow([],Proc);
+handle_call({complete,Stage},_,Proc)  ->   process_flow(Stage,Proc);
 handle_call({event,Event},_,Proc)     ->   process_event(Event,Proc);
-handle_call({amend,Form},_,Proc)      ->   process_flow(Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)});
+handle_call({amend,Form},_,Proc)      ->   process_flow([],Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)});
 handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
