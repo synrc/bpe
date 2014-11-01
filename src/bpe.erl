@@ -1,6 +1,7 @@
 -module(bpe).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
+-include("api.hrl").
 -compile(export_all).
 
 % Instance Management

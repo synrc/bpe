@@ -6,12 +6,12 @@ endif
 
 VM       := vm.args
 SYS      := sys.config
-PLT_NAME := ~/.n2o_dialyzer.plt
+PLT_NAME := .bpe_dialyzer.plt
 ERL_ARGS := -args_file $(VM) -config $(SYS)
 RUN_DIR  ?= rels/web/devbox
 LOG_DIR  ?= rels/web/devbox/logs
 empty    :=
-ROOTS    := apps deps .
+ROOTS    := deps
 space    := $(empty) $(empty)
 comma    := $(empty),$(empty)
 VSN      := $(shell git rev-parse HEAD | head -c 6)
@@ -47,9 +47,10 @@ stop:
 	@kill -9 $(shell ps ax -o pid= -o command=|grep $(RELEASE)|grep $(COOKIE)|awk '{print $$1}')
 $(PLT_NAME):
 	$(eval APPS := $(subst deps/,,$(subst apps/,,$(shell find apps deps -maxdepth 1 -mindepth 1 -type d))))
-	ERL_LIBS=$(ERL_LIBS) dialyzer --build_plt --output_plt $(PLT_NAME) --apps $(APPS) || true
+	ERL_LIBS=$(ERL_LIBS) dialyzer --build_plt --output_plt $(PLT_NAME) --apps . || true
 dialyze: $(PLT_NAME) compile
-	$(eval APPS := $(shell find apps deps -maxdepth 1 -mindepth 1 -type d))
+#	$(eval APPS := $(shell find apps deps -maxdepth 1 -mindepth 1 -type d))
+	$(eval APPS := .)
 	@$(foreach var,$(APPS),(echo "Process $(var)"; dialyzer -q $(var)/ebin --plt $(PLT_NAME) --no_native -Werror_handling -Wunderspecs -Wrace_conditions -Wno_undefined_callbacks);)
 tar: release
 	tar zcvf $(RELEASE)-$(VSN)-$(DATE).tar.gz _rel/lib/*/ebin _rel/lib/*/priv _rel/bin _rel/releases

@@ -133,6 +133,11 @@ bpe:amend(Id,Tasks),
 bpe:push(Id),
 ```
 
+Dializer
+--------
+
+For check API with dialyzer build with `rebar compile` and run `make dialyze`.
+
 Credits
 -------
 
