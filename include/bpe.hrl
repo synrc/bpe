@@ -12,10 +12,10 @@
 -record(beginEvent ,  { name, module }).
 -record(endEvent,     { name, module }).
 -record(sequenceFlow, { source, target }).
--record(history,      { ?ITERATOR(feed,true), name, task }).
+-record(history,      { ?ITERATOR(feed,true), name, task, time }).
 -record(process,      { ?ITERATOR(feed,true), name,
                         roles=[], tasks=[], events=[], history=[], flows=[],
                         rules, docs=[],
-                        task,
+                        task, timer,
                         beginEvent, endEvent }).
 -endif.

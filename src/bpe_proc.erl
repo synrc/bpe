@@ -33,6 +33,7 @@ process_flow(Stage,Proc) ->
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
                        name = ProcState#process.name,
+                       time = calendar:now_to_datetime(now()),
                        task = {task, Curr} }),
 
     NewProcState = ProcState#process{task = Target},
@@ -68,6 +69,19 @@ handle_cast(Msg, State) ->
 handle_info({'DOWN', MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
     wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
     {stop, normal, State};
+
+handle_info({timer,ping}, State=#process{timer=Timer,id=Id}) ->
+    case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
+    wf:info(?MODULE,"Ping: ~p", [Id]),
+    [H|T] = bpe:history(Id),
+    Time2 = calendar:now_to_datetime(now()),
+    case H of #history{time=Time1} ->
+              case calendar:time_difference(Time1,Time2) of
+                   {0,{0,0,_}} ->
+                        erlang:send_after(5000,self(),{timer,ping}),
+                        {noreply, State};
+                   _ -> {stop,normal,State} end;
+         _ -> {noreply, State} end;
 
 handle_info(Info, State=#process{}) ->
     wf:info(?MODULE,"Unrecognized info: ~p", [Info]),
