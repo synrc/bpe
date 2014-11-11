@@ -34,6 +34,13 @@ complete_while(ProcId) ->
          true -> {complete,Status2};
             _ -> complete_while(ProcId) end.
 
+amend_while(ProcId,Form) ->
+    {complete,Status} = amend(ProcId,Form),
+    {complete,Status2} = complete(ProcId),
+    case Status == Status2 of
+         true -> {complete,Status2};
+            _ -> complete_while(ProcId) end.
+
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                                 lists:member(Task#task.name,Tasks) ] }.
