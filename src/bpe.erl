@@ -27,6 +27,13 @@ complete(Stage,ProcId)   -> gen_server:call(ProcId,{complete,Stage}).
 amend(ProcId,Form)       -> gen_server:call(ProcId,{amend,Form}).
 event(ProcId,Event)      -> gen_server:call(ProcId,{event,Event}).
 
+complete_while(ProcId) ->
+    {complete,Status} = complete(ProcId),
+    {complete,Status2} = complete(ProcId),
+    case Status == Status2 of
+         true -> {complete,Status2};
+            _ -> complete_while(ProcId) end.
+
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                                 lists:member(Task#task.name,Tasks) ] }.

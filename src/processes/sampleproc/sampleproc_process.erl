@@ -3,7 +3,7 @@
 -include_lib("bpe/include/bpe.hrl").
 -compile(export_all).
 
-definition() -> 
+definition() ->
 
     #process { name = 'Create Deposit Account',
 
@@ -17,7 +17,7 @@ definition() ->
         ],
 
         tasks = [
-            #userTask    { name='Init',      module = deposit }, 
+            #userTask    { name='Init',      module = deposit },
             #userTask    { name='Signatory', module = deposit},
             #serviceTask { name='Payment',   module = deposit},
             #serviceTask { name='Process',   module = deposit},
@@ -27,6 +27,7 @@ definition() ->
         beginEvent = 'Init',
         endEvent = 'Final',
         events = [
+             #boundaryEvent{name="Timeout"},
              #messageEvent{name="PaymentReceived"}
         ]
     }.
