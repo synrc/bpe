@@ -47,14 +47,20 @@ delete_tasks(Proc, Tasks) ->
 
 history(ProcId) -> kvs:entries(kvs:get(feed,{history,ProcId}),history,undefined).
 
+source(Name, Proc) ->
+    case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of
+         [T] -> T;
+         [] -> [];
+         E -> E end.
+
 task(Name, Proc) -> 
-    case [ Task || Task <- Proc#process.tasks, element(#task.name,Task) == Name] of
+    case [ Task || Task <- tasks(Proc), element(#task.name,Task) == Name] of
          [T] -> T;
          [] -> [];
          E -> E end.
 
 doc(Rec, Proc) ->
-    case [ Doc || Doc <- Proc#process.docs, element(1,Doc) == element(1,Rec)] of
+    case [ Doc || Doc <- docs(Proc), element(1,Doc) == element(1,Rec)] of
          [D] -> D;
          [] -> [];
          E -> E end.
