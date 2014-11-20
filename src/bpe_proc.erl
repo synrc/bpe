@@ -18,13 +18,17 @@ process_event(Event,Proc) ->
     kvs:put(NewProcState),
     FlowReply.
 
-process_flow(Stage,Proc) ->
+process_flow(Stage,Proc) -> process_flow(Stage,Proc,false).
+process_flow(Stage,Proc,NoFlow) ->
     Curr = Proc#process.task,
     Term = [],
     Task = bpe:task(Curr,Proc),
-    Targets = bpe_task:targets(Curr,Proc),
+    Targets = case NoFlow of
+                   true -> noflow;
+                   _ -> bpe_task:targets(Curr,Proc) end,
     wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
     {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task} of
+         {noflow,_}-> {reply,{complete,Curr},Proc};
          {[],Term} -> bpe_task:already_finished(Proc);
          {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
          {[],_}    -> bpe_task:denied_flow(Curr,Proc);
@@ -43,26 +47,6 @@ process_flow(Stage,Proc) ->
     kvs:put(NewProcState),
     FlowReply.
 
-process_noflow(_Stage,Proc) ->
-  Curr = Proc#process.task,
-  Targets = bpe_task:targets(Curr,Proc),
-  wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
-  {Status,{Reason,Target},ProcState} = {reply,{complete,Curr},Proc},
-
-  kvs:add(#history { id = kvs:next_id("history",1),
-  feed_id = {history,ProcState#process.id},
-  name = ProcState#process.name,
-  time = calendar:now_to_datetime(now()),
-  task = {task, Curr} }),
-
-  NewProcState = ProcState#process{task = Target},
-
-  FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-  wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
-  kvs:put(NewProcState),
-  FlowReply.
-
-
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
@@ -71,9 +55,9 @@ handle_call({start},_,Proc)            ->   process_flow([],Proc);
 handle_call({complete},_,Proc)         ->   process_flow([],Proc);
 handle_call({complete,Stage},_,Proc)   ->   process_flow(Stage,Proc);
 handle_call({event,Event},_,Proc)      ->   process_event(Event,Proc);
-handle_call({noflow_amend,Form},_,Proc)
-                   when is_list(Form)  ->   process_noflow([],set_rec_in_proc(Proc,Form));
-handle_call({noflow_amend,Form},_,Proc)->   process_noflow([],Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)});
+handle_call({amend,Form,true},_,Proc)
+                   when is_list(Form)  ->   process_flow([],set_rec_in_proc(Proc,Form),true);
+handle_call({amend,Form,true},_,Proc)  ->   process_flow([],Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)},true);
 handle_call({amend,Form},_,Proc)
                    when is_list(Form)  ->   process_flow([],set_rec_in_proc(Proc,Form));
 handle_call({amend,Form},_,Proc)       ->   process_flow([],Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)});

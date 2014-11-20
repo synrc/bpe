@@ -25,7 +25,7 @@ process(ProcId)           -> gen_server:call(ProcId,{get}).
 complete(ProcId)          -> gen_server:call(ProcId,{complete}).
 complete(Stage,ProcId)    -> gen_server:call(ProcId,{complete,Stage}).
 amend(ProcId,Form)        -> gen_server:call(ProcId,{amend,Form}).
-noflow_amend(ProcId,Form) -> gen_server:call(ProcId,{noflow_amend,Form}).
+amend(ProcId,Form,noflow) -> gen_server:call(ProcId,{amend,Form,true}).
 event(ProcId,Event)       -> gen_server:call(ProcId,{event,Event}).
 
 complete_while(ProcId) ->
