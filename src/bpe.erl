@@ -21,11 +21,12 @@ start(Proc0, Docs) ->
                   Restart, Shutdown, worker, [bpe_proc] },
     supervisor:start_child(bpe_sup,ChildSpec).
 
-process(ProcId)          -> gen_server:call(ProcId,{get}).
-complete(ProcId)         -> gen_server:call(ProcId,{complete}).
-complete(Stage,ProcId)   -> gen_server:call(ProcId,{complete,Stage}).
-amend(ProcId,Form)       -> gen_server:call(ProcId,{amend,Form}).
-event(ProcId,Event)      -> gen_server:call(ProcId,{event,Event}).
+process(ProcId)           -> gen_server:call(ProcId,{get}).
+complete(ProcId)          -> gen_server:call(ProcId,{complete}).
+complete(Stage,ProcId)    -> gen_server:call(ProcId,{complete,Stage}).
+amend(ProcId,Form)        -> gen_server:call(ProcId,{amend,Form}).
+noflow_amend(ProcId,Form) -> gen_server:call(ProcId,{noflow_amend,Form}).
+event(ProcId,Event)       -> gen_server:call(ProcId,{event,Event}).
 
 complete_while(ProcId) ->
     {complete,Status} = complete(ProcId),
