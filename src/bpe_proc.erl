@@ -27,12 +27,13 @@ process_flow(Stage,Proc,NoFlow) ->
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
     wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
-    {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task} of
-         {noflow,_}-> {reply,{complete,Curr},Proc};
-         {[],Term} -> bpe_task:already_finished(Proc);
-         {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
-         {[],_}    -> bpe_task:denied_flow(Curr,Proc);
-         {List,_}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc) end,
+    {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task,Stage} of
+         {noflow,_,_} -> {reply,{complete,Curr},Proc};
+         {[],Term,_}  -> bpe_task:already_finished(Proc);
+         {[],Curr,_}  -> bpe_task:handle_task(Task,Curr,Curr,Proc);
+         {[],_,_}     -> bpe_task:denied_flow(Curr,Proc);
+         {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
+         {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
