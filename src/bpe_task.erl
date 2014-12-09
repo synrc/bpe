@@ -10,8 +10,8 @@ find_flow(Stage,List) -> case lists:member(Stage,List) of
                               _ -> find_flow(List) end.
 
 targets(Curr,Proc) ->
-    Targets = [ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 
-                Source==Curr].
+    Targets = lists:flatten([ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 
+                Source==Curr]).
 
 denied_flow(Curr,Proc) ->
     {reply,{denied_flow,Curr},Proc}.
