@@ -84,7 +84,7 @@ val(Document,Proc,Cond) -> val(Document,Proc,Cond,fun(X,Y)-> ok end).
 val(Document,Proc,Cond,Action) ->
 %    io:format("val: ~p~n",[Document]),
     case Cond(Document,Proc) of
-         true -> Action(Document,Proc),
-                 {reply,Proc};
+         true -> Action(Document,Proc), {reply,Proc};
+         {false,Message} -> {{reply,Message},Proc#process.task,Proc};
             _ -> {reply,Proc#process.task,Proc} end.
 

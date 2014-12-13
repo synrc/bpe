@@ -24,6 +24,7 @@ task_action(Module,CurrentTask,Target,Proc) ->
                    true ->
     case Module:action({request,CurrentTask},Proc) of
          {reply,State}      -> {reply,{complete,Target},State};
+         {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
          {reply,Task,State} -> {reply,{complete,Task},State} end;
                    false -> case wf:config(bpe,ignore_exports) of
                                [] -> {reply,{complete,Target},Proc};
