@@ -72,7 +72,7 @@ events(Proc) -> Proc#process.events.
 
 % Process Schema
 
-new_task(Proc,GivenTask) -> 
+new_task(Proc,GivenTask) ->
    Existed = [ Task || Task<- Proc#process.tasks, Task#task.name == GivenTask#task.name],
    case Existed of
         [] -> Proc#process{tasks=[GivenTask|Proc#process.tasks]};
@@ -82,9 +82,9 @@ delete(Proc) -> ok.
 
 val(Document,Proc,Cond) -> val(Document,Proc,Cond,fun(X,Y)-> ok end).
 val(Document,Proc,Cond,Action) ->
-%    io:format("val: ~p~n",[Document]),
     case Cond(Document,Proc) of
          true -> Action(Document,Proc), {reply,Proc};
          {false,Message} -> {{reply,Message},Proc#process.task,Proc};
-            _ -> {reply,Proc#process.task,Proc} end.
+         ErrorList -> io:format("BPE:val/4 failed: ~p~n",[ErrorList]),
+                      {{reply,ErrorList},Proc#process.task,Proc} end.
 
