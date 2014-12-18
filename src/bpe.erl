@@ -31,7 +31,7 @@ complete(Stage,ProcId) when is_pid(ProcId) -> gen_server:call(ProcId,{complete,S
 complete(Stage,ProcId) -> gen_server:call(find_pid(ProcId),{complete,Stage}).
 amend(ProcId,Form) when is_pid(ProcId) -> gen_server:call(ProcId,{amend,Form});
 amend(ProcId,Form) -> gen_server:call(find_pid(ProcId),{amend,Form}).
-amend(ProcId,Form,noflow) when id_pid(ProcId) -> gen_server:call(ProcId,{amend,Form,true});
+amend(ProcId,Form,noflow) when is_pid(ProcId) -> gen_server:call(ProcId,{amend,Form,true});
 amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true}).
 event(ProcId,Event) when is_pid(ProcId) -> gen_server:call(ProcId,{event,Event});
 event(ProcId,Event) -> gen_server:call(find_pid(ProcId),{event,Event}).
