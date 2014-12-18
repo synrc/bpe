@@ -29,8 +29,12 @@ amend(ProcId,Form,noflow) -> gen_server:call(ProcId,{amend,Form,true}).
 event(ProcId,Event)       -> gen_server:call(ProcId,{event,Event}).
 
 complete_while(ProcId) ->
-    {complete,Status} = complete(ProcId),
-    {complete,Status2} = complete(ProcId),
+    Status = case complete(ProcId) of
+                {complete,S} -> S;
+                {{complete,_},S} -> S end,
+    Status2 = case complete(ProcId) of
+                  {complete,S2} -> S2;
+                  {{complete,_},S2} -> S2 end,
     case Status == Status2 of
          true -> {complete,Status2};
             _ -> complete_while(ProcId) end.
