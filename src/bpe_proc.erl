@@ -69,6 +69,7 @@ init(Process) ->
     Proc = case kvs:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
+    wf:cache({process,Proc#process.id},self()),
     [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
     {ok, Proc}.
 
