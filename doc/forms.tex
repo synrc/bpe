@@ -1,0 +1,53 @@
+\section{FORMS: User Applications}
+
+\subsection{Metainformation}
+Metainformation declares the Documents and its fields.
+This project is a Metainformation project for core document/forms model definition.
+
+\subsection{Data Model}
+KVS Data Model is being generated from Metainformation.
+KVS layer along with FEEDS server provide persistance facilities.
+
+\subsection{Application}
+JavaScript Web Application is generated using Metainformation and Data Model.
+N2O is used as DSL language for forms generation.
+JavaScript/OTP is used for generating forms.
+Forms average render speed is 50 FPS (forms per second).
+
+\subsection{Documents}
+
+\vspace{1\baselineskip}
+\begin{lstlisting}
+ document(Name,Phone) ->
+                #document { name = Name,
+
+    sections =[ #section  { name= [<<"Input OTP sent to ">>,
+                            wf:to_list(Phone#phone.number)] } ],
+
+    buttons  =[ #button   { name='decline', title = <<"Cancel">>, 
+                            class=cancel,
+                            postback={'CloseOpenedForm', Name} },
+
+                #button   { name='next', title = <<"Continue">>, 
+                            class=[button,green],
+                            postback={'Spinner', {'OpenForm',Name}},
+                            sources=[otp] } ],
+
+    fields   =[ #field    { name='otp', type=otp,
+                            title= <<"Password">>,
+                            labelClass=label, 
+                            fieldClass=column3} ] }.
+\end{lstlisting}
+
+\includeimage{images/Forms.png}{Form Sample}
+\
+
+\subsection{Fields}
+
+\subsection{Validation Rules}
+Validation rules should be applied by developer.
+Erlang and JavaScript/OTP is used to define validation
+rules applied to documents during workflow.
+
+\subsection{Form Autogeneration}
+
