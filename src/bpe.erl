@@ -36,6 +36,8 @@ amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true})
 event(ProcId,Event) when is_pid(ProcId) -> gen_server:call(ProcId,{event,Event});
 event(ProcId,Event) -> gen_server:call(find_pid(ProcId),{event,Event}).
 
+addRecsProc(Proc, RecordsList) -> bpe_proc:set_rec_in_proc(Proc, RecordsList).
+
 complete_while(ProcId) ->
     Status = case complete(ProcId) of
                 {complete,S} -> S;

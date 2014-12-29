@@ -4,7 +4,7 @@
 -behaviour(gen_server).
 -export([start_link/1]).
 -export([init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--export([plist_setkey/4]).
+-export([plist_setkey/4,set_rec_in_proc/2]).
 
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
