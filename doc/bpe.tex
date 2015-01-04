@@ -1,19 +1,58 @@
 \section{BPE: Business Processes}
 
-\subsection{Overview}
-BPE is Synrc Cloud Stack Erlang Application that bring Erlang for for Enterprise.
-It provides infrastructure for Workflow Definitions, Process Orchestration,
-Rule Based Production Systems and Distributed Storage.
+\subsection{Pi-calculus and Petri nets}
+The nice thing about workflow models is that there are two kinds of encoding:
 
-\subsection{Pi Calculus, Petri nets and Reactive systems}
+\paragraph{}
+The second is geometric {\bf Petri nets}. Carl Petri introduced it in 1962 during discrete
+analisys of asynchronous computer systems. Any its graphical representation could be
+defined with Petri nets formalism. Petri modeling in one of its forms is a good
+complementation to process algebra useful as computational model.
 
-\subsection{Typing Pi Calculus}
+\paragraph{}
+The one is algebraic {\bf Pi-calculus} developed by Robin Milner who gained
+Turing award for 1) Meta Language ML, 2) Calculus for Communication Systems CCS (1980),
+the general theory of concurrency and 3) theoretical base for proof assistants,
+Logic for Computable Function LCF.
+The model of process calculus is a theorethical
+background of virtual environment of Erlang infrastructure, so BPE
+implementation fully relies on Pi-calculus (1999), the successor of CCS notion.
+Thus providing effective computational model for implementation of workflow
+process management.
 
+\subsection{Finite State Machines}
+One of the common known type of encoding process calculus is well developed {\bf FSM framework} (60-s).
+This language is widly used almost in any programming language presented as core
+feature or as library. The process defines with an extension to turing machine
+with states, input, ouputs and functions.
+
+\subsection{SADT}
+The next language (framework) that used in (80-s, 90-s) to describe similar
+to process calculus definitions with graphical Petri nets and model definitions
+was {\bf SADT} introduced by Marca and MacGowan 1988, 1991.
+
+\subsection{Reactive Systems}
+One of the wide range of semantics is Reactive Systems based on message passing
+and event routing, but also is could be known as Functional Reactive Programming FRP
+which is rather a set of combinators over streams. Both interpretation is
+used in languages and frameworks, depending on involvement of stream in core
+definition (2010-s).
+
+\subsection{Typing Pi-calculus}
+In typed theory Pi-calculus defines also the typing system (could be System F, e.g.) for
+input and outputs of processes or function signatures specified in process definition.
+In BPE the role of types was taked by document types, which is simple Erlang records,
+so in BPE workflow processing is type-safe on compilation stage with respect to document types.
+
+\vspace{1\baselineskip}
+\begin{lstlisting}
+    1> #deposit{} = bpe:doc(#deposit{}, pid(0,185,0)).
+\end{lstlisting}
 \subsection{Systems}
 
 \subsection{Scenarios}
 Workflows are complimentary to business rules and could be specified separetly.
-BPE defenitions provides front API to the end-user application.
+BPE definitions provides front API to the end-user application.
 Workflow Engine -- is an Erlang/OTP application which handles process definitions,
 process instances, and provides very clean API for Workplaces.
 
@@ -26,17 +65,19 @@ workflow definition:
 \vspace{1\baselineskip}
 \begin{lstlisting}
 bpe:start(
-   #process{name="Order11",
-       flows=[ #sequenceFlow{source="begin",target="end2"},
-               #sequenceFlow{source="end2",target="end"}],
+   #process{name="Order Form",
+       flows=[ #sequenceFlow{source="begin",target="fill_form"},
+               #sequenceFlow{source="fill_form",target="end"}],
        tasks=[ #userTask{name="begin"},
-               #userTask{name="end2"},
+               #userTask{name="fill_form"},
                #endEvent{name="end"}],
        task="begin",beginEvent="begin",endEvent="end"},[]).
 \end{lstlisting}
 
 
 \newpage
+Slightly bigger example:
+
 \vspace{1\baselineskip}
 \begin{lstlisting}
 deposit_app() ->
