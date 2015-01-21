@@ -1,21 +1,37 @@
 \section{Introduction}
 
 \subsection{Overview}
-SpawnProc is Synrc Erlang application business application stack that
+BPE is a part of Synrc business application stack that
 unlock Erlang for for enterprise core processing.
 It provides infrastructure for workflow definitions, process orchestration,
 rule-based production systems and distributed storage. This book is dedicated to cover
 all parts needed for bootstrapping operational document processing model along with
 workflow, models, forms, validations and other aspects of systems with similar requirements.
 
-\subsection{Forms}
+\paragraph{}
+This book is also about the foundations of banking implementation (TPS) up to external
+connectors and services which is closed by security policies. So it also defines
+transactional processing model, storing model, and distribution capabilities such as
+Dynamo hashing for achieve data locality for transactions and documents which
+belongs to bank customers.
+
+\subsection{User Applications}
 The FORMS application is dedicated to bring forms under the common
 onthological model of data that is entering, storing and processing.
+The forms model gives a root to the essence of information system circulation.
 
 \subsection{Business Process Engine}
 The core of document processing is BPE which runs in native Erlang process semantic
-as Pi-calculus execution environment.
-
-\subsection{Processing Database}
+as Pi-calculus execution environment. Different bank departments represented
+as ACT workflow scenarios, such as deposit, credit or operational processes along with
+transfer and withdraw or charge operations. All these operations represented
+as document forms which flows along workflow. Activity service know only
+customer information and don't know card numbers or other sensitive transactional data.
 
 \subsection{Transactional Processing Service}
+The monetary processing core is TPS service driven by scripts in UPL language.
+All constraints and rules are applied from UPL definitions to transactions.
+Transactional service know nothing about customer information.
+
+\subsection{Processing Database}
+The basic database schema DBS to work with BPE and TPS applications.

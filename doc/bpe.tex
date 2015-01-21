@@ -1,19 +1,37 @@
 \section{BPE: Business Processes}
+The author of BPE has implemented business workflow engine for CLR virtual
+machine using C\# language. However Erlang implementation more idiomatic
+and canonical due to semantic corresponding of process calculus and
+the core of underlying virtual machine. Send async messages across processes
+means exacly what it says up to Erlang pids. For sending documents to
+business process you can use process's name or its Pid:
 
-\subsection{Pi-calculus and Petri nets}
-The nice thing about workflow models is that there are two kinds of encoding:
+\vspace{1\baselineskip}
+\begin{lstlisting}
+    1> bpe:amend(pid(0,185,0),#deposit{}).
+\end{lstlisting}
 
 \paragraph{}
-The second is geometric {\bf Petri nets}. Carl Petri introduced it in 1962 during discrete
+Thanks to this isomorphic corresponding between Erlang process and Calculus process
+code size of core BPE server was reduced to 400 lines of code. This is definitely
+most clean functional implementation of workflow engine.
+
+\subsection{Pi-calculus and Petri nets}
+The nice thing about all pallete of different implementataion of workflow models is
+that all of them reduced to one of two kinds of encoding: one is algebraic one and
+the other is geometric.
+
+\paragraph{}
+The geometric one is {\bf Petri nets}. Carl Petri introduced it in 1962 during discrete
 analisys of asynchronous computer systems. Any its graphical representation could be
 defined with Petri nets formalism. Petri modeling in one of its forms is a good
 complementation to process algebra useful as computational model.
 
 \paragraph{}
-The one is algebraic {\bf Pi-calculus} developed by Robin Milner who gained
+The algebraic one is {\bf Pi-calculus} developed by Robin Milner who gained
 Turing award for 1) Meta Language ML, 2) Calculus for Communication Systems CCS (1980),
 the general theory of concurrency and 3) theoretical base for proof assistants,
-Logic for Computable Function LCF.
+Logic for Computable Functions LCF.
 The model of process calculus is a theorethical
 background of virtual environment of Erlang infrastructure, so BPE
 implementation fully relies on Pi-calculus (1999), the successor of CCS notion.
@@ -187,5 +205,4 @@ bpe_proc:Process 39 spawned <0.12399.0>
           etc = undefined,name = "Order11",
           task = {task,"begin"}}]
 \end{lstlisting}
-
 

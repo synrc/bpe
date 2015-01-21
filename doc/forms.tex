@@ -11,15 +11,15 @@ the best source is N2O book. This kind of metainterpretation and unification of
 containers is usual for enterprise and common object oriented systems.
 
 \subsection{Metainformation}
-Metainformation declares the documents (#document) and its
-fields (#field) which forms a document level entity that can
+Metainformation declares the documents (\#document) and its
+fields (\#field) which forms a document level entity that can
 be store in database. Usually somewhere in ACT or in DBS
 applications you can find its document definition in Erlang
 records which is entered with forms.
 
 \subsection{Document}
-The #document object is an application form definition.
-It consists of sections (#sec) that include fields with
+The \#document object is an application form definition.
+It consists of sections (\#sec) that include fields with
 its descriptions and validations.
 
 \vspace{1\baselineskip}
@@ -33,14 +33,14 @@ its descriptions and validations.
                       access }).
 \end{lstlisting}
 
-Each section #sec of forms are entitled with heading font.
+Each section \#sec of forms are entitled with heading font.
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
 -record(sec,        { id, name, desc="" }).
 \end{lstlisting}
 
-Forms age given with its control buttons (#but).
+Forms age given with its control buttons (\#but).
 The information from field postback in button is directly translated
 to N2O element postback during forms:new/2.
 
