@@ -71,7 +71,7 @@ init(Process) ->
          {error,_} -> Process end,
     wf:cache({process,Proc#process.id},self()),
     [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
-    {ok, Proc}.
+    {ok, Proc#process{timer=erlang:send_after(30000,self(),{timer,ping})}}.
 
 handle_cast(Msg, State) ->
     wf:info(?MODULE,"Unknown API async: ~p", [Msg]),
@@ -81,17 +81,28 @@ handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process
     wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
     {stop, normal, State};
 
-handle_info({timer,ping}, State=#process{timer=Timer,id=Id}) ->
+handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events}) ->
     case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
-    wf:info(?MODULE,"Ping: ~p", [Id]),
     [H|T] = bpe:history(Id),
+    Wildcard = '*',
+    Terminal= case lists:keytake(Wildcard,2,Events) of
+                   {value,Event,_} -> {Wildcard,element(4,Event)};
+                             false -> {Wildcard,{0,{0,1,0}}} end,
+    {Name,{Days,Pattern}} = case lists:keytake(Task,2,Events) of
+                   {value,Event2,_} -> {Task,element(4,Event2)};
+                             false -> Terminal end,
     Time2 = calendar:now_to_datetime(now()),
+    wf:info(?MODULE,"Ping: ~p Task ~p Event ~p ~n", [Id,Task,Name]),
     case H of #history{time=Time1} ->
-              case calendar:time_difference(Time1,Time2) of
-                   {0,{0,0,_}} ->
-                        erlang:send_after(5000,self(),{timer,ping}),
-                        {noreply, State};
-                   _ -> {stop,normal,State} end;
+              Diff = calendar:time_difference(Time1,Time2),
+              case Diff < {Days,Pattern} of
+                   true ->
+                        {X,Y,Z} = Pattern,
+                        Retry = 1000*(Z+60*Y+60*60*X) div 2,
+                        NewTimer = erlang:send_after(Retry,self(),{timer,ping}),
+                        {noreply, State#process{timer=NewTimer}};
+                   _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nLast visit was at ~p, now is ~p~n",[Time1,Time2]),
+                        {stop,normal,State} end;
          _ -> {noreply, State} end;
 
 handle_info(Info, State=#process{}) ->
