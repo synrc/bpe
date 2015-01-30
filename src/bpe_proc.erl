@@ -99,7 +99,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                    true ->
                         {X,Y,Z} = Pattern,
                         Retry = 1000*(Z+60*Y+60*60*X) div 2,
-                        NewTimer = erlang:send_after(Retry,self(),{timer,ping}),
+                        NewTimer = erlang:send_after(Diff,self(),{timer,ping}),
                         {noreply, State#process{timer=NewTimer}};
                    _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nLast visit was at ~p, now is ~p~n",[Time1,Time2]),
                         {stop,normal,State} end;
