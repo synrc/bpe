@@ -94,12 +94,12 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     Time2 = calendar:now_to_datetime(now()),
     wf:info(?MODULE,"Ping: ~p Task ~p Event ~p ~n", [Id,Task,Name]),
     case H of #history{time=Time1} ->
-              Diff = calendar:time_difference(Time1,Time2),
-              case Diff < {Days,Pattern} of
+              {DD,Diff} = calendar:time_difference(Time1,Time2),
+              case {DD,Diff} < {Days,Pattern} of
                    true ->
-                        {X,Y,Z} = Pattern,
-                        Retry = 1000*(Z+60*Y+60*60*X) div 2,
-                        NewTimer = erlang:send_after(Diff,self(),{timer,ping}),
+                        {X,Y,Z} = Diff,
+                        Retry = 1000*(Z+60*Y+60*60*X),
+                        NewTimer = erlang:send_after(Retry,self(),{timer,ping}),
                         {noreply, State#process{timer=NewTimer}};
                    _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nLast visit was at ~p, now is ~p~n",[Time1,Time2]),
                         {stop,normal,State} end;
