@@ -4,31 +4,51 @@ The TPS is a Riak Core application that provides distributed,
 fault tolerant, network-split resistant, performant,
 transactional intermediary processing. It also guarantees
 Data Locality for storing customer objects which allows
-TPS to be easy scalable and maintainable. The core of TPS
+TPS to be easily scalable and maintainable. The core of TPS
 is SQL transactional processing and its Cache Riak application,
 based on KVS. Rules for TPS are to be defined using UPL language.
 
 \subsection{Data Locality Cache Ring}
 
-All customers of Banks are being grouped or sharded using custom modified Riak hash function that is known to be linear and consistent. This function allows TPS to store all customer information for a giver master of its key on a single node. Thus all TPS operations of transactions, cards, account of a given customer are passed to a hash function with a same customer ID key. In Riak all values with the same key are stored in the same VNODE.
+All customers of Banks are being grouped or sharded using custom
+modified Riak hash function that is known to be linear and consistent.
+This function allows TPS to store all customer information for
+a given master of its key on a single node. Thus all TPS operations
+on transactions, cards, account of a given customer are passed
+to a hash function with a same customer ID key.
+In Riak all values with the same key are stored in the same VNODE.
 
 \subsection{Riak Cache and SQL Warehouse}
 
-All interface operations and application data are stored and being read from Riak TPS Ring, which is in fact Riak Core application. Each VNODE should be treated as Bank department or isolated Bank part which could be detached to other place or Data Center. Each Riak Core VNODE TPS application also has access to its SQL warehouse, the primary source of transactions.
+All interface operations and application data are stored and
+being read from Riak TPS Ring, which is in fact Riak Core application.
+Each VNODE should be treated as Bank department or isolated Bank part
+which could be detached to other place or Data Center.
+Each Riak Core VNODE TPS application also has access to its SQL warehouse,
+the primary source of transactions.
 
 \subsection{Transactions Rate Calculation}
 
-Here we should define the formula of expected Transactions per month, that is the source for all system configuration. Here is example:
+Here we define the formula of expected Transactions per month,
+that is the source for all system configuration. Here is example:
 
 \paragraph{}
-The operational data is fixed. E.g. we have 30M customers. Consider each customer performs 10 transactions in a month, thus we have 300M transaction. Each transaction has 2K in its size. So wee need 600G space of a cluster in a month. After each month we could outsource this data or even reduce it by cutting the tails of transactions list. Also this size 600G is to be divided by the number of nodes with accuracy to a coefficient of replication for TPS Ring. For SQL warehouse we double its size for SQL warm stand by failover. Also the number of VNODE in TPS Ring is exactly the number of failover SQL instances.
+The operational data is fixed. E.g. we have 30M customers.
+Consider each customer performs 10 transactions in a month,
+thus we have 300M transaction. Each transaction has 2K in its size.
+So wee need 600G space of a cluster in a month.
+After each month we could outsource this data or even reduce it
+by cutting the tails of transactions list. Also these 600G can be divided
+by the number of nodes with accuracy to a coefficient of replication for TPS Ring.
+For SQL warehouse we double its size for SQL warm stand by failover.
+Also the number of VNODEs in TPS Ring is exactly the number of failover SQL instances.
 
 \subsection{Financial Warehouse Operations}
 
 -- CHARGE, unconditional INSERT and head UPDATE inside TRANSACTION, Cache Write-Back
--- WITHDRAW, conditional INSERT, based on last known amount of latest customer transaction, and chain root UPDATE inside TRANSACTION, , Cache Write-Back
+-- WITHDRAW, conditional INSERT, based on last known amount of latest customer transaction, and chain root UPDATE inside TRANSACTION, Cache Write-Back
 
-All SQL Operations also performs write backs to TPS Cache, which is backed by Riak.
+All SQL Operations also perform write backs to TPS Cache, which is backed by Riak.
 
 \subsection{Cache Operations}
 
