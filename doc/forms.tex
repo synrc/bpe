@@ -1,19 +1,19 @@
 \section{FORMS: User Applications}
-Forms application provide set of CSS stylesheets for compact forms definitions
+FORMS application provides set of CSS stylesheets for compact forms definitions
 and also it provides database model for storing metadata information about
-documents, fields, validations.
+documents, fields and validations.
 
 \subsection{Overview}
 The basic idea that stands behind form models is that N2O forms are able to be
 generated from its metamodel which is also a root for other generated
-persisted Erlang records for KVS storage. For the taxonomy of N2O forms and KVS interface
-the best source is N2O book. This kind of metainterpretation and unification of
+persisted Erlang records for KVS storage. N2O book is the best for the taxonomy
+of N2O forms and KVS interface. This kind of metainterpretation and unification of
 containers is usual for enterprise and common object oriented systems.
 
 \subsection{Metainformation}
 Metainformation declares the documents (\#document) and its
 fields (\#field) which forms a document level entity that can
-be store in database. Usually somewhere in ACT or in DBS
+be stored in database. Usually somewhere in ACT or in DBS
 applications you can find its document definition in Erlang
 records which is entered with forms.
 
@@ -51,7 +51,7 @@ to N2O element postback during forms:new/2.
 \end{lstlisting}
 
 \subsection{Validation}
-As document consist of validations and field here is their
+Since document consists of validations and fields, here is their
 record definitions in FORMS model:
 
 \vspace{1\baselineskip}
@@ -71,12 +71,12 @@ record definitions in FORMS model:
 
 \subsection{Data Model}
 KVS Data Model is being generated from Metainformation.
-KVS layer along with FEEDS server provide persistance facilities.
+KVS layer along with FEEDS server provide persistence facilities.
 
 \subsection{Application}
 JavaScript Web Application is generated using Metainformation and Data Model.
 N2O is used as DSL language for forms generation.
-JavaScript/OTP is used for generating forms.
+JavaScript/OTP is also used for forms generation.
 Forms average render speed is 50 FPS (forms per second).
 
 \subsection{Documents}
@@ -89,11 +89,11 @@ Forms average render speed is 50 FPS (forms per second).
     sections =[ #sec      { name= [<<"Input OTP sent to ">>,
                             wf:to_list(Phone#phone.number)] } ],
 
-    buttons  =[ #but      { name='decline', title = <<"Cancel">>, 
+    buttons  =[ #but      { name='decline', title = <<"Cancel">>,
                             class=cancel,
                             postback={'CloseOpenedForm', Name} },
 
-                #but      { name='next', title = <<"Continue">>, 
+                #but      { name='next', title = <<"Continue">>,
                             class=[button,green],
                             postback={'Spinner', {'OpenForm',Name}},
                             sources=[otp] } ],
@@ -117,8 +117,8 @@ rules applied to documents during workflow.
 \subsection{Form Autogeneration}
 
 \subsection{XForms and XMPP Data Forms}
-The other well known standard is XForms that could be easily coneverted
-to both directions by FORMS application. XForms W3C standard is strive to be supported by browsers.
+The other well known standard is XForms that could be easily converted
+to both directions by FORMS application. XForms W3C standard strives to be supported by browsers.
 The other XML forms standard is XEP-0004 Data Forms which is supported by most XMPP clients:
 
 \vspace{1\baselineskip}

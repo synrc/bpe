@@ -2,13 +2,13 @@
 
 \subsection{History}
 
-Pocessing systems are using manually crafted application
+Processing systems use manually crafted application
 relays to handle card processing business rules. Being defined by business
-analysts these rules are fallen down to engineering teams informally.
-Approach we provide pushes card processing to solid background in a form
-of domain specific language common for all card plans analytics departments.
+analysts, these rules are fallen down to engineering teams informally.
+Approach we provide, pushes card processing to solid background in a form
+of domain specific language, common for all card plans analytics departments.
 
-Having compact language we can formally build various translators
+Having compact language, we can formally build various translators
 for particular customers and existing processing systems. At the same time
 we provide reference back-end Erlang system implementation
 for transactions processing. Also DSL gives us a natural and easy
@@ -26,14 +26,14 @@ verification strategies and compactifications.
             auto
             charge enabled monthly limit max 20000
             monthly 1% of amount to account 'bonus'
-            monthly 15% name 'tax' of deposit 
+            monthly 15% name 'tax' of deposit
                         to account 'users/:client/tax'
 \end{lstlisting}
 \vspace{1\baselineskip}
 
 This language could be easily extended to other domain areas like
 internet payment processing, shopping mall bonus programs, mobile
-operators tariff plans.
+operators tariff plans etc.
 
 \newpage
 \subsection{Objectives}
@@ -59,12 +59,12 @@ We have several criteria to satisfy:
 \paragraph{}User Creation:
 
 \begin{lstlisting}
-    prepare user ':client' 
+    prepare user ':client'
         name     ':fullname'
         age      ':birth'
         phone    ':ph'
         document ':passport'
-        accounts 
+        accounts
             credit '/users/:client/credit' program 'PB-UNIVERSAL'
             account '/users/:client/:acc' program ':tariff'
 \end{lstlisting}
@@ -72,7 +72,7 @@ We have several criteria to satisfy:
 \paragraph{}Process Transaction:
 
 \begin{lstlisting}
-    prepare transaction from account 'users/:client' 
+    prepare transaction from account 'users/:client'
                           to account ':beneficiar'
 \end{lstlisting}
 
@@ -86,8 +86,8 @@ We have several criteria to satisfy:
 \subsection{Programs}
 
 Programs are tariff programs, set of rules that we plug to transaction processing.
-It feels like set of filters triggered each time we fire money
-movements on account with a given card defenition.
+It feels like set of filters triggered each time we execute money
+movements on account with a given card definition.
 
 \vspace{1\baselineskip}
 \begin{lstlisting}[caption=BNF]
@@ -137,7 +137,7 @@ call language forms.
 \vspace{1\baselineskip}
 \begin{lstlisting}[caption=BNF]
 
-       Direction = charge 
+       Direction = charge
                  | withdraw
 
       ChargeRule = Fixed + Percent
@@ -146,7 +146,7 @@ call language forms.
                    name Name
                    to account Name
 
-    Periodically = monthly Amount 
+    Periodically = monthly Amount
                  | monthly Months -> ChargeRule
                  | daily ChargeRule
                  | annual ChargeRule
@@ -159,7 +159,7 @@ call language forms.
 \subsection{Accounts}
 
 Enterprise Tree handles clients, accounts, transactions, programs, events.
-Programs could be assigned to each node and fires atomatically on access.
+Programs could be assigned to each node and fires automatically on access.
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
@@ -198,11 +198,10 @@ Transactions are stored per each client's account.
 
 \subsection{Deposit}
 
-Deposit program forms ususally provides such attributes of
+Deposit program forms usually provide such attributes of
 account as duration, rate, withdraw locking, charge
 limits, fee options and other deposit specific options.
 Deposit forms usually have "deposit" account name.
-
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
@@ -221,8 +220,8 @@ Deposit forms usually have "deposit" account name.
 
 \subsection{Credit}
 
-Credit programs forms mainly provide transaction
-filtering and other default account name "credit".
+Credit program forms mainly provide transaction
+filtering and have default account name "credit".
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
