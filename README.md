@@ -4,7 +4,7 @@ Business Process Engine
 Overview
 --------
 
-BPE is Synrc Cloud Stack Erlang Application that bring Erlang for for Enterprise.
+BPE is Synrc Cloud Stack Erlang Application that brings Erlang for Enterprises.
 It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
@@ -19,7 +19,7 @@ Process Schema
 
 Before using Process Engine you need to define the set of business process
 workflows of your enterprise. This could be done via Erlang terms or some DSL
-that lately converted to Erlang terms. Internally BPE uses Eralng terms
+that lately should be converted to Erlang terms. Internally BPE uses Erlang terms
 workflow definition:
 
 ```erlang
@@ -34,7 +34,7 @@ bpe:start(
 
 ```
 
-The worklow definiton uses following persistent workflow model which is stored in KVS:
+The workflow definition uses following persistent workflow model which is stored in KVS:
 
 ```erlang
 -record(task,         { name, id, roles, module }).
@@ -52,7 +52,7 @@ The worklow definiton uses following persistent workflow model which is stored i
                         beginEvent, endEvent }).
 ```
 
-Full set of BPMN 2.0 fields could be obtainer at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0) page 3-7.
+Full set of BPMN 2.0 fields could be obtained at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0) page 3-7.
 
 Sample Session
 --------------
@@ -110,12 +110,12 @@ events(Proc)
 tasks(Proc)
 ```
 
-Using 'tasks' API you fetch current documents attached to the given
-process at particular stage. Using 'amend' API you could upload or
-change document at current stage. 'push' API move current
+Using 'tasks' API you can fetch current documents attached to the given
+process at particular stage. Using 'amend' API you can upload or
+change document at current stage. 'push' API moves current
 stage documents further by workflow.
 
-Let us see how we could initial 'Wire Transfer' transaction:
+Let us see how we could create initial 'Wire Transfer' transaction:
 
 ```erlang
 bpe:load("WireTransfer"),
@@ -133,7 +133,7 @@ bpe:amend(Id,Tasks),
 bpe:push(Id),
 ```
 
-Dializer
+Dialyzer
 --------
 
 For check API with dialyzer build with `rebar compile` and run `make dialyze`.
