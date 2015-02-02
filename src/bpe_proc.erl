@@ -77,13 +77,10 @@ handle_cast(Msg, State) ->
     wf:info(?MODULE,"Unknown API async: ~p", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
-handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
-    wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
-    {stop, normal, State};
+timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(1000*(Z+60*Y+60*60*X),self(),{timer,ping}).
 
 handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
-    [H|T] = bpe:history(Id),
     Wildcard = '*',
     Terminal= case lists:keytake(Wildcard,2,Events) of
                    {value,Event,_} -> {Wildcard,element(4,Event)};
@@ -93,20 +90,19 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                              false -> Terminal end,
     Time2 = calendar:now_to_datetime(now()),
     wf:info(?MODULE,"Ping: ~p Task ~p Event ~p ~n", [Id,Task,Name]),
-    case H of #history{time=Time1} ->
-              {DD,Diff} = calendar:time_difference(Time1,Time2),
-              case {DD,Diff} < {Days,Pattern} of
-                   true ->
-                        {X,Y,Z} = Diff,
-                        Retry = 1000*(Z+60*Y+60*60*X),
-                        NewTimer = erlang:send_after(Retry,self(),{timer,ping}),
-                        {noreply, State#process{timer=NewTimer}};
-                   _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nLast visit was at ~p, now is ~p~n",[Time1,Time2]),
-                        case is_pid(Pid) of
-                             true -> Pid ! {bpe,terminate,{Name,{Days,Pattern}}};
-                             false -> skip end,
-                        {stop,normal,State} end;
-         _ -> {noreply, State} end;
+    {DD,Diff} = try [#history{time=Time1}|T] = bpe:history(Id), calendar:time_difference(Time1,Time2)
+              catch _:_ -> {immediate,timeout} end,
+    case {DD,Diff} < {Days,Pattern} of
+         true -> {noreply,State#process{timer=timer_restart(Diff)}};
+         _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nTime Diff is ~p~n",[{DD,Diff}]),
+              case is_pid(Pid) of
+                   true -> Pid ! {bpe,terminate,{Name,{Days,Pattern}}};
+                   false -> skip end,
+              {stop,normal,State} end;
+
+handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
+    wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
+    {stop, normal, State};
 
 handle_info(Info, State=#process{}) ->
     wf:info(?MODULE,"Unrecognized info: ~p", [Info]),
