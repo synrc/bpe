@@ -8,10 +8,12 @@
 
 load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
 
-start(Proc0, Docs) ->
+start(Proc0, Options) ->
+    Pid = proplists:get_value(notification,Options,undefined),
     Proc = case Proc0#process.id of
                 undefined -> Id = kvs:next_id("process",1),
-                             Proc0#process{id=Id,task=Proc0#process.beginEvent};
+                             Proc0#process{id=Id,task=Proc0#process.beginEvent,
+                                           notifications = Pid};
                         _ -> Proc0 end,
     kvs:put(Proc),
     Restart = transient,
