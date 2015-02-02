@@ -16,6 +16,6 @@
 -record(process,      { ?ITERATOR(feed,true), name,
                         roles=[], tasks=[], events=[], history=[], flows=[],
                         rules, docs=[],
-                        task, timer,
+                        task, timer, notifications,
                         beginEvent, endEvent }).
 -endif.

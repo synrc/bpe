@@ -81,7 +81,7 @@ handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process
     wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
     {stop, normal, State};
 
-handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events}) ->
+handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
     [H|T] = bpe:history(Id),
     Wildcard = '*',
@@ -102,6 +102,9 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                         NewTimer = erlang:send_after(Retry,self(),{timer,ping}),
                         {noreply, State#process{timer=NewTimer}};
                    _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nLast visit was at ~p, now is ~p~n",[Time1,Time2]),
+                        case is_pid(Pid) of
+                             true -> Pid ! {bpe,terminate,{Name,{Days,Pattern}}};
+                             false -> skip end,
                         {stop,normal,State} end;
          _ -> {noreply, State} end;
 
