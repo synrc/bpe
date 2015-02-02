@@ -3,7 +3,7 @@ The author of BPE has implemented business workflow engine for CLR virtual
 machine using C\# language. However Erlang implementation more idiomatic
 and canonical due to semantic corresponding of process calculus and
 the core of underlying virtual machine. Send async messages across processes
-means exacly what it says up to Erlang pids. For sending documents to
+means exactly what it says up to Erlang pids. For sending documents to
 business process you can use process's name or its Pid:
 
 \vspace{1\baselineskip}
@@ -12,18 +12,18 @@ business process you can use process's name or its Pid:
 \end{lstlisting}
 
 \paragraph{}
-Thanks to this isomorphic corresponding between Erlang process and Calculus process
+Thanks to this isomorphic corresponding between Erlang process and Calculus process,
 code size of core BPE server was reduced to 400 lines of code. This is definitely
 most clean functional implementation of workflow engine.
 
 \subsection{Pi-calculus and Petri nets}
-The nice thing about all pallete of different implementataion of workflow models is
+The nice thing about all palette of different implementation of workflow models is
 that all of them reduced to one of two kinds of encoding: one is algebraic one and
 the other is geometric.
 
 \paragraph{}
 The geometric one is {\bf Petri nets}. Carl Petri introduced it in 1962 during discrete
-analisys of asynchronous computer systems. Any its graphical representation could be
+analysis of asynchronous computer systems. Any its graphical representation could be
 defined with Petri nets formalism. Petri modeling in one of its forms is a good
 complementation to process algebra useful as computational model.
 
@@ -32,17 +32,17 @@ The algebraic one is {\bf Pi-calculus} developed by Robin Milner who gained
 Turing award for 1) Meta Language ML, 2) Calculus for Communication Systems CCS (1980),
 the general theory of concurrency and 3) theoretical base for proof assistants,
 Logic for Computable Functions LCF.
-The model of process calculus is a theorethical
+The model of process calculus is a theoretical
 background of virtual environment of Erlang infrastructure, so BPE
 implementation fully relies on Pi-calculus (1999), the successor of CCS notion.
 Thus providing effective computational model for implementation of workflow
 process management.
 
 \subsection{Finite State Machines}
-One of the common known type of encoding process calculus is well developed {\bf FSM framework} (60-s).
-This language is widly used almost in any programming language presented as core
-feature or as library. The process defines with an extension to turing machine
-with states, input, ouputs and functions.
+One of the common known types of encoding process calculus is well developed {\bf FSM framework} (60-s).
+This language is widely used almost in any programming language presented as core
+feature or as library. The process defines with an extension to Turing machine
+with states, input, outputs and functions.
 
 \subsection{SADT}
 The next language (framework) that used in (80-s, 90-s) to describe similar
@@ -51,15 +51,15 @@ was {\bf SADT} introduced by Marca and MacGowan 1988, 1991.
 
 \subsection{Reactive Systems}
 One of the wide range of semantics is Reactive Systems based on message passing
-and event routing, but also is could be known as Functional Reactive Programming FRP
-which is rather a set of combinators over streams. Both interpretation is
+and event routing, but also it could be known as Functional Reactive Programming FRP
+which is rather a set of combinators over streams. Both interpretations are
 used in languages and frameworks, depending on involvement of stream in core
 definition (2010-s).
 
 \subsection{Typing Pi-calculus}
 In typed theory Pi-calculus defines also the typing system (could be System F, e.g.) for
 input and outputs of processes or function signatures specified in process definition.
-In BPE the role of types was taked by document types, which is simple Erlang records,
+In BPE the role of types was taken by document types, which is simple Erlang records,
 so in BPE workflow processing is type-safe on compilation stage with respect to document types.
 
 \vspace{1\baselineskip}
@@ -69,7 +69,7 @@ so in BPE workflow processing is type-safe on compilation stage with respect to 
 \subsection{Systems}
 
 \subsection{Scenarios}
-Workflows are complimentary to business rules and could be specified separetly.
+Workflows are complimentary to business rules and could be specified separately.
 BPE definitions provides front API to the end-user application.
 Workflow Engine -- is an Erlang/OTP application which handles process definitions,
 process instances, and provides very clean API for Workplaces.
@@ -77,7 +77,7 @@ process instances, and provides very clean API for Workplaces.
 \paragraph{}
 Before using Process Engine you need to define the set of business process
 workflows of your enterprise. This could be done via Erlang terms or some DSL
-that lately converted to Erlang terms. Internally BPE uses Eralng terms
+that lately converted to Erlang terms. Internally BPE uses Erlang terms
 workflow definition:
 
 \vspace{1\baselineskip}
@@ -135,7 +135,7 @@ RETE is used for rules specifications which can be triggered during workflow.
 
 \subsection{BPMN 2.0}
 
-The worklow definiton uses following persistent workflow model which is stored in KVS:
+The workflow definition uses following persistent workflow model which is stored in KVS:
 
 
 \vspace{1\baselineskip}
@@ -149,9 +149,9 @@ The worklow definiton uses following persistent workflow model which is stored i
 -record(sequenceFlow, { name, id, source, target }).
 -record(history,      { ?ITERATOR(feed,true), name, task }).
 -record(process,      { ?ITERATOR(feed,true), name,
-                        roles=[], tasks=[], events=[], 
+                        roles=[], tasks=[], events=[],
                         history=[], flows=[], rules,
-                        docs=[], task, beginEvent, 
+                        docs=[], task, beginEvent,
                         endEvent }).
 \end{lstlisting}
 
