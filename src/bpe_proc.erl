@@ -96,8 +96,10 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
          true -> {noreply,State#process{timer=timer_restart(Diff)}};
          _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nTime Diff is ~p~n",[{DD,Diff}]),
               case is_pid(Pid) of
-                   true -> Pid ! {bpe,terminate,{Name,{Days,Pattern}}};
-                   false -> skip end,
+                   true -> wf:info(?MODULE," BPE PID is true ======= ~p~n",[Pid]),
+                       Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
+                   false -> wf:info(?MODULE," BPE PID is false ======= ~p~n",[Pid]),
+                       skip end,
               {stop,normal,State} end;
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
