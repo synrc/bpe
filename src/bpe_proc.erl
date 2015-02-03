@@ -77,7 +77,7 @@ handle_cast(Msg, State) ->
     wf:info(?MODULE,"Unknown API async: ~p", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
-timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(1000*(Z+60*Y+60*60*X),self(),{timer,ping}).
+timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
 
 handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
@@ -93,13 +93,11 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     {DD,Diff} = try [#history{time=Time1}|T] = bpe:history(Id), calendar:time_difference(Time1,Time2)
               catch _:_ -> {immediate,timeout} end,
     case {DD,Diff} < {Days,Pattern} of
-         true -> {noreply,State#process{timer=timer_restart(Diff)}};
+         true -> {noreply,State#process{timer=timer_restart(Pattern)}};
          _ -> wf:info(?MODULE,"BPE Closing Timeout. ~nTime Diff is ~p~n",[{DD,Diff}]),
               case is_pid(Pid) of
-                   true -> wf:info(?MODULE," BPE PID is true ======= ~p~n",[Pid]),
-                       Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
-                   false -> wf:info(?MODULE," BPE PID is false ======= ~p~n",[Pid]),
-                       skip end,
+                   true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
+                   false -> skip end,
               {stop,normal,State} end;
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
