@@ -121,7 +121,7 @@ Let us see how we could create initial 'Wire Transfer' transaction:
 bpe:load("WireTransfer"),
 Id = bpe:start('WireTransfer',[]),
 [] = bpe:tasks(Id), % current set is empty
-Tasks = [ #'WireTranswerReq'{
+Tasks = [ #'WireTransferReq'{
             beneficiary = #agent{ bank="SBININBB380",
                                   name="Namdak Tonpa",
                                   account="305820317"},

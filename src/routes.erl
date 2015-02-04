@@ -4,9 +4,9 @@
 -export(?ROUTING_API).
 
 finish(State, Ctx) -> {ok, State, Ctx}.
-init(State, Ctx) -> 
+init(State, Ctx) ->
     Path = wf:path(Ctx#cx.req),
-	wf:info("ROute: ~p",[Path]),
+	wf:info("Route: ~p",[Path]),
     Module = route_prefix(Path),
     {ok, State, Ctx#cx{path=Path,module=Module}}.
 
