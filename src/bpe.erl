@@ -104,3 +104,6 @@ val(Document,Proc,Cond,Action) ->
          ErrorList -> io:format("BPE:val/4 failed: ~p~n",[ErrorList]),
                       {{reply,ErrorList},Proc#process.task,Proc} end.
 
+option(Proc, Key) -> proplists:get_value(Key,Proc#process.options).
+option(Proc, Key, Value) -> proplists:set_value(Key,Value, Proc#process.options).
+

@@ -125,3 +125,4 @@ set_rec_in_proc(Proc, []) -> Proc;
 set_rec_in_proc(Proc, [H|T]) ->
     ProcNew = Proc#process{ docs=plist_setkey(element(1,H),1,Proc#process.docs,H)},
     set_rec_in_proc(ProcNew, T).
+
