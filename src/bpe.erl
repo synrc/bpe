@@ -105,5 +105,5 @@ val(Document,Proc,Cond,Action) ->
                       {{reply,ErrorList},Proc#process.task,Proc} end.
 
 option(Proc, Key) -> proplists:get_value(Key,Proc#process.options).
-option(Proc, Key, Value) -> proplists:set_value(Key,Value, Proc#process.options).
+option(Proc, Key, Value) -> Proc#process{options=bpe_proc:plist_setkey(Key,1,Proc#process.options,{Key,Value})}.
 
