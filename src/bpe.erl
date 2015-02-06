@@ -13,6 +13,7 @@ start(Proc0, Options) ->
     Proc = case Proc0#process.id of
                 undefined -> Id = kvs:next_id("process",1),
                              Proc0#process{id=Id,task=Proc0#process.beginEvent,
+                                           options = Options,
                                            notifications = Pid};
                         _ -> Proc0 end,
     kvs:put(Proc),
