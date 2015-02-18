@@ -23,7 +23,9 @@ task_action(Module,CurrentTask,Target,Proc) ->
     Allowed = case erlang:function_exported(Module, action, 2) of
                    true ->
     case Module:action({request,CurrentTask},Proc) of
-         {next,State}                 -> bpe_proc:process_flow([],Proc,false);
+         {next,State}       -> bpe_proc:process_flow([],State,false);
+         {run,State}        -> bpe_proc:run('Finish',State);
+         {until,Task,State} -> bpe_proc:run(Task,State);
          {reply,State}                -> {reply,{complete,Target},State};
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};

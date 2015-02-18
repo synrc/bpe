@@ -4,7 +4,7 @@
 -behaviour(gen_server).
 -export([start_link/1]).
 -export([init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
--export([plist_setkey/4,set_rec_in_proc/2,process_flow/3]).
+-compile(export_all).
 
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
@@ -17,6 +17,13 @@ process_event(Event,Proc) ->
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvs:put(NewProcState),
     FlowReply.
+
+run(Task,Process) ->
+    CurrentTask = Process#process.task,
+    case bpe_proc:process_flow([],Process,false) of
+         {reply,{complete,Reached},NewProc}
+           when Reached /= CurrentTask andalso Reached /= Task -> run(Task,NewProc);
+         Else -> Else end.
 
 process_flow(Stage,Proc) -> process_flow(Stage,Proc,false).
 process_flow(Stage,Proc,NoFlow) ->
