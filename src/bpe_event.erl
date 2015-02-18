@@ -7,6 +7,7 @@ event_action(Module,Name,Event,Target,Proc) ->
     Allowed = case erlang:function_exported(Module, action, 2) of
                    true ->
     case Module:action({event,Event#messageEvent.name,Event#messageEvent.payload},Proc) of
+         {next,State}       -> bpe_proc:process_flow([],Proc,false);
          {reply,State}      -> {reply,{complete,Target},State};
          {reply,Task,State} -> {reply,{complete,Task},State} end;
                    false -> case wf:config(bpe,ignore_exports) of
