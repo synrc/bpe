@@ -59,6 +59,8 @@ fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
 handle_call({get},_,Proc)              -> { reply,Proc,Proc };
+handle_call({run},_,Proc)              ->   run('Finish',Proc);
+handle_call({until,Stage},_,Proc)      ->   run(Stage,Proc);
 handle_call({start},_,Proc)            ->   process_flow([],Proc);
 handle_call({complete},_,Proc)         ->   process_flow([],Proc);
 handle_call({complete,Stage},_,Proc)   ->   process_flow(Stage,Proc);

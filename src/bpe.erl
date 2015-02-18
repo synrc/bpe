@@ -22,42 +22,23 @@ start(Proc0, Options) ->
     ChildSpec = { Proc#process.id,
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
-    supervisor:start_child(bpe_sup,ChildSpec).
+    case supervisor:start_child(bpe_sup,ChildSpec) of
+         {ok,_}   -> {ok,Proc#process.id};
+         {ok,_,_} -> {ok,Proc#process.id};
+         Else     -> Else end.
 
 find_pid(Id) -> wf:cache({process,Id}).
 
-process(ProcId) when is_pid(ProcId) -> gen_server:call(ProcId,{get});
-process(ProcId) -> gen_server:call(find_pid(ProcId),{get}).
-complete(ProcId) when is_pid(ProcId) -> gen_server:call(ProcId,{complete});
-complete(ProcId) -> gen_server:call(find_pid(ProcId),{complete}).
-complete(Stage,ProcId) when is_pid(ProcId) -> gen_server:call(ProcId,{complete,Stage});
-complete(Stage,ProcId) -> gen_server:call(find_pid(ProcId),{complete,Stage}).
-amend(ProcId,Form) when is_pid(ProcId) -> gen_server:call(ProcId,{amend,Form});
-amend(ProcId,Form) -> gen_server:call(find_pid(ProcId),{amend,Form}).
-amend(ProcId,Form,noflow) when is_pid(ProcId) -> gen_server:call(ProcId,{amend,Form,true});
+process(ProcId)           -> gen_server:call(find_pid(ProcId),{get}).
+complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete}).
+run(ProcId)               -> gen_server:call(find_pid(ProcId),{run}).
+until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task}).
+complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}).
+amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form}).
 amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true}).
-event(ProcId,Event) when is_pid(ProcId) -> gen_server:call(ProcId,{event,Event});
-event(ProcId,Event) -> gen_server:call(find_pid(ProcId),{event,Event}).
+event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event}).
 
 addRecsProc(Proc, RecordsList) -> bpe_proc:set_rec_in_proc(Proc, RecordsList).
-
-complete_while(ProcId) ->
-    Status = case complete(ProcId) of
-                {complete,S} -> S;
-                {{complete,_},S} -> S end,
-    Status2 = case complete(ProcId) of
-                  {complete,S2} -> S2;
-                  {{complete,_},S2} -> S2 end,
-    case Status == Status2 of
-         true -> {complete,Status2};
-            _ -> complete_while(ProcId) end.
-
-amend_while(ProcId,Form) ->
-    {complete,Status} = amend(ProcId,Form),
-    {complete,Status2} = complete(ProcId),
-    case Status == Status2 of
-         true -> {complete,Status2};
-            _ -> complete_while(ProcId) end.
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
