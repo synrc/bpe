@@ -23,7 +23,10 @@ task_action(Module,CurrentTask,Target,Proc) ->
     Allowed = case erlang:function_exported(Module, action, 2) of
                    true ->
     case Module:action({request,CurrentTask},Proc) of
-         {reply,State}      -> {reply,{complete,Target},State};
+         {next,State}                 -> bpe_proc:process_flow([],Proc,false);
+         {reply,State}                -> {reply,{complete,Target},State};
+         {reply,State}                -> {reply,{complete,Target},State};
+         {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
          {reply,Task,State} -> {reply,{complete,Task},State} end;
                    false -> case wf:config(bpe,ignore_exports) of
