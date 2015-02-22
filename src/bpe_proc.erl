@@ -107,10 +107,12 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
               case is_pid(Pid) of
                    true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                    false -> skip end,
+              wf:cache({process,Id},undefined),
               {stop,normal,State} end;
 
-handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{}) ->
+handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
     wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
+    wf:cache({process,Id},undefined),
     {stop, normal, State};
 
 handle_info(Info, State=#process{}) ->
@@ -118,8 +120,8 @@ handle_info(Info, State=#process{}) ->
     {noreply, State}.
 
 terminate(_Reason, #process{id=Id}) ->
-    wf:info(?MODULE,"Terminating session: ~p", [Id]),
-    spawn(fun()->supervisor:delete_child(bpe_sup,Id) end),
+    wf:info(?MODULE,"Terminating session Id cache: ~p", [Id]),
+    wf:cache({process,Id},undefined),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
