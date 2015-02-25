@@ -3,7 +3,7 @@
   {description, "SRC BPE Business Process Engine"},
   {vsn, "1"},
   {registered, []},
-  {applications, [kernel,stdlib,mnesia,kvs]},
+  {applications, [kernel,stdlib,kvs]},
   {mod, { bpe_app, []}},
   {env, []}
  ]}.
