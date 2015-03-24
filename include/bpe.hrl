@@ -9,6 +9,7 @@
 -record(receiveTask,  { name, roles=[], module }).
 -record(messageEvent, { name, payload=[], timeout=[], module }).
 -record(boundaryEvent,{ name, payload=[], timeout=[], timeDate=[], timeDuration=[], timeCycle=[], module }).
+-record(timeoutEvent, { name, payload=[], timeout=[], timeDate=[], timeDuration=[], timeCycle=[], module }).
 -record(beginEvent ,  { name, module }).
 -record(endEvent,     { name, module }).
 -record(sequenceFlow, { source, target }).
