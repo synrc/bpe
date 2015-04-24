@@ -126,6 +126,7 @@ handle_info(Info, State=#process{}) ->
 
 terminate(_Reason, #process{id=Id}) ->
     wf:info(?MODULE,"Terminating session Id cache: ~p", [Id]),
+    spawn(fun() -> supervisor:delete_child(bpe_sup,Id) end),
     wf:cache({process,Id},undefined),
     ok.
 
