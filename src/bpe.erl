@@ -16,7 +16,7 @@ start(Proc0, Options) ->
                                            options = Options,
                                            notifications = Pid};
                         _ -> Proc0 end,
-    kvs:put(Proc),
+    kvs:add(Proc),
     Restart = transient,
     Shutdown = 200,
     ChildSpec = { Proc#process.id,
