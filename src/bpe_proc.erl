@@ -45,7 +45,7 @@ process_flow(Stage,Proc,NoFlow) ->
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
                        name = ProcState#process.name,
-                       time = calendar:now_to_datetime(now()),
+                       time = calendar:local_time(),
                        task = {task, Curr} }),
 
     NewProcState = ProcState#process{task = Target},
@@ -97,7 +97,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     {Name,Record,{Days,Pattern}} = case lists:keytake(Task,2,Events) of
                                        {value,Event2,_} -> {Task,element(1,Event2),element(4,Event2)};
                                        false -> Terminal end,
-    Time2 = calendar:now_to_datetime(now()),
+    Time2 = calendar:local_time(),
     wf:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
     {DD,Diff} = try [#history{time=Time1}|_] = bpe:history(Id), calendar:time_difference(Time1,Time2)
               catch _:_ -> {immediate,timeout} end,

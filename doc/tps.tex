@@ -1,24 +1,26 @@
 \section{TPS: Financial Processing}
 
-The TPS is a Riak Core application that provides distributed,
-fault tolerant, network-split resistant, performant,
-transactional intermediary processing. It also guarantees
-Data Locality for storing customer objects which allows
-TPS to be easily scalable and maintainable. The core of TPS
-is SQL transactional processing and its Cache Riak application,
-based on KVS. Rules for TPS are to be defined using UPL language.
+The TPS is an transactional database application that
+provides distributed, fault tolerant, network-split
+resistant, performant, transactional intermediary processing.
+It also guarantees data locality for storing customer objects which allows
+TPS to be easily scalable and maintainable. TPS is supported following backends:
+1) SQL transactional processing;
+2) {\bf riak\_kv} application;
+3) {\bf mnesia} application;
+and is based on KVS. Rules for TPS are to be defined using UPL language.
 
 \subsection{Data Locality Cache Ring}
 
-All customers of Banks are being grouped or sharded using custom
-modified Riak hash function that is known to be linear and consistent.
+All customers of bank are being grouped or sharded using custom
+hash function that is known to be linear and consistent.
 This function allows TPS to store all customer information for
 a given master of its key on a single node. Thus all TPS operations
 on transactions, cards, account of a given customer are passed
-to a hash function with a same customer ID key.
-In Riak all values with the same key are stored in the same VNODE.
+to a hash function with a same customer ID key. In TPS all properties of
+a top customer object with the same key are stored in the same VNODE.
 
-\subsection{Riak Cache and SQL Warehouse}
+\subsection{Riak}
 
 All interface operations and application data are stored and
 being read from Riak TPS Ring, which is in fact Riak Core application.

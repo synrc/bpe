@@ -8,19 +8,19 @@ rule-based production systems and distributed storage. This book is dedicated to
 all parts needed for bootstrapping operational document processing model along with
 workflow, models, forms, validations and other aspects of systems with similar requirements.
 
-\paragraph{}
+\paragraph{Fullstack Business Applications}
 This book is also about the foundations of banking implementation (TPS) up to external
 connectors and services which is closed by security policies. So it also defines
 transactional processing model, storage model, and distribution capabilities such as
 Dynamo hashing to achieve data locality for transactions and documents which
 belongs to bank customers.
 
-\subsection{User Applications}
+\subsection{FORMS: Applications}
 The FORMS application is dedicated to bring forms under the common
 ontological model of data that are entering, storing and processing.
 The forms model gives a root to the essence of information system circulation.
 
-\subsection{Business Process Engine}
+\subsection{BPE: Workflows}
 The core of document processing is BPE which runs in native Erlang process semantic
 as Pi-calculus execution environment. Different bank departments represented
 as ACT workflow scenarios, such as deposit, credit or operational processes along with
@@ -28,13 +28,18 @@ transfer and withdraw or charge operations. All these operations represented
 as document forms which flows along workflow. Activity service knows only
 customer information and does not know card numbers or other sensitive transactional data.
 
-\subsection{Transactional Processing Service}
+\subsection{TPS: Processing}
 The monetary processing core is TPS service driven by scripts in UPL language.
 All constraints and rules are applied from UPL definitions to transactions.
 Transactional service knows nothing about customer information.
 
-\subsection{Processing Database}
+\subsection{CR: Database}
 The basic database schema DBS to work with BPE and TPS applications.
+There are two implementations of TPS service: one is using {\bf riak\_core}
+database ifrastructure, the other is based on chain replication CR database
+using {\bf kvs} database infrastructure and rafter protocol as oracul.
+The CR database is based on Robert van Renessee papers. CR has also
+XA protocol capabilities.
 
-\subsection{Universal Processing Language}
+\subsection{UPL: Language}
 UPL allows to define transaction tarification rules in human readable form.

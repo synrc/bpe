@@ -1,4 +1,28 @@
 \section{BPE: Business Processes}
+
+Что такое BPE? BPE — это все что нужно для управления большими
+проектами и процессами. Это и WWF и BizTalk, это и Activity и Oracle BPM.
+BPE это сабсет BPMN 2.0. Не нужно писать бесконечные XML, все ваши
+процессы будут помещаться на одной странице, а API настолько
+естественен, насколько естественно исчисление процессов. Возможно
+имеет смысл написать бекенды в разные движки, но это ненужно так
+как BPE полностью покрывает всю минимально необходимую спартанскую
+фунциональность workflow движков, FSM-серверов и систем управления
+бизнес-процессами. В контексте BPE процессов могут храниться и
+передаваться любые данные которые хранятся в KVS. Каждый процесс
+имеет свой лог, работает под супервизорами, с полностью персистентным
+состоянием, изолированый для vnode и устойчивый к сбоям, способный к
+миграциям. И все это в 600 строчек кода. Есть прокси для вебсокетов.
+Работает в продакшине на многомиллионной аудитории.
+
+Текущий мой проект напрямую связан с моим магистерским дипломом.
+Сейчас я могу смело заявлять, что работаю по специальности.
+Тема моего магистрантского диплома на Факультете Прикладной
+Математики была "Архитектура и программирование систем
+управления бизнес-процессами". В этой работе был исследован
+комплекс математических, лингвистических (как сейчас модно
+говорить DSL) и других обеспечений, которые лежат в основе таких систем.
+
 The author of BPE has implemented business workflow engine for CLR virtual
 machine using C\# language. However Erlang implementation more idiomatic
 and canonical due to semantic corresponding of process calculus and
@@ -6,9 +30,29 @@ the core of underlying virtual machine. Send async messages across processes
 means exactly what it says up to Erlang pids. For sending documents to
 business process you can use process's name or its Pid:
 
+В основе систем управления процессами лежат Сети Петри,
+переходы между состояниями FSM тоже отмечены вершинами.
+Этот математический аппарат очевидно предшествовал модели
+модели акторов. В работе были рассмотрены также другие
+модели организации бизнес процессов: Event-Condition-Action
+модели (или как сейчас модно говорить реакционной модели),
+алгоритм RETE и дедуктивные системы правил.
+
+Уже тогда мной были рассмотрены все существующие на тот
+момент Workflow DSL, такие как XPDL (WfMC), Skelta, OpenWFE,
+Shark, J2, jBPM. Создавая тогда свою систему на .NET 1.0 я
+объединил ECA и Workflow подходы. Но я тогда не знал Erlang.
+
+Сейчас я реализовал аналогичную по мощности систему в 300
+строк Эрланг кода. За основу я взял современный BPMN 2.0
+стандарт, который объединил все существующие системы на
+рынке через 8 лет после моей работы. Поскольку формат этого
+блога и размер этой системы мне позволяют, я приведу
+фактически весь код этого движка на Эрланге.
+
 \vspace{1\baselineskip}
 \begin{lstlisting}
-    1> bpe:amend(pid(0,185,0),#deposit{}).
+    1> bpe:amend(Process#process.id,#deposit{}).
 \end{lstlisting}
 
 \paragraph{}
@@ -66,6 +110,7 @@ so in BPE workflow processing is type-safe on compilation stage with respect to 
 \begin{lstlisting}
     1> #deposit{} = bpe:doc(#deposit{}, pid(0,185,0)).
 \end{lstlisting}
+
 \subsection{Systems}
 
 \subsection{Scenarios}
@@ -158,6 +203,62 @@ The workflow definition uses following persistent workflow model which is stored
 Full set of BPMN 2.0 fields could be obtained at \footahref{http://www.omg.org/spec/BPMN/2.0}{OMG definition document, page 3-7}.
 
 \newpage
+
+В каждом FSM есть желание триггернуть состояние напрямую.
+В erlang такое тоже есть и у нас тоже есть. Сам BPE процесс
+реализованн как {\bf gen\_server}, а не как {\bf gen\_fsm}.
+
+\vspace{1\baselineskip}
+\begin{lstlisting}[caption=Boundary Event]
+process_event(Event, Proc) ->
+    Targets = bpe_task:targets(Event#messageEvent.name,Proc),
+    {Status,{Reason,Target},ProcState} =
+           bpe_event:handle_event(Event,
+              bpe_task:find_flow(Targets),Proc),
+    NewProcState = ProcState#process{task = Target},
+    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
+    kvs:put(NewProcState),
+    FlowReply.
+\end{lstlisting}
+
+\vspace{1\baselineskip}
+\begin{lstlisting}[caption=Flow Processing]
+process_flow(Proc) ->
+    Curr = Proc#process.task,
+    Term = [],
+    Task = bpe:task(Curr,Proc),
+    Targets = bpe_task:targets(Curr,Proc),
+    {Status,{Reason,Target},ProcState}
+      = case {Targets,Proc#process.task} of
+         {[],Term} -> bpe_task:already_finished(Proc);
+         {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
+         {[],_}    -> bpe_task:denied_flow(Curr,Proc);
+         {List,_}  -> bpe_task:handle_task(Task,Curr,
+                         bpe_task:find_flow(List),Proc)
+    end,
+
+    kvs:add(#history { id = kvs:next_id("history",1),
+                       feed_id = {history,ProcState#process.id},
+                       name = ProcState#process.name,
+                       task = {task, Curr} }),
+
+    NewProcState = ProcState#process{task = Target},
+
+    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
+    kvs:put(NewProcState),
+    FlowReply.
+\end{lstlisting}
+
+\vspace{1\baselineskip}
+\begin{lstlisting}[caption=BPE protocol]
+    {run}
+    {until,_}
+    {complete}
+    {complete,_}
+    {amend,_}
+    {amend,_,_}
+    {event,_}
+\end{lstlisting}
 
 \subsection{Sample Process}
 
