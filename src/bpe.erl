@@ -8,6 +8,10 @@
 
 load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
 
+cleanup(P) -> [ kvs:remove(history,Id) || #history{id=Id} <- bpe:history(P) ],
+                kvs:delete(feed,{history,P}),
+                kvs:remove(process,P).
+
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
     Proc = case Proc0#process.id of
