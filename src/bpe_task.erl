@@ -10,8 +10,17 @@ find_flow(Stage,List) -> case lists:member(Stage,List) of
                               _ -> find_flow(List) end.
 
 targets(Curr,Proc) ->
-    Targets = lists:flatten([ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 
-                Source==Curr]).
+    flatten([ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 
+        Source==Curr], []).
+
+%% Just flattent one layer                                                                                                                                                                                                                    
+flatten([[T|_]=Head|Tail], Acc) when is_list(T) ->
+    flatten(Tail, lists:reverse(Head)++Acc);
+flatten([[T|_]=Head|Tail], Acc) when is_atom(T) ->
+    flatten(Tail, lists:reverse(Head)++Acc);
+flatten([Other|Tail], Acc) ->
+    flatten(Tail, [Other|Acc]);
+flatten([], Acc) -> lists:reverse(Acc).
 
 denied_flow(Curr,Proc) ->
     {reply,{denied_flow,Curr},Proc}.
