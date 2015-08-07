@@ -19,7 +19,7 @@ init([]) ->
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
     Restart = permanent,
-    Shutdown = 2000,
+    Shutdown = 5000,
     Type = worker,
 
     {ok, { {one_for_one, 5, 10}, []} }.
