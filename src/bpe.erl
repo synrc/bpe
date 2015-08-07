@@ -29,7 +29,7 @@ start(Proc0, Options) ->
 
     case application:start(bpe) of
          {error,{already_started,bpe}} -> skip;
-         _ -> timer:sleep(3000) end,
+         _ -> {error,"restart"} end,
 
     case supervisor:start_child(bpe_sup,ChildSpec) of
          {ok,_}   -> {ok,Proc#process.id};
