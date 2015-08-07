@@ -26,6 +26,11 @@ start(Proc0, Options) ->
     ChildSpec = { Proc#process.id,
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
+
+    case application:start(bpe) of
+         {error,{already_started,bpe}} -> skip;
+         _ -> timer:sleep(3000) end,
+
     case supervisor:start_child(bpe_sup,ChildSpec) of
          {ok,_}   -> {ok,Proc#process.id};
          {ok,_,_} -> {ok,Proc#process.id};
