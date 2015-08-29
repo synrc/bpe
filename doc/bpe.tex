@@ -1,54 +1,45 @@
 \section{BPE: Business Processes}
 
-Что такое BPE? BPE — это все что нужно для управления большими
-проектами и процессами. Это и WWF и BizTalk, это и Activity и Oracle BPM.
-BPE это сабсет BPMN 2.0. Не нужно писать бесконечные XML, все ваши
-процессы будут помещаться на одной странице, а API настолько
-естественен, насколько естественно исчисление процессов. Возможно
-имеет смысл написать бекенды в разные движки, но это ненужно так
-как BPE полностью покрывает всю минимально необходимую спартанскую
-фунциональность workflow движков, FSM-серверов и систем управления
-бизнес-процессами. В контексте BPE процессов могут храниться и
-передаваться любые данные которые хранятся в KVS. Каждый процесс
-имеет свой лог, работает под супервизорами, с полностью персистентным
-состоянием, изолированый для vnode и устойчивый к сбоям, способный к
-миграциям. И все это в 600 строчек кода. Есть прокси для вебсокетов.
-Работает в продакшине на многомиллионной аудитории.
+What is BPE? BPE is an production grade business workflow engine that
+is enought for managing automated procesess.
+It can substitute WWF, BizTalk, Activity or Oracle BPM for those who
+understand the basic features of workflow systems.
+BPE is an subset of BPMN 2.0 standart, the evelution and unification
+of most previous worflow standard such as XPDL (WfMC), Skelta, OpenWFE,
+Shark and jBPM.
 
-Текущий мой проект напрямую связан с моим магистерским дипломом.
-Сейчас я могу смело заявлять, что работаю по специальности.
-Тема моего магистрантского диплома на Факультете Прикладной
-Математики была "Архитектура и программирование систем
-управления бизнес-процессами". В этой работе был исследован
-комплекс математических, лингвистических (как сейчас модно
-говорить DSL) и других обеспечений, которые лежат в основе таких систем.
+\paragraph{}
+This project was written essentially for biggest ukrainian commercial
+bank and is based on previous research work already done by athor
+for CLR platform. You may read a dedicated book about Workflow Process
+theory written by BPE author earlier while this book is dedicated
+essentially to BPE application and its companion libraries.
+The samy way as web frameworks are the core of web applications,
+the workflow engine is a core of business applications.
 
+\paragraph{}
+In its core BPE is microkernel that accept native Erlang record-based
+process definition in Erlang language along with Event-Condition-Action
+erlang functions, similar you may find in OTP principles, but much simplified,
+intended for business analytics and system integration engineers. It acts
+like FSM machine, runned under Erlang supervision and is totally persisted,
+which means no data loss can be happened. It has very clean and minimalistic
+API for keeping this product robust and stable, th approach you already
+can find in Synrc stack in common and in N2O framework in particular.
+
+\paragraph{}
+BPE context holds KVS documents which in fact typed Erlang
+records and are defined by KVS schema. Each process has its own persistent
+execution log and is fully fault-resistant with migration capabilities.
+The BPE protocol is well defined and is a part of N2O protocols stack.
+
+\paragraph{}
 The author of BPE has implemented business workflow engine for CLR virtual
 machine using C\# language. However Erlang implementation more idiomatic
 and canonical due to semantic corresponding of process calculus and
 the core of underlying virtual machine. Send async messages across processes
 means exactly what it says up to Erlang pids. For sending documents to
 business process you can use process's name or its Pid:
-
-В основе систем управления процессами лежат Сети Петри,
-переходы между состояниями FSM тоже отмечены вершинами.
-Этот математический аппарат очевидно предшествовал модели
-модели акторов. В работе были рассмотрены также другие
-модели организации бизнес процессов: Event-Condition-Action
-модели (или как сейчас модно говорить реакционной модели),
-алгоритм RETE и дедуктивные системы правил.
-
-Уже тогда мной были рассмотрены все существующие на тот
-момент Workflow DSL, такие как XPDL (WfMC), Skelta, OpenWFE,
-Shark, J2, jBPM. Создавая тогда свою систему на .NET 1.0 я
-объединил ECA и Workflow подходы. Но я тогда не знал Erlang.
-
-Сейчас я реализовал аналогичную по мощности систему в 300
-строк Эрланг кода. За основу я взял современный BPMN 2.0
-стандарт, который объединил все существующие системы на
-рынке через 8 лет после моей работы. Поскольку формат этого
-блога и размер этой системы мне позволяют, я приведу
-фактически весь код этого движка на Эрланге.
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
@@ -58,7 +49,7 @@ Shark, J2, jBPM. Создавая тогда свою систему на .NET 1
 \paragraph{}
 Thanks to this isomorphic corresponding between Erlang process and Calculus process,
 code size of core BPE server was reduced to 400 lines of code. This is definitely
-most clean functional implementation of workflow engine.
+most clean functional implementation of workflow engine avalible in electronical banking systems.
 
 \subsection{Pi-calculus and Petri nets}
 The nice thing about all palette of different implementation of workflow models is
@@ -173,6 +164,7 @@ deposit_app() ->
 \end{lstlisting}
 
 \subsection{Actions}
+
 Business rules should be specified by developers.
 RETE is used for rules specifications which can be triggered during workflow.
 
@@ -181,7 +173,6 @@ RETE is used for rules specifications which can be triggered during workflow.
 \subsection{BPMN 2.0}
 
 The workflow definition uses following persistent workflow model which is stored in KVS:
-
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
@@ -204,9 +195,8 @@ Full set of BPMN 2.0 fields could be obtained at \footahref{http://www.omg.org/s
 
 \newpage
 
-В каждом FSM есть желание триггернуть состояние напрямую.
-В erlang такое тоже есть и у нас тоже есть. Сам BPE процесс
-реализованн как {\bf gen\_server}, а не как {\bf gen\_fsm}.
+Unusual that BPE process implemented as {\bf gen\_server} rather
+that {\bf gen\_fsm}:
 
 \vspace{1\baselineskip}
 \begin{lstlisting}[caption=Boundary Event]
