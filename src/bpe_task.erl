@@ -26,7 +26,6 @@ task_action(Module,CurrentTask,Target,Proc) ->
          {run,State}        -> bpe_proc:run('Finish',State);
          {until,Task,State} -> bpe_proc:run(Task,State);
          {reply,State}                -> {reply,{complete,Target},State};
-         {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
          {reply,Task,State} -> {reply,{complete,Task},State} end;
