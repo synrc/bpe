@@ -17,7 +17,7 @@ process_event(Event,Proc) ->
                        feed_id = {history,ProcState#process.id},
                        name = ProcState#process.name,
                        time = calendar:local_time(),
-                       task = { event, element(#messageEvent.name,Event) }),
+                       task = { event, element(#messageEvent.name,Event) }}),
 
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
