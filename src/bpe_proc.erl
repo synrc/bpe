@@ -9,9 +9,17 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 process_event(Event,Proc) ->
-    Targets = bpe_task:targets(Event#messageEvent.name,Proc),
+    Targets = bpe_task:targets(element(#messageEvent.name,Event),Proc),
     io:format("Event Targets: ~p",[Targets]),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
+
+    kvs:add(#history { id = kvs:next_id("history",1),
+                       feed_id = {history,ProcState#process.id},
+                       name = ProcState#process.name,
+                       time = calendar:local_time(),
+                       task = { event, element(#messageEvent.name,Event),
+                                task, ProcState#process.task } }),
+
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
