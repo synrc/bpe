@@ -22,7 +22,7 @@ process_event(Event,Proc) ->
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
-    kvs:put(NewProcState),
+    kvs:put(transient(NewProcState)),
     FlowReply.
 
 run(Task,Process) ->
@@ -59,7 +59,7 @@ process_flow(Stage,Proc,NoFlow) ->
 
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
-    kvs:put(NewProcState),
+    kvs:put(transient(NewProcState)),
     FlowReply.
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
@@ -150,3 +150,7 @@ set_rec_in_proc(Proc, [H|T]) ->
     ProcNew = Proc#process{ docs=plist_setkey(element(1,H),1,Proc#process.docs,H)},
     set_rec_in_proc(ProcNew, T).
 
+transient(#process{docs=Docs}=Process) ->
+    Process#process{docs=lists:filter(
+        fun (X) -> not lists:member(element(1,X),
+            wf:config(bpe,transient,[])) end,Docs)}.
