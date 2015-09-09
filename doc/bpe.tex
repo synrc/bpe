@@ -53,6 +53,7 @@ Thanks to this isomorphic corresponding between Erlang process and Calculus proc
 code size of core BPE server was reduced to 400 lines of code. This is definitely
 most clean functional implementation of workflow engine avalible in electronical banking systems.
 
+\newpage
 \subsection{Pi-calculus and Petri nets}
 The nice thing about all palette of different implementation of workflow models is
 that all of them reduced to one of two kinds of encoding: one is algebraic one and
@@ -104,8 +105,7 @@ so in BPE workflow processing is type-safe on compilation stage with respect to 
     1> #deposit{} = bpe:doc(#deposit{}, pid(0,185,0)).
 \end{lstlisting}
 
-\subsection{Systems}
-
+\newpage
 \subsection{Scenarios}
 Workflows are complimentary to business rules and could be specified separately.
 BPE definitions provides front API to the end-user application.
@@ -120,14 +120,13 @@ workflow definition:
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
-bpe:start(
-   #process{name="Order Form",
-       flows=[ #sequenceFlow{source="begin",target="fill_form"},
-               #sequenceFlow{source="fill_form",target="end"}],
-       tasks=[ #userTask{name="begin"},
-               #userTask{name="fill_form"},
-               #endEvent{name="end"}],
-       task="begin",beginEvent="begin",endEvent="end"},[]).
+    bpe:start(#process{name="Order1",
+             flows=[#sequenceFlow{source='Start',target='Mid'},
+                    #sequenceFlow{source='Mid',target='Finish'}],
+             tasks=[#userTask{name='Start'},
+                    #userTask{name='Mid'},
+                    #userTask{name='Finish'}],
+             beginEvent='Start',endEvent='Finish'},[]).
 \end{lstlisting}
 
 
@@ -136,9 +135,7 @@ Slightly bigger example:
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
-deposit_app() ->
-
-    #process { name = 'Create Deposit Account',
+    deposit_app() -> #process { name = 'Create Deposit Account',
 
         flows = [
             #sequenceFlow{source='Init',      target='Payment'},
@@ -146,7 +143,7 @@ deposit_app() ->
             #sequenceFlow{source='Payment',   target='Process'},
             #sequenceFlow{source='Process',   target='Final'},
             #sequenceFlow{source='Signatory', target='Process'},
-            #sequenceFlow{source='Signatory', target='Final'}
+            #sequenceFlow{source='Signatory', target='Finish'}
         ],
 
         tasks = [
@@ -154,7 +151,7 @@ deposit_app() ->
             #userTask    { name='Signatory', module = deposit},
             #serviceTask { name='Payment',   module = deposit},
             #serviceTask { name='Process',   module = deposit},
-            #endEvent    { name='Final'}
+            #endEvent    { name='Finish'}
         ],
 
         beginEvent = 'Init',
@@ -178,66 +175,63 @@ The workflow definition uses following persistent workflow model which is stored
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
--record(task,         { name, id, roles, module }).
--record(userTask,     { name, id, roles, module }).
--record(serviceTask,  { name, id, roles, module }).
--record(messageEvent, { name, id, payload }).
--record(beginEvent ,  { name, id }).
--record(endEvent,     { name, id }).
--record(sequenceFlow, { name, id, source, target }).
--record(history,      { ?ITERATOR(feed,true), name, task }).
--record(process,      { ?ITERATOR(feed,true), name,
-                        roles=[], tasks=[], events=[],
-                        history=[], flows=[], rules,
-                        docs=[], task, beginEvent,
-                        endEvent }).
+    -record(task,         { name, id, roles, module }).
+    -record(userTask,     { name, id, roles, module }).
+    -record(serviceTask,  { name, id, roles, module }).
+    -record(messageEvent, { name, id, payload }).
+    -record(beginEvent ,  { name, id }).
+    -record(endEvent,     { name, id }).
+    -record(sequenceFlow, { name, id, source, target }).
+    -record(history,      { ?ITERATOR(feed,true), name, task }).
+    -record(process,      { ?ITERATOR(feed,true), name,
+                            roles=[], tasks=[], events=[],
+                            history=[], flows=[], rules,
+                            docs=[], task, beginEvent,
+                            endEvent }).
 \end{lstlisting}
 
 Full set of BPMN 2.0 fields could be obtained at \footahref{http://www.omg.org/spec/BPMN/2.0}{OMG definition document, page 3-7}.
-
-\newpage
 
 Unusual that BPE process implemented as {\bf gen\_server} rather
 that {\bf gen\_fsm}:
 
 \vspace{1\baselineskip}
 \begin{lstlisting}[caption=Boundary Event]
-process_event(Event, Proc) ->
-    Targets = bpe_task:targets(Event#messageEvent.name,Proc),
+  process_event(Event, Proc) ->
+    Targets = bpe_task:targets(element(#event.name,Event),Proc),
     {Status,{Reason,Target},ProcState} =
-           bpe_event:handle_event(Event,
-              bpe_task:find_flow(Targets),Proc),
-    NewProcState = ProcState#process{task = Target},
-    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    kvs:put(NewProcState),
+      bpe_event:handle_event(Event,
+        bpe_task:find_flow(Targets),Proc),
+    NewState = ProcState#process{task = Target},
+    FlowReply = fix_reply({Status,{Reason,Target},NewState}),
+    kvs:put(NewState),
     FlowReply.
 \end{lstlisting}
 
+\newpage
 \vspace{1\baselineskip}
 \begin{lstlisting}[caption=Flow Processing]
-process_flow(Proc) ->
+  process_flow(Proc) ->
     Curr = Proc#process.task,
     Term = [],
     Task = bpe:task(Curr,Proc),
     Targets = bpe_task:targets(Curr,Proc),
     {Status,{Reason,Target},ProcState}
       = case {Targets,Proc#process.task} of
-         {[],Term} -> bpe_task:already_finished(Proc);
-         {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
-         {[],_}    -> bpe_task:denied_flow(Curr,Proc);
-         {List,_}  -> bpe_task:handle_task(Task,Curr,
-                         bpe_task:find_flow(List),Proc)
-    end,
+    {[],Term} -> bpe_task:already_finished(Proc);
+    {[],Curr} -> bpe_task:handle_task(Task,Curr,Curr,Proc);
+    {[],_}    -> bpe_task:denied_flow(Curr,Proc);
+    {List,_}  -> bpe_task:handle_task(Task,Curr,
+                bpe_task:find_flow(List),Proc) end,
 
-    kvs:add(#history { id = kvs:next_id("history",1),
-                       feed_id = {history,ProcState#process.id},
-                       name = ProcState#process.name,
-                       task = {task, Curr} }),
+    kvs:add(#history{ id = kvs:next_id("history",1),
+        feed_id = {history,ProcState#process.id},
+        name = ProcState#process.name,
+        task = {task, Curr} }),
 
-    NewProcState = ProcState#process{task = Target},
-
-    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    kvs:put(NewProcState),
+    NewState = ProcState#process{task = Target},
+    FlowReply = fix_reply({Status,{Reason,Target},NewState}),
+    kvs:put(NewState),
     FlowReply.
 \end{lstlisting}
 
@@ -252,50 +246,50 @@ process_flow(Proc) ->
     {event,_}
 \end{lstlisting}
 
-\subsection{Sample Process}
-
+\newpage
 \subsection{Erlang Session}
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
-(bpe@127.0.0.1)1> kvs:join().
-ok
+  > kvs:join().
+    ok
 
-(bpe@127.0.0.1)1> rr(bpe).
-[beginEvent,container,endEvent,history,id_seq,iterator,
- messageEvent,process,sequenceFlow,serviceTask,task,userTask]
+  > rr(bpe).
+    [beginEvent,container,endEvent,history,id_seq,iterator,
+     messageEvent,process,sequenceFlow,serviceTask,task,userTask]
 
-(bpe@127.0.0.1)2> bpe:start(#process{name="Order11",
-         flows=[#sequenceFlow{source="begin",target="end2"},
-                #sequenceFlow{source="end2",target="end"}],
-         tasks=[#userTask{name="begin"},
-                #userTask{name="end2"},
-                #endEvent{name="end"}],
-         task="begin",beginEvent="begin",endEvent="end"},[]).
-bpe_proc:Process 39 spawned <0.12399.0>
-{ok,<0.12399.0>}
+  > bpe:start(#process{name="Order1",
+             flows=[#sequenceFlow{source='Start',target='Mid'},
+                    #sequenceFlow{source='Mid',target='Finish'}],
+             tasks=[#userTask{name='Start'},
+                    #userTask{name='Mid'},
+                    #userTask{name='Finish'}],
+             beginEvent='Start',endEvent='Finish'},[]).
+    bpe_proc:Process 39 spawned <0.12399.0>
+    {ok,39}
 
-(bpe@127.0.0.1)3> gen_server:call(pid(0,12399,0),{complete}).
+  > gen_server:call(39,{complete}).
 
-(bpe@127.0.0.1)4> gen_server:call(pid(0,12399,0),{complete}).
+  > gen_server:call(39,{complete}).
 
-(bpe@127.0.0.1)5> gen_server:call(pid(0,12399,0),{complete}).
+  > gen_server:call(39,{complete}).
 
-(bpe@127.0.0.1)5> bpe:history(39).
-[#history{id = 28,version = undefined,container = feed,
-          feed_id = {history,39},
-          prev = 27,next = undefined,feeds = [],guard = true,
-          etc = undefined,name = "Order11",
-          task = {task,"end"}},
- #history{id = 27,version = undefined,container = feed,
-          feed_id = {history,39},
-          prev = 26,next = 28,feeds = [],guard = true,etc = undefined,
-          name = "Order11",
-          task = {task,"end2"}},
- #history{id = 26,version = undefined,container = feed,
-          feed_id = {history,39},
-          prev = undefined,next = 27,feeds = [],guard = true,
-          etc = undefined,name = "Order11",
-          task = {task,"begin"}}]
+  > bpe:history(39).
+    [#history{id = 28, version = undefined, container = feed,
+              feed_id = {history,39}, prev = 27,next = undefined,
+              feeds = [], guard = true,
+              etc = undefined, name = "Order1",
+              task = {task,'Start'}},
+     #history{id = 27, version = undefined, container = feed,
+              feed_id = {history,39}, prev = 26, next = 28
+              feeds = [], guard = true,
+              etc = undefined,
+              name = "Order1",
+              task = {task,'Mid'}},
+     #history{id = 26, version = undefined, container = feed,
+              feed_id = {history,39}, prev = undefined,
+              next = 27, feeds = [], guard = true,
+              etc = undefined, name = 'Order1',
+              task = {task,'Finish'}}]
 \end{lstlisting}
 
