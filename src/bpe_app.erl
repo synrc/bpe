@@ -2,7 +2,7 @@
 -behaviour(application).
 -include("bpe.hrl").
 -include_lib("kvs/include/feed.hrl").
--export([start/2, stop/1]).
+-export([start/2, stop/1, worker/1]).
 
 start(_StartType, _StartArgs) ->
     Res = bpe_sup:start_link(),
