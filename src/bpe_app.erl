@@ -9,8 +9,9 @@ start(_StartType, _StartArgs) ->
     kvs:join(),
     Table = process,
     spawn(fun() -> case kvs:get(feed,Table) of
-           {ok,Feed} -> kvs:fold(fun(A,Acc) -> worker(A) end,[], Table,
-                        Feed#feed.top,undefined, #iterator.prev,#kvs{mod=store_mnesia});
+           {ok,Feed} -> kvs:fold(fun(A,Acc) -> {M,F} = application:get_env(bpe,process_worker,{?MODULE,worker}),
+                                                M:F(A) end,[],
+                        Table, Feed#feed.top,undefined, #iterator.prev,#kvs{mod=store_mnesia});
                   __ -> skip end end),
     Res.
 
