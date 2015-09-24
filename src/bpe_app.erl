@@ -17,4 +17,10 @@ start(_StartType, _StartArgs) ->
 
 stop(_State) -> ok.
 
-worker(P) -> Ret = bpe:start(P,[]), wf:info(?MODULE,"Bpe Start: ~p~n",[Ret]).
+worker(#process{id=Id}=P) ->
+    case bpe:history(Id) of
+         [H|T] -> worker_do(calendar:time_difference(H#history.time,calendar:local_time()),P);
+            __ -> skip end.
+
+worker_do({Days,Time},P) when Days >= 4 -> skip;
+worker_do({Days,Time},P) -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]).
