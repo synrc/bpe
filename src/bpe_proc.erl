@@ -113,7 +113,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
     wf:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
-    {DD,Diff} = try [#history{time=Time1}|_] = bpe:history(Id), calendar:time_difference(Time1,Time2)
+    {DD,Diff} = try [#history{time=Time1}|_] = lists:reverse(bpe:history(Id)), calendar:time_difference(Time1,Time2)
               catch _:_ -> {immediate,timeout} end,
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {true,_} -> {noreply,State#process{timer=timer_restart(Pattern)}};
