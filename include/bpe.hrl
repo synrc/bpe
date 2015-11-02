@@ -18,5 +18,5 @@
                         roles=[], tasks=[], events=[], history=[], flows=[],
                         rules, docs=[], options=[],
                         task, timer, notifications, result,
-                        beginEvent, endEvent }).
+                        started, beginEvent, endEvent }).
 -endif.

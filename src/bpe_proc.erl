@@ -85,13 +85,6 @@ init(Process) ->
     Proc = case kvs:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
-
-    kvs:add(#history { id = kvs:next_id("history",1),
-                       feed_id = {history,Proc#process.id},
-                       name = Proc#process.name,
-                       time = calendar:local_time(),
-                       task = {init,Proc#process.task} }),
-
     wf:cache({process,Proc#process.id},self()),
     [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(30000,self(),{timer,ping})}}.

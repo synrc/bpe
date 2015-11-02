@@ -18,8 +18,9 @@ start(Proc0, Options) ->
                 undefined -> Id = kvs:next_id("process",1),
                              Proc0#process{id=Id,task=Proc0#process.beginEvent,
                                            options = Options,
-                                           notifications = Pid};
-                        _ -> Proc0 end,
+                                           notifications = Pid,
+                                           started=calendar:local_time()};
+                        _ -> Proc0#process{started=calendar:local_time()} end,
     kvs:add(Proc),
     Restart = transient,
     Shutdown = 5000,
