@@ -113,7 +113,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     {DD,Diff} = try [#history{time=Time1}|_] = lists:reverse(bpe:history(Id)), calendar:time_difference(Time1,Time2)
               catch _:_ -> {immediate,timeout} end,
     case {{DD,Diff} < {Days,Pattern}, Record} of
-        {true,_} -> {noreply,State#process{timer=timer_restart(Pattern)}};
+        {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
         {false,timeoutEvent} ->
             io:format("BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
             case process_flow([],State) of
