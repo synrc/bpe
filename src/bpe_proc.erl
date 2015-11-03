@@ -95,6 +95,7 @@ handle_cast(Msg, State) ->
 
 timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
 ping() -> application:get_env(bpe,ping,{0,0,5}).
+pattern({Name,Record,{Days,Pattern}}) -> Pattern.
 
 handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
@@ -112,7 +113,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     {DD,Diff} = try [#history{time=Time1}|_] = lists:reverse(bpe:history(Id)), calendar:time_difference(Time1,Time2)
               catch _:_ -> {immediate,timeout} end,
     case {{DD,Diff} < {Days,Pattern}, Record} of
-        {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
+        {true,_} -> {noreply,State#process{timer=timer_restart(Pattern)}};
         {false,timeoutEvent} ->
             io:format("BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
             case process_flow([],State) of
