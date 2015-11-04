@@ -50,7 +50,6 @@ process_flow(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
-    io:format("{S,{R,T}}: ~p~n",[{Targets,Proc#process.task,Stage}]),
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
                        name = ProcState#process.name,
