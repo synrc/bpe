@@ -10,7 +10,7 @@ find_flow(Stage,List) -> case lists:member(Stage,List) of
                               _ -> find_flow(List) end.
 
 targets(Curr,Proc) ->
-    Targets = lists:flatten([ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows, 
+    Targets = lists:flatten([ Target || #sequenceFlow{source=Source,target=Target} <- Proc#process.flows,
                 Source==Curr]).
 
 denied_flow(Curr,Proc) ->
@@ -20,18 +20,13 @@ already_finished(Proc) ->
     {stop,{normal,[]},Proc}.
 
 task_action(Module,CurrentTask,Target,Proc) ->
-    Allowed = case erlang:function_exported(Module, action, 2) of
-                   true ->
     case Module:action({request,CurrentTask},Proc) of
-         {run,State}        -> bpe_proc:run('Finish',State);
-         {until,Task,State} -> bpe_proc:run(Task,State);
+         {run,State}                  -> bpe_proc:run('Finish',State);
+         {until,Task,State}           -> bpe_proc:run(Task,State);
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
-         {reply,Task,State} -> {reply,{complete,Task},State} end;
-                   false -> case wf:config(bpe,ignore_exports) of
-                               [] -> {reply,{complete,Target},Proc};
-                                _ -> {reply,{module_not_exported,Target},Proc} end end.
+         {reply,Task,State}           -> {reply,{complete,Task},State} end.
 
 handle_task(#beginEvent{},CurrentTask,Target,Proc) -> 
     {reply,{complete,Target},Proc};

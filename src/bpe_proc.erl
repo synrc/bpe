@@ -40,6 +40,7 @@ process_flow(Stage,Proc,NoFlow) ->
     Targets = case NoFlow of
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
+
     wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
     {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task,Stage} of
          {noflow,_,_} -> {reply,{complete,Curr},Proc};
@@ -49,6 +50,7 @@ process_flow(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
+    io:format("{S,{R,T}}: ~p~n",[{Targets,Proc#process.task,Stage}]),
     kvs:add(#history { id = kvs:next_id("history",1),
                        feed_id = {history,ProcState#process.id},
                        name = ProcState#process.name,
@@ -108,7 +110,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
-%%     wf:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
+    wf:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
     {DD,Diff} = try [#history{time=Time1}|_] = lists:reverse(bpe:history(Id)), calendar:time_difference(Time1,Time2)
               catch _:_ -> {immediate,timeout} end,
     case {{DD,Diff} < {Days,Pattern}, Record} of
@@ -116,7 +118,8 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
         {false,timeoutEvent} ->
             io:format("BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
             case process_flow([],State) of
-                {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
+                {reply,_,NewState} ->
+                                     {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
         {false,_} -> wf:info(?MODULE,"BPE process ~p: Closing Timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
             case is_pid(Pid) of
