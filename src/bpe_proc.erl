@@ -95,7 +95,6 @@ handle_cast(Msg, State) ->
 
 timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
 ping() -> application:get_env(bpe,ping,{0,0,5}).
-pattern({Name,Record,{Days,Pattern}}) -> Pattern.
 
 handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
