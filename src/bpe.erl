@@ -23,7 +23,7 @@ start(Proc0, Options) ->
                         _ -> Proc0#process{started=calendar:local_time()} end,
     kvs:add(Proc),
     Restart = transient,
-    Shutdown = 30000,
+    Shutdown = 360000,
     ChildSpec = { Proc#process.id,
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
