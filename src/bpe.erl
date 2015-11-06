@@ -3,6 +3,7 @@
 -include("bpe.hrl").
 -include("api.hrl").
 -compile(export_all).
+-define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
 % Instance Management
 
@@ -23,7 +24,7 @@ start(Proc0, Options) ->
                         _ -> Proc0#process{started=calendar:local_time()} end,
     kvs:add(Proc),
     Restart = transient,
-    Shutdown = 360000,
+    Shutdown = ?TIMEOUT,
     ChildSpec = { Proc#process.id,
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
@@ -39,14 +40,14 @@ start(Proc0, Options) ->
 
 find_pid(Id) -> wf:cache({process,Id}).
 
-process(ProcId)           -> gen_server:call(find_pid(ProcId),{get}).
-complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete}).
-run(ProcId)               -> gen_server:call(find_pid(ProcId),{run}).
-until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task}).
-complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}).
-amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form}).
-amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true}).
-event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event}).
+process(ProcId)           -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
+complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
+run(ProcId)               -> gen_server:call(find_pid(ProcId),{run},            ?TIMEOUT).
+until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task},     ?TIMEOUT).
+complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}, ?TIMEOUT).
+amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form},     ?TIMEOUT).
+amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true},?TIMEOUT).
+event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
 
 addRecsProc(Proc, RecordsList) -> bpe_proc:set_rec_in_proc(Proc, RecordsList).
 
