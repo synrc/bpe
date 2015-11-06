@@ -28,16 +28,16 @@ task_action(Module,CurrentTask,Target,Proc) ->
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
          {reply,Task,State}           -> {reply,{complete,Task},State} end.
 
-handle_task(#beginEvent{},CurrentTask,Target,Proc) -> 
+handle_task(#beginEvent{},CurrentTask,Target,Proc) ->
     {reply,{complete,Target},Proc};
 
-handle_task(#userTask{module=Module},CurrentTask,Target,Proc) -> 
+handle_task(#userTask{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#receiveTask{module=Module},CurrentTask,Target,Proc) -> 
+handle_task(#receiveTask{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#serviceTask{module=Module},CurrentTask,Target,Proc) -> 
+handle_task(#serviceTask{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
 handle_task(#endEvent{},CurrentTask,Target,Proc) ->

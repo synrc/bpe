@@ -4,16 +4,11 @@
 -include("bpe.hrl").
 
 event_action(Module,Name,Event,Target,Proc) ->
-    Allowed = case erlang:function_exported(Module, action, 2) of
-                   true ->
     case Module:action({event,Event#messageEvent.name,Event#messageEvent.payload},Proc) of
          {run,State}        -> bpe_proc:run('Finish',State);
          {until,Task,State} -> bpe_proc:run(Task,State);
          {reply,State}      -> {reply,{complete,Target},State};
-         {reply,Task,State} -> {reply,{complete,Task},State} end;
-                   false -> case wf:config(bpe,ignore_exports) of
-                               [] -> {reply,{complete,Target},Proc};
-                                _ -> {reply,{module_not_exported,Target},Proc} end end.
+         {reply,Task,State} -> {reply,{complete,Task},State} end.
 
 handle_event(#beginEvent{},Target,Proc) -> 
     {reply,{complete,Target},Proc};
