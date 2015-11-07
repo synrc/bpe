@@ -88,7 +88,7 @@ init(Process) ->
          {error,_} -> Process end,
     wf:cache({process,Proc#process.id},self()),
     [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
-    {ok, Proc#process{timer=erlang:send_after(30000,self(),{timer,ping})}}.
+    {ok, Proc#process{timer=erlang:send_after(crypto:rand_uniform(1,10000),self(),{timer,ping})}}.
 
 handle_cast(Msg, State) ->
     wf:info(?MODULE,"Unknown API async: ~p", [Msg]),
@@ -103,7 +103,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
 
     Terminal= case lists:keytake(Wildcard,#messageEvent.name,Events) of
                    {value,Event,_} -> {Wildcard,element(1,Event),element(#messageEvent.timeout,Event)};
-                             false -> {Wildcard,boundaryEvent,{0,ping()}} end,
+                             false -> {Wildcard,boundaryEvent,{5,ping()}} end,
 
     {Name,Record,{Days,Pattern}} = case lists:keytake(Task,#messageEvent.name,Events) of
                                        {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
