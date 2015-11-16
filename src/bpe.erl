@@ -70,7 +70,7 @@ task(Name, Proc) ->
          E -> E end.
 
 doc(Rec, Proc) ->
-    case [ Doc || Doc <- docs(Proc), element(1,Doc) == element(1,Rec)] of
+    case [ Doc || Doc <- docs(Proc), kvs:rname(element(1,Doc)) == element(1,Rec)] of
          [D] -> D;
          [] -> [];
          E -> E end.

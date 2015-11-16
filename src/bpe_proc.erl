@@ -152,7 +152,7 @@ plist_setkey(Name,Pos,List,New) ->
 
 set_rec_in_proc(Proc, []) -> Proc;
 set_rec_in_proc(Proc, [H|T]) ->
-    ProcNew = Proc#process{ docs=plist_setkey(element(1,H),1,Proc#process.docs,H)},
+    ProcNew = Proc#process{ docs=plist_setkey(kvs:rname(element(1,H)),1,Proc#process.docs,H)},
     set_rec_in_proc(ProcNew, T).
 
 transient(#process{docs=Docs}=Process) ->
