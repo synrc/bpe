@@ -22,7 +22,8 @@ worker(#process{id=Id}=P) ->
          [H|_] -> worker_do(calendar:time_difference(H#history.time,calendar:local_time()),P);
             __ -> skip end.
 
-worker_do({Days,Time},P) when Days >= 4 -> skip;
+worker_do({Days,Time},P) when Days >= 14 -> skip;
+worker_do({Days,Time},P) when P#process.task =:= 'Payment'     -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
 worker_do({Days,Time},P) when P#process.task =:= 'Delay'       -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
 worker_do({Days,Time},P) when P#process.task =:= 'FirstDelay'  -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
 worker_do({Days,Time},P) when P#process.task =:= 'SecondDelay' -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
