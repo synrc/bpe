@@ -23,6 +23,7 @@ worker(#process{id=Id}=P) ->
             __ -> skip end.
 
 worker_do({Days,Time},P) when Days >= 4 -> skip;
-worker_do({Days,Time},P) when P#process.task =:= 'FirstDelay' -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({Days,Time},P) when P#process.task =:= 'Delay'       -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({Days,Time},P) when P#process.task =:= 'FirstDelay'  -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
 worker_do({Days,Time},P) when P#process.task =:= 'SecondDelay' -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
 worker_do({Days,Time},P) -> skip.
