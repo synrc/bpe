@@ -111,7 +111,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     Time2 = calendar:local_time(),
     %wf:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
 
-    {DD,Diff} = case bpe:history(Id,1) ->
+    {DD,Diff} = case bpe:history(Id,1) of
          [#history{time=Time1}] -> calendar:time_difference(Time1,Time2);
           _ -> {immediate,timeout} end,
 
