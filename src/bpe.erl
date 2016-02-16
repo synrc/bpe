@@ -55,7 +55,8 @@ delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                                 lists:member(Task#task.name,Tasks) ] }.
 
-history(ProcId) -> kvs:entries(kvs:get(feed,{history,ProcId}),history,undefined).
+history(ProcId,N) -> kvs:entries(kvs:get(feed,{history,ProcId}),history,N).
+history(ProcId) -> history(ProcId,undefined).
 
 source(Name, Proc) ->
     case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of
