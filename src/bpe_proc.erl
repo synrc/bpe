@@ -86,7 +86,8 @@ init(Process) ->
     Proc = case kvs:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
-    wf:cache({process,Proc#process.id},self()),
+    Till = n2o_session:till(calendar:local_time(), wf:config(bpe,ttl,24*60*60)),
+    wf:cache({process,Proc#process.id},self(),Till),
     [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(crypto:rand_uniform(1,10000),self(),{timer,ping})}}.
 
