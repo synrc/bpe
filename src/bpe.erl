@@ -95,7 +95,7 @@ val(Document,Proc,Cond,Action) ->
     case Cond(Document,Proc) of
          true -> Action(Document,Proc), {reply,Proc};
          {false,Message} -> {{reply,Message},Proc#process.task,Proc};
-         ErrorList -> io:format("BPE:val/4 failed: ~p~n",[ErrorList]),
+         ErrorList -> io:format("BPE:val/4 failed: ~tp~n",[ErrorList]),
                       {{reply,ErrorList},Proc#process.task,Proc} end.
 
 option(Proc, Key) -> proplists:get_value(Key,Proc#process.options).

@@ -21,7 +21,7 @@ process_event(Event,Proc) ->
 
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
+    wf:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvs:put(transient(NewProcState)),
     FlowReply.
 
@@ -59,7 +59,7 @@ process_flow(Stage,Proc,NoFlow) ->
     NewProcState = ProcState#process{task = Target},
 
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    wf:info(?MODULE,"Process ~p Flow Reply ~p ",[Proc#process.id,{Status,{Reason,Target}}]),
+    wf:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvs:put(transient(NewProcState)),
     FlowReply.
 
