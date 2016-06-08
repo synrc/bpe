@@ -13,6 +13,7 @@ defmodule BPE.Mixfile do
   def application do
     [mod: {:bpe_app, []},
      applications: [:mnesia,
+                    :n2o,
                     :kvs]]
   end
 
@@ -25,7 +26,7 @@ defmodule BPE.Mixfile do
   defp deps do[
     {:kvs,                          github: "synrc/kvs", tag: "2.9"},
     {:active,                       github: "synrc/active"},
-    {:n2o,                          github: "synrc/n2o"},
+    {:n2o,                          github: "rixmann/n2o", branch: "fix/configure_as_mix_application"},
     {:pgsql,                        github: "epgsql/epgsql", tag: "2.0.0", app: false},
   ]
   end
