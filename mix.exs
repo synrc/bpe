@@ -26,7 +26,7 @@ defmodule BPE.Mixfile do
     {:kvs,                          github: "synrc/kvs", tag: "2.9"},
     {:active,                       github: "synrc/active"},
     {:n2o,                          github: "synrc/n2o"},
-    {:pgsql,                        github: "epgsql/epgsql", tag: "25"},
+    {:pgsql,                        github: "epgsql/epgsql", tag: "2.0.0", app: false},
   ]
   end
 end
