@@ -6,7 +6,14 @@ defmodule BPE.Mixfile do
      version: "1.0.0",
      description: "Erlang Business Process Engine",
      package: package,
-     deps: deps]
+     deps: deps
+    ]
+  end
+
+  def application do
+    [mod: {:bpe_app, []},
+     applications: [:mnesia,
+                    :kvs]]
   end
 
   defp package do
@@ -19,6 +26,7 @@ defmodule BPE.Mixfile do
     {:kvs,                          github: "synrc/kvs", tag: "2.9"},
     {:active,                       github: "synrc/active"},
     {:n2o,                          github: "synrc/n2o"},
+    {:pgsql,                        github: "epgsql/epgsql", tag: "25"},
   ]
   end
 end
