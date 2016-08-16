@@ -125,9 +125,9 @@ Let us see how we could create initial 'Wire Transfer' transaction:
 > bpe:docs(Proc).
   []
 
-> bpe:amend(3,[{'WireTransfer',#user{id=1},#user{id=2}}]).
+> bpe:amend(39,[{'WireTransfer',#user{id=1},#user{id=2}}]).
 
-> bpe:docs(bpe:load(3)).
+> bpe:docs(bpe:load(39)).
 ```
 
 Dialyzer
