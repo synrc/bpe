@@ -15,13 +15,12 @@ cleanup(P) -> [ kvs:remove(history,Id) || #history{id=Id} <- bpe:history(P) ],
 
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
-    Proc = case Proc0#process.id of
-                undefined -> Id = kvs:next_id("process",1),
-                             Proc0#process{id=Id,task=Proc0#process.beginEvent,
-                                           options = Options,
-                                           notifications = Pid,
-                                           started=calendar:local_time()};
-                        _ -> Proc0#process{started=calendar:local_time()} end,
+    Proc = case Proc0#process.id == undefined orelse Proc0#process.id == [] of
+                true -> Id = kvs:next_id("process",1),
+                      Proc0#process{id=Id,task=Proc0#process.beginEvent,
+                                    options = Options,notifications = Pid,
+                                    started=calendar:local_time()};
+                 _ -> Proc0#process{started=calendar:local_time()} end,
     kvs:add(Proc),
     Restart = transient,
     Shutdown = ?TIMEOUT,
@@ -38,7 +37,7 @@ start(Proc0, Options) ->
          {ok,_,_} -> {ok,Proc#process.id};
          Else     -> Else end.
 
-find_pid(Id) -> wf:cache({process,Id}).
+find_pid(Id) -> bpe:cache({process,Id}).
 
 process(ProcId)           -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
@@ -55,8 +54,10 @@ delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                                 lists:member(Task#task.name,Tasks) ] }.
 
-history(ProcId,N) -> kvs:entries(kvs:get(feed,{history,ProcId}),history,N).
-history(ProcId) -> history(ProcId,undefined).
+history(ProcId)   -> history(ProcId,undefined).
+history(ProcId,N) -> case kvs:entries(kvs:get(feed,{history,ProcId}),history,N) of
+                          [] -> [#history{time=(bpe:load(ProcId))#process.started}];
+                          Res -> Res end.
 
 source(Name, Proc) ->
     case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of
@@ -101,3 +102,34 @@ val(Document,Proc,Cond,Action) ->
 option(Proc, Key) -> proplists:get_value(Key,Proc#process.options).
 option(Proc, Key, Value) -> Proc#process{options=bpe_proc:plist_setkey(Key,1,Proc#process.options,{Key,Value})}.
 
+cache(Key, undefined) -> ets:delete(processes,Key);
+cache(Key, Value) -> ets:insert(processes,{Key,till(calendar:local_time(), ttl()),Value}), Value.
+cache(Key, Value, Till) -> ets:insert(processes,{Key,Till,Value}), Value.
+cache(Key) ->
+    Res = ets:lookup(processes,Key),
+    Val = case Res of [] -> undefined; [Value] -> Value; Values -> Values end,
+    case Val of undefined -> undefined;
+                {_,infinity,X} -> X;
+                {_,Expire,X} -> case Expire < calendar:local_time() of
+                                  true ->  ets:delete(processes,Key), undefined;
+                                  false -> X end end.
+
+ttl() -> kvs:config(n2o,ttl,60*15).
+
+till(Now,TTL) ->
+    calendar:gregorian_seconds_to_datetime(
+        calendar:datetime_to_gregorian_seconds(Now) + TTL).
+
+send(Pool, Message) -> syn:publish(term_to_binary(Pool),Message).
+reg(Pool) -> reg(Pool,undefined).
+reg(Pool, Value) ->
+    case get({pool,Pool}) of
+         undefined -> syn:register(term_to_binary(Pool),self(),Value),
+                      syn:join(term_to_binary(Pool),self()),
+                      erlang:put({pool,Pool},Pool);
+          _Defined -> skip end.
+unreg(Pool) ->
+    case get({pool,Pool}) of
+         undefined -> skip;
+          _Defined -> syn:leave(Pool, self()),
+                      erlang:erase({pool,Pool}) end.

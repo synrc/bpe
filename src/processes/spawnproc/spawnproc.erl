@@ -1,10 +1,10 @@
--module(sampleproc).
+-module(spawnproc).
 -author('Maxim Sokhatsky').
--include_lib("bpe/include/bpe.hrl").
+-include("bpe.hrl").
 -include_lib("kvs/include/user.hrl").
 -compile(export_all).
 
-definition() -> sampleproc_process:definition().
+def() -> spawnproc_process:definition().
 
 action({request,'Init'}, Proc) ->
     io:format("ACT Deposit Init~n"),

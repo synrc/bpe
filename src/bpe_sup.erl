@@ -7,13 +7,8 @@
 -export([start_link/0]).
 -export([init/1]).
 
+opt()        -> [ set, named_table, { keypos, 1 }, public ].
+tables()     -> [ processes ].
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
-init([]) ->
-    RestartStrategy = one_for_one,
-    MaxRestarts = 10000,
-    MaxSecondsBetweenRestarts = 5000,
-
-    SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-
-    {ok, { SupFlags, []} }.
-
+init([])     -> [ ets:new(T,opt()) || T <- tables() ],
+                { ok, { { one_for_one, 5, 10 }, [] } }.

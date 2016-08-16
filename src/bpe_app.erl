@@ -23,8 +23,8 @@ worker(#process{id=Id}=P) ->
             __ -> skip end.
 
 worker_do({Days,Time},P) when Days >= 14 -> skip;
-worker_do({Days,Time},P) when P#process.task =:= 'Payment'     -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) when P#process.task =:= 'Delay'       -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) when P#process.task =:= 'FirstDelay'  -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) when P#process.task =:= 'SecondDelay' -> wf:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({Days,Time},P) when P#process.task =:= 'Payment'     -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({Days,Time},P) when P#process.task =:= 'Delay'       -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({Days,Time},P) when P#process.task =:= 'FirstDelay'  -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({Days,Time},P) when P#process.task =:= 'SecondDelay' -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
 worker_do({Days,Time},P) -> skip.

@@ -21,7 +21,7 @@ process_event(Event,Proc) ->
 
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    wf:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
+    kvs:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvs:put(transient(NewProcState)),
     FlowReply.
 
@@ -41,7 +41,7 @@ process_flow(Stage,Proc,NoFlow) ->
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
 
-    wf:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
+    kvs:info(?MODULE,"Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
     {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task,Stage} of
          {noflow,_,_} -> {reply,{complete,Curr},Proc};
          {[],Term,_}  -> bpe_task:already_finished(Proc);
@@ -59,7 +59,7 @@ process_flow(Stage,Proc,NoFlow) ->
     NewProcState = ProcState#process{task = Target},
 
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    wf:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
+    kvs:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvs:put(transient(NewProcState)),
     FlowReply.
 
@@ -82,17 +82,17 @@ handle_call({amend,Form},_,Proc)       ->   process_flow([],Proc#process{docs=pl
 handle_call(Command,_,Proc)            -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
-    wf:info(?MODULE,"Process ~p spawned ~p",[Process#process.id,self()]),
+    kvs:info(?MODULE,"Process ~p spawned ~p",[Process#process.id,self()]),
     Proc = case kvs:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
-    Till = n2o_session:till(calendar:local_time(), wf:config(bpe,ttl,24*60*60)),
-    wf:cache({process,Proc#process.id},self(),Till),
-    [ wf:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
+    Till = bpe:till(calendar:local_time(), kvs:config(bpe,ttl,24*60*60)),
+    bpe:cache({process,Proc#process.id},self(),Till),
+    [ bpe:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(crypto:rand_uniform(1,10000),self(),{timer,ping})}}.
 
 handle_cast(Msg, State) ->
-    wf:info(?MODULE,"Unknown API async: ~p", [Msg]),
+    kvs:info(?MODULE,"Unknown API async: ~p", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
 timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
@@ -110,7 +110,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
-    %wf:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
+    %kvs:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
 
     {DD,Diff} = case bpe:history(Id,1) of
          [#history{time=Time1}] -> calendar:time_difference(Time1,Time2);
@@ -119,31 +119,30 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
         {false,timeoutEvent} ->
-            io:format("BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
+            kvs:info(?MODULE,"BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
             case process_flow([],State) of
-                {reply,_,NewState} ->
-                                     {noreply,NewState#process{timer=timer_restart(ping())}};
+                {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
-        {false,_} -> wf:info(?MODULE,"BPE process ~p: Closing Timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
+        {false,_} -> kvs:info(?MODULE,"BPE process ~p: Closing Timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
             case is_pid(Pid) of
                 true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                 false -> skip end,
-            wf:cache({process,Id},undefined),
+            bpe:cache({process,Id},undefined),
             {stop,normal,State} end;
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
-    wf:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
-    wf:cache({process,Id},undefined),
+    kvs:info(?MODULE, "connection closed, shutting down session:~p", [Msg]),
+    bpe:cache({process,Id},undefined),
     {stop, normal, State};
 
 handle_info(Info, State=#process{}) ->
-    wf:info(?MODULE,"Unrecognized info: ~p", [Info]),
+    kvs:info(?MODULE,"Unrecognized info: ~p", [Info]),
     {noreply, State}.
 
-terminate(_Reason, #process{id=Id}) ->
-    wf:info(?MODULE,"Terminating session Id cache: ~p", [Id]),
+terminate(Reason, #process{id=Id}) ->
+    kvs:info(?MODULE,"Terminating session Id cache: ~p~n Reason: ~p", [Id,Reason]),
     spawn(fun() -> supervisor:delete_child(bpe_sup,Id) end),
-    wf:cache({process,Id},undefined),
+    bpe:cache({process,Id},undefined),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -162,4 +161,4 @@ set_rec_in_proc(Proc, [H|T]) ->
 transient(#process{docs=Docs}=Process) ->
     Process#process{docs=lists:filter(
         fun (X) -> not lists:member(element(1,X),
-            wf:config(bpe,transient,[])) end,Docs)}.
+            kvs:config(bpe,transient,[])) end,Docs)}.

@@ -251,45 +251,76 @@ that {\bf gen\_fsm}:
 
 \vspace{1\baselineskip}
 \begin{lstlisting}
-  > kvs:join().
-    ok
+  > bpe:start(spawnproc:def(),[]).
+    bpe_proc:Process 18 spawned <0.961.0>
+    {ok,18}
 
-  > rr(bpe).
-    [beginEvent,container,endEvent,history,id_seq,iterator,
-     messageEvent,process,sequenceFlow,serviceTask,task,userTask]
+  > bpe:complete(18).
+    ACT Deposit Init
+    bpe_proc:Process 18 Task: 'Init' Targets: ['Payment']
+    bpe_proc:Process 18 Flow Reply {reply,{complete,'Payment'}}
+    {complete,'Payment'}
 
-  > bpe:start(#process{name="Order1",
-             flows=[#sequenceFlow{source='Start',target='Mid'},
-                    #sequenceFlow{source='Mid',target='Finish'}],
-             tasks=[#userTask{name='Start'},
-                    #userTask{name='Mid'},
-                    #userTask{name='Finish'}],
-             beginEvent='Start',endEvent='Finish'},[]).
-    bpe_proc:Process 39 spawned <0.12399.0>
-    {ok,39}
+  > bpe:complete(18).
+    ACT Deposit Payment
+    bpe_proc:Process 18 Task: 'Payment' Targets: ['Signatory','Process']
+    bpe_proc:Process 18 Flow Reply {reply,{complete,'Signatory'}}
+    {complete,'Signatory'}
 
-  > gen_server:call(39,{complete}).
+  > bpe:complete(18).
+    bpe_proc:Process 18 Task: 'Signatory' Targets: ['Process','Final']
+    bpe_proc:Process 18 Flow Reply {reply,{complete,'Process'}}
+    {complete,'Process'}
 
-  > gen_server:call(39,{complete}).
+  > bpe:complete(18).
+    ACT Deposit Process
+    bpe_proc:Process 18 Task: 'Process' Targets: ['Final']
+    ACT Create Account {user,18,[],feed,[],[],[],[],
+                         true,[],[],[],[],
+                         [],[],[],[],[],[],
+                         [],[],[],[],[],[]}
+    bpe_proc:Process 18 Flow Reply {reply,{complete,'Final'}}
+    {complete,'Final'}
 
-  > gen_server:call(39,{complete}).
+  > bpe:complete(18).
+    bpe_proc:Process 18 Task: 'Final' Targets: []
+    bpe_proc:Process 18 Flow Reply {stop,{normal,'Final'}}
+    'Final'
+    bpe_proc:Terminating session Id cache: 18
+    Reason: normal
 
-  > bpe:history(39).
-    [#history{id = 28, version = undefined, container = feed,
-              feed_id = {history,39}, prev = 27,next = undefined,
-              feeds = [], guard = true,
-              etc = undefined, name = "Order1",
-              task = {task,'Start'}},
-     #history{id = 27, version = undefined, container = feed,
-              feed_id = {history,39}, prev = 26, next = 28
-              feeds = [], guard = true,
-              etc = undefined,
-              name = "Order1",
-              task = {task,'Mid'}},
-     #history{id = 26, version = undefined, container = feed,
-              feed_id = {history,39}, prev = undefined,
-              next = 27, feeds = [], guard = true,
-              etc = undefined, name = 'Order1',
-              task = {task,'Finish'}}]
 \end{lstlisting}
 
+\newpage
+
+\subsection*{Take last two from history}
+\begin{lstlisting}
+  > bpe:history(18,2).
+    [#history{id = 9,version = undefined,container = feed,
+              feed_id = {history,18},
+              prev = 8,next = 10,feeds = [],guard = true,etc = undefined,
+              name = 'Create Deposit Account',
+              task = {task,'Process'},
+              time = {{2016,8,16},{20,19,39}}},
+     #history{id = 10,version = undefined,container = feed,
+              feed_id = {history,18},
+              prev = 9,next = undefined,feeds = [],guard = true,
+              etc = undefined,name = 'Create Deposit Account',
+              task = {task,'Final'},
+              time = {{2016,8,16},{20,20,0}}}]
+\end{lstlisting}
+
+\vspace{1cm}
+\subsection*{Load terminated process and try to spawn}
+\begin{lstlisting}
+  > bpe:start(bpe:load(18),[]).
+    bpe_proc:Process 18 spawned <0.1008.0>
+    {ok,18}
+
+  > bpe:complete(18).
+    bpe_proc:Process 18 Task: 'Final' Targets: []
+    bpe_proc:Process 18 Flow Reply {stop,{normal,'Final'}}
+    bpe_proc:Terminating session Id cache: 18
+    Reason: normal
+    'Final'
+\end{lstlisting}

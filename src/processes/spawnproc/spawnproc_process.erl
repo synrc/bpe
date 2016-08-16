@@ -1,6 +1,6 @@
--module(sampleproc_process).
+-module(spawnproc_process).
 -author('Maxim Sokhatsky').
--include_lib("bpe/include/bpe.hrl").
+-include("bpe.hrl").
 -compile(export_all).
 
 definition() ->
@@ -17,17 +17,17 @@ definition() ->
         ],
 
         tasks = [
-            #userTask    { name='Init',      module = deposit },
-            #userTask    { name='Signatory', module = deposit},
-            #serviceTask { name='Payment',   module = deposit},
-            #serviceTask { name='Process',   module = deposit},
+            #userTask    { name='Init',      module = spawnproc },
+            #userTask    { name='Signatory', module = spawnproc },
+            #serviceTask { name='Payment',   module = spawnproc },
+            #serviceTask { name='Process',   module = spawnproc },
             #endEvent    { name='Final'}
         ],
 
         beginEvent = 'Init',
         endEvent = 'Final',
         events = [
-             #boundaryEvent{name="Timeout"},
+             #boundaryEvent{ name = '*', timeout={0,{0,30,0}} },
              #messageEvent{name="PaymentReceived"}
         ]
     }.

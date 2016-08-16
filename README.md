@@ -25,15 +25,7 @@ that lately should be converted to Erlang terms. Internally BPE uses Erlang term
 workflow definition:
 
 ```erlang
-bpe:start(
-   #process{name="Order11",
-       flows=[ #sequenceFlow{source="begin",target="end2"},
-               #sequenceFlow{source="end2",target="end"}],
-       tasks=[ #userTask{name="begin"},
-               #userTask{name="end2"},
-               #endEvent{name="end"}],
-       task="begin",beginEvent="begin",endEvent="end"},[]).
-
+bpe:start(spawnproc:def(),[]).
 ```
 
 The workflow definition uses following persistent workflow model which is stored in KVS:
@@ -60,23 +52,15 @@ Sample Session
 --------------
 
 ```erlang
-(bpe@127.0.0.1)1> kvs:join().
-ok
 (bpe@127.0.0.1)1> rr(bpe).
 [beginEvent,container,endEvent,history,id_seq,iterator,
  messageEvent,process,sequenceFlow,serviceTask,task,userTask]
-(bpe@127.0.0.1)2> bpe:start(#process{name="Order11",
-         flows=[#sequenceFlow{source="begin",target="end2"},
-                #sequenceFlow{source="end2",target="end"}],
-         tasks=[#userTask{name="begin"},
-                #userTask{name="end2"},
-                #endEvent{name="end"}],
-         task="begin",beginEvent="begin",endEvent="end"},[]).
+(bpe@127.0.0.1)2> bpe:start(spawnproc:def(),[]).
 bpe_proc:Process 39 spawned <0.12399.0>
 {ok,<0.12399.0>}
-(bpe@127.0.0.1)3> gen_server:call(pid(0,12399,0),{complete}).
-(bpe@127.0.0.1)4> gen_server:call(pid(0,12399,0),{complete}).
-(bpe@127.0.0.1)5> gen_server:call(pid(0,12399,0),{complete}).
+(bpe@127.0.0.1)3> bpe:complete(39).
+(bpe@127.0.0.1)4> bpe:complete(39).
+(bpe@127.0.0.1)5> bpe:complete(39).
 (bpe@127.0.0.1)5> bpe:history(39).
 [#history{id = 28,version = undefined,container = feed,
           feed_id = {history,39},
@@ -120,19 +104,30 @@ stage documents further by workflow.
 Let us see how we could create initial 'Wire Transfer' transaction:
 
 ```erlang
-bpe:load("WireTransfer"),
-Id = bpe:start('WireTransfer',[]),
-[] = bpe:tasks(Id), % current set is empty
-Tasks = [ #'WireTransferReq'{
-            beneficiary = #agent{ bank="SBININBB380",
-                                  name="Namdak Tonpa",
-                                  account="305820317"},
-            subsidiary = #agent { bank="BKTRUS33",
-                                  name="Maxim Sokhatsky",
-                                  account="804250223"}}],
+> rr(bpe).
+[ beginEvent,boundaryEvent,container,endEvent,history,id_seq,
+  interval,iterator,kvs,log,messageEvent,operation,process,
+  receiveTask,sequenceFlow,serviceTask,task,timeoutEvent,userTask ]
 
-bpe:amend(Id,Tasks),
-bpe:push(Id),
+> rr(kvs).
+[column,config,container,id_seq,interval,iterator,kvs,log,
+ operation,query,schema,table,user,user2]
+
+> Proc = bpe:load(39).
+
+> bpe:tasks(Proc).
+  [#userTask{name = 'Init',roles = [], module = spawnproc},
+   #userTask{name = 'Signatory',roles = [], module = spawnproc},
+   #serviceTask{name = 'Payment',roles = [], module = spawnproc},
+   #serviceTask{name = 'Process',roles = [], module = spawnproc},
+   #endEvent{name = 'Final',module = []}]
+
+> bpe:docs(Proc).
+  []
+
+> bpe:amend(3,[{'WireTransfer',#user{id=1},#user{id=2}}]).
+
+> bpe:docs(bpe:load(3)).
 ```
 
 Dialyzer
