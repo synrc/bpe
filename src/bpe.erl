@@ -48,7 +48,7 @@ amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form},     
 amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true},?TIMEOUT).
 event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
 
-addRecsProc(Proc, RecordsList) -> bpe_proc:set_rec_in_proc(Proc, RecordsList).
+add_recs(Proc, RecordsList) -> bpe_proc:set_rec_in_proc(Proc, RecordsList).
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
