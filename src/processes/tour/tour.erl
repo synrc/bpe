@@ -8,11 +8,10 @@ def() -> tour_process:definition().
 action({request,'Init'}, Proc)       ->
     {reply,Proc#process{docs=[#max_tour{count=3},#tour_list{users=[]}]}};
 action({request,'JoinTeams'}, Proc)  ->
-    #max_tour{count=N,joined=M}            = bpe:doc(#max_tour{}, Proc),
-    #join_application{data=Data,name=Name} = bpe:doc(#join_application{}, Proc),
-    #tour_list{users=Users}                = bpe:doc(#tour_list{}, Proc),
-    Modify = [#max_tour{count=N,joined=M+1},
-              #tour_list{users=[{Name,Data}|Users]}],
+    #max_tour{count=N,joined=M} = bpe:doc(#max_tour{}, Proc),
+    J = #join_application{}     = bpe:doc(#join_application{}, Proc),
+    #tour_list{users=Users}     = bpe:doc(#tour_list{}, Proc),
+    Modify = [#max_tour{count=N,joined=M+1},#tour_list{users=[J|Users]}],
     Proc2 = bpe:add_recs(Proc,Modify),
     case M + 1 == N of
          false -> {reply,'JoinTeams',Proc2};
