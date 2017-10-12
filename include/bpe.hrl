@@ -6,25 +6,36 @@
 
 % BPMN 2.0 API
 
--record(task,         { name=[] :: [] | atom(), roles=[] :: list(), module=[] :: [] | atom() }).
--record(userTask,     { name=[] :: [] | atom(), roles=[] :: list(), module=[] :: [] | atom() }).
--record(serviceTask,  { name=[] :: [] | atom(), roles=[] :: list(), module=[] :: [] | atom() }).
--record(receiveTask,  { name=[] :: [] | atom(), roles=[] :: list(), module=[] :: [] | atom() }).
--record(messageEvent, { name=[] :: [] | atom(), payload=[] :: term(), timeout=[] :: term(), module :: atom() }).
+-record(task,         { name=[] :: [] | atom(),
+                        roles=[] :: binary(),
+                        module=[] :: [] | atom() }).
+-record(userTask,     { name=[] :: [] | atom(),
+                        roles=[] :: binary(),
+                        module=[] :: [] | atom() }).
+-record(serviceTask,  { name=[] :: [] | atom(),
+                        roles=[] :: binary(),
+                        module=[] :: [] | atom() }).
+-record(receiveTask,  { name=[] :: [] | atom(),
+                        roles=[] :: binary(),
+                        module=[] :: [] | atom() }).
+-record(messageEvent, { name=[] :: [] | atom(),
+                        payload=[] :: binary(),
+                        timeout=[] :: {integer(),{integer(),integer(),integer()}},
+                        module :: atom() }).
 -record(boundaryEvent,{ name=[] :: [] | atom(),
-                        payload=[] :: term(),
-                        timeout=[] :: term(),
-                        timeDate=[] :: term(),
-                        timeDuration=[] :: term(),
-                        timeCycle=[] :: term(),
+                        payload=[] :: binary(),
+                        timeout=[] :: {integer(),{integer(),integer(),integer()}},
+                        timeDate=[] :: binary(),
+                        timeDuration=[] :: binary(),
+                        timeCycle=[] :: binary(),
                         module=[] :: [] | atom() }).
 -record(timeoutEvent, { name=[] :: [] | atom(),
-                        payload=[] :: [] | term(),
-                        timeout=[] :: [] | term(),
-                        timeDate=[] :: [] | term(),
-                        timeDuration=[] :: [] | term(),
-                        timeCycle=[] :: [] | term(),
-                        module=[] :: [] | term() }).
+                        payload=[] :: [] | binary(),
+                        timeout=[] :: [] | {integer(),{integer(),integer(),integer()}},
+                        timeDate=[] :: [] | binary(),
+                        timeDuration=[] :: [] | binary(),
+                        timeCycle=[] :: [] | binary(),
+                        module=[] :: [] | atom() }).
 -record(beginEvent ,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom()}).
 -record(endEvent,     { name=[] :: [] | atom(),
@@ -45,10 +56,10 @@
                         docs=[] :: list(tuple()),
                         options=[] :: term(),
                         task=[] :: [] | atom(),
-                        timer=[] :: [] | term(),
+                        timer=[] :: [] | binary(),
                         notifications=[] :: [] | term(),
-                        result=[] :: [] | term(),
-                        started=[] :: [] | term(),
+                        result=[] :: [] | binary(),
+                        started=[] :: [] | binary(),
                         beginEvent=[] :: [] | atom(),
                         endEvent=[] :: [] | atom()}).
 
