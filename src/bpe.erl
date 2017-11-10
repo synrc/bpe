@@ -9,8 +9,8 @@
 
 load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
 
-cleanup(P) -> [ kvs:remove(history,Id) || #history{id=Id} <- bpe:history(P) ],
-                kvs:delete(feed,{history,P}),
+cleanup(P) -> [ kvs:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
+                kvs:delete(feed,{hist,P}),
                 kvs:remove(process,P).
 
 start(Proc0, Options) ->
@@ -55,9 +55,9 @@ delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                                 lists:member(Task#task.name,Tasks) ] }.
 
-history(ProcId)   -> history(ProcId,undefined).
-history(ProcId,N) -> case kvs:entries(kvs:get(feed,{history,ProcId}),history,N) of
-                          [] -> [#history{time=(bpe:load(ProcId))#process.started}];
+hist(ProcId)   -> hist(ProcId,undefined).
+hist(ProcId,N) -> case kvs:entries(kvs:get(feed,{hist,ProcId}),hist,N) of
+                          [] -> [#hist{time=(bpe:load(ProcId))#process.started}];
                           Res -> Res end.
 
 source(Name, Proc) ->

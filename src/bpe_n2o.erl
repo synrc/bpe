@@ -16,9 +16,9 @@ info(#amend{id=Proc,docs=Docs}=M,R,S) ->
     n2o:info(?MODULE, "amend:~w",[M]),
     {reply,{bert,{io,bpe:amend(Proc,Docs), <<>>}},R,S};
 
-info(#hist{id=Proc}=M,R,S) ->
+info(#histo{id=Proc}=M,R,S) ->
     n2o:info(?MODULE, "hist:~w",[M]),
-    {reply,{bert,{io,bpe:history(Proc), <<>>}},R,S};
+    {reply,{bert,{io,bpe:hist(Proc), <<>>}},R,S};
 
 info(#proc{id=Proc}=M,R,S) ->
     n2o:info(?MODULE, "proc:~w",[M]),

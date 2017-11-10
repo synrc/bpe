@@ -12,7 +12,7 @@
 -spec complete(any(),pid()) -> {complete,any()}.
 -spec amend(pid(),any()) -> {complete,any()}.
 -spec event(pid(),any()) -> {complete,any()}.
--spec history(pid()) -> list(#history{}).
+-spec hist(pid()) -> list(#hist{}).
 
 % find task or document in process
 

@@ -8,7 +8,7 @@
 metainfo() ->
     #schema{name = bpe, tables = [
           #table{name = process, fields=record_info(fields, process)},
-          #table{name = history, fields=record_info(fields, history)}
+          #table{name = hist, fields=record_info(fields, hist)}
 %          #table{name = sequenceFlow, fields=record_info(fields, sequenceFlow)},
 %          #table{name = userTask, fields=record_info(fields, userTask)},
 %          #table{name = serviceTask, fields=record_info(fields, serviceTask)},

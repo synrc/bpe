@@ -13,8 +13,8 @@ process_event(Event,Proc) ->
     io:format("Event Targets: ~p",[Targets]),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
 
-    kvs:add(#history { id = kvs:next_id("history",1),
-                       feed_id = {history,ProcState#process.id},
+    kvs:add(#hist { id = kvs:next_id("hist",1),
+                       feed_id = {hist,ProcState#process.id},
                        name = ProcState#process.name,
                        time = calendar:local_time(),
                        task = { event, element(#messageEvent.name,Event) }}),
@@ -50,8 +50,8 @@ process_flow(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
-    kvs:add(#history { id = kvs:next_id("history",1),
-                       feed_id = {history,ProcState#process.id},
+    kvs:add(#hist { id = kvs:next_id("hist",1),
+                       feed_id = {hist,ProcState#process.id},
                        name = ProcState#process.name,
                        time = calendar:local_time(),
                        task = {task, Curr} }),
@@ -112,8 +112,8 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     Time2 = calendar:local_time(),
     %kvs:info(?MODULE,"Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
 
-    {DD,Diff} = case bpe:history(Id,1) of
-         [#history{time=Time1}] -> calendar:time_difference(Time1,Time2);
+    {DD,Diff} = case bpe:hist(Id,1) of
+         [#hist{time=Time1}] -> calendar:time_difference(Time1,Time2);
           _ -> {immediate,timeout} end,
 
     case {{DD,Diff} < {Days,Pattern}, Record} of

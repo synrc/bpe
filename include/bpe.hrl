@@ -42,7 +42,7 @@
                         module=[] :: [] | atom()}).
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() }).
--record(history,      { ?ITERATOR(feed),
+-record(hist,         { ?ITERATOR(feed),
                         name=[] :: [] | binary(),
                         task=[] :: atom(),
                         time=[] :: term() }).
@@ -50,7 +50,7 @@
                         roles=[] :: list(),
                         tasks=[] :: list(#task{} | #serviceTask{} | #userTask{} | #receiveTask{}),
                         events=[] :: list(#messageEvent{} | #boundaryEvent{} | #timeoutEvent{}),
-                        history=[] :: [],
+                        hist=[] :: [],
                         flows=[] :: list(#sequenceFlow{}),
                         rules=[] :: [],
                         docs=[] :: list(tuple()),
@@ -67,7 +67,7 @@
 
 -record(complete,     { id=[] :: [] | integer() }).
 -record(proc,         { id=[] :: [] | integer() }).
--record(hist,         { id=[] :: [] | integer() }).
+-record(histo,        { id=[] :: [] | integer() }).
 -record(create,       { proc=[] :: [] | #process{} | binary(),
                         docs=[] :: [] | list(#join_application{} | #max_tour{} | #tour_list{}) }).
 -record(amend,        { id=[] :: [] | integer(),

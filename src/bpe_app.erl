@@ -18,8 +18,8 @@ start(_StartType, _StartArgs) ->
 stop(_State) -> ok.
 
 worker(#process{id=Id}=P) ->
-    case bpe:history(Id) of
-         [H|_] -> worker_do(calendar:time_difference(H#history.time,calendar:local_time()),P);
+    case bpe:hist(Id) of
+         [H|_] -> worker_do(calendar:time_difference(H#hist.time,calendar:local_time()),P);
             __ -> skip end.
 
 worker_do({Days,Time},P) when Days >= 14 -> skip;
