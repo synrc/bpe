@@ -3,7 +3,7 @@
   {description, "SYNRC BPE Business Process Engine"},
   {vsn, "1.0"},
   {registered, []},
-  {applications, [kernel,stdlib,kvs,syn]},
+  {applications, [kernel,stdlib,kvs,syn,ekka]},
   {mod, { bpe_app, []}},
   {env, []}
  ]}.

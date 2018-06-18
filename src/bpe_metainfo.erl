@@ -17,3 +17,6 @@ metainfo() ->
 %          #table{name = endEvent, fields=record_info(fields, endEvent)}
          ]}.
 
+mnesia(copy)->
+    #schema{tables =Tables}=metainfo(),
+    [ekka_mnesia:copy_table(Tab,disc_copies) || Tab <- Tables].
