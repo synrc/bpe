@@ -1,9 +1,10 @@
 {application, bpe,
  [
-  {description, "SYNRC BPE Business Process Engine"},
-  {vsn, "1.0"},
+  {description, "BPE Business Process Engine"},
+  {vsn, "3.10"},
   {registered, []},
   {applications, [kernel,stdlib,kvs,syn]},
   {mod, { bpe_app, []}},
   {env, []}
  ]}.
+
