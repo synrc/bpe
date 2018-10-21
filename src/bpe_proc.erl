@@ -89,7 +89,7 @@ init(Process) ->
     Till = bpe:till(calendar:local_time(), kvs:config(bpe,ttl,24*60*60)),
     bpe:cache({process,Proc#process.id},self(),Till),
     [ bpe:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
-    {ok, Proc#process{timer=erlang:send_after(crypto:rand_uniform(1,10000),self(),{timer,ping})}}.
+    {ok, Proc#process{timer=erlang:send_after(rand:uniform(1,10000),self(),{timer,ping})}}.
 
 handle_cast(Msg, State) ->
     kvs:info(?MODULE,"Unknown API async: ~p", [Msg]),

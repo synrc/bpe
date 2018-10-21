@@ -28,10 +28,6 @@ start(Proc0, Options) ->
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
 
-    case application:start(bpe) of
-         {error,{already_started,bpe}} -> skip;
-         _ -> {error,"restart"} end,
-
     case supervisor:start_child(bpe_sup,ChildSpec) of
          {ok,_}   -> {ok,Proc#process.id};
          {ok,_,_} -> {ok,Proc#process.id};
@@ -90,9 +86,9 @@ new_task(Proc,GivenTask) ->
         [] -> Proc#process{tasks=[GivenTask|Proc#process.tasks]};
          _ -> {error,exist,Existed} end.
 
-delete(Proc) -> ok.
+delete(_Proc) -> ok.
 
-val(Document,Proc,Cond) -> val(Document,Proc,Cond,fun(X,Y)-> ok end).
+val(Document,Proc,Cond) -> val(Document,Proc,Cond,fun(_,_)-> ok end).
 val(Document,Proc,Cond,Action) ->
     case Cond(Document,Proc) of
          true -> Action(Document,Proc), {reply,Proc};

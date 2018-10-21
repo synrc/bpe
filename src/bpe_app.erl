@@ -9,8 +9,9 @@ start(_StartType, _StartArgs) ->
     kvs:join(),
     Table = process,
     spawn(fun() -> case kvs:get(feed,Table) of
-          {ok,Feed} -> kvs:fold(fun(A,Acc) -> {M,F} = application:get_env(bpe,process_worker,{?MODULE,worker}),
-                                               M:F(A) end,[],
+          {ok,Feed} -> kvs:fold(fun(A,_) ->
+                           {M,F} = application:get_env(bpe,process_worker,{?MODULE,worker}),
+                           M:F(A) end,[],
                        Table, Feed#feed.top,undefined, #iterator.prev,#kvs{mod=store_mnesia});
                  __ -> skip end end),
     Res.
@@ -22,9 +23,9 @@ worker(#process{id=Id}=P) ->
          [H|_] -> worker_do(calendar:time_difference(H#hist.time,calendar:local_time()),P);
             __ -> skip end.
 
-worker_do({Days,Time},P) when Days >= 14 -> skip;
-worker_do({Days,Time},P) when P#process.task =:= 'Payment'     -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) when P#process.task =:= 'Delay'       -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) when P#process.task =:= 'FirstDelay'  -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) when P#process.task =:= 'SecondDelay' -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
-worker_do({Days,Time},P) -> skip.
+worker_do({Days,_Time},_) when Days >= 14 -> skip;
+worker_do({_Days,_Time},P) when P#process.task =:= 'Payment'     -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({_Days,_Time},P) when P#process.task =:= 'Delay'       -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({_Days,_Time},P) when P#process.task =:= 'FirstDelay'  -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({_Days,_Time},P) when P#process.task =:= 'SecondDelay' -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]);
+worker_do({_Days,_Time},_) -> skip.

@@ -18,7 +18,6 @@ action({request,'JoinTeams'}, Proc)  ->
          true  -> {reply,'EmitGroups',Proc2} end;
 action({request,'EmitGroups'}, Proc) -> {reply,Proc};
 action({request,'RunGroups'}, Proc)  -> {reply,Proc};
-action({request,'RunGroups'}, Proc)  -> {reply,Proc};
 action({request,'Final'}, Proc)      -> {reply,Proc}.
 
 test() ->
