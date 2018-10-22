@@ -4,5 +4,4 @@ otp_release:
 script:
   - "curl -fsSL https://raw.github.com/synrc/mad/master/mad > mad"
   - "chmod +x mad"
-  - set +e
   - "./mad dep com"
