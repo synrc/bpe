@@ -10,9 +10,9 @@ start(_StartType, _StartArgs) ->
     Table = process,
     spawn(fun() -> case kvs:get(feed,Table) of
           {ok,Feed} -> kvs:fold(fun(A,_) ->
-                           {M,F} = application:get_env(bpe,process_worker,{?MODULE,worker}),
-                           M:F(A) end,[],
-                       Table, Feed#feed.top,undefined, #iterator.prev,#kvs{mod=store_mnesia});
+                       {M,F} = application:get_env(bpe,process_worker,{?MODULE,worker}),
+                       M:F(A) end,[],
+                       Table, Feed#feed.top,undefined, #iterator.next,#kvs{mod=store_mnesia});
                  __ -> skip end end),
     Res.
 
