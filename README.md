@@ -1,5 +1,5 @@
-Business Process Engine
-=======================
+BPE: Business Process Engine
+============================
 
 [![Build Status](https://travis-ci.org/synrc/bpe.svg?branch=master)](https://travis-ci.org/synrc/bpe)
 

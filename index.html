@@ -1,0 +1,216 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="author" content="Maxim Sokhatsky" />
+    <title>BPE</title>
+    <link rel="stylesheet" href="https://synrc.space/synrc.css?v=2" />
+</head>
+
+<body>
+
+<nav>
+    <a href='https://synrc.space/'>SYNRC</a>
+    <a href='https://n2o.space'>N2O ECO</a>
+</nav>
+
+<header>
+    <a href="https://n2o.space"><img src="https://synrc.space/images/Synrc Neo.svg?v=1"></a>
+    <h1>BPE</h1>
+</header>
+
+<aside>
+    <article>
+        <section>
+            <h3>SYNOPSIS</h3>
+            <div>BPE is a production grade business workflow engine that
+                 is enought for managing automated procesess.
+                 It can substitute WWF, BizTalk, Activity or Oracle BPM for those who
+                 understand the basic features of workflow systems.
+                 BPE is an subset of BPMN 2.0 standart, the evelution and unification
+                 of most previous worflow standards of the past:
+                 XPDL, BPML, OpenWFE, WWF and jBPM.</div><br>
+            <div>Erlang implementation more idiomatic
+                 and canonical due to semantic corresponding of process calculus and
+                 the core of underlying virtual machine. Send async messages across processes
+                 means exactly what it says up to Erlang pids. For sending documents to
+                 business process you can use process's name or its Pid:</div>
+            <figure><code>
+ 1> bpe:amend(Process#process.id,#deposit{}).
+            </code></figure>
+
+            <div>Thanks to this isomorphic correspondance between Erlang processes
+                and processes in process-calculus,
+                code size of core BPE server was reduced to 400 LOC. This is definitely
+                most clean functional implementation of workflow engine avalible
+                for electronical banking systems.</div>
+        </section>
+        <section>
+            <h3>MODULES</h3>
+            <div><ul>
+           <li><a href="man/bpe.htm">BPE</a></font></li>
+           <li><a href="man/bpe_task.htm">TASK</a></font></li>
+           <li><a href="man/bpe_event.htm">EVENT</a></font></li>
+           <li><a href="man/bpe_proc.htm">PROC</a></font></li>
+            </ul></div>
+            <br>
+            <div>
+                Nov 2018 &copy; <a href="https://github.com/synrc/bpe">Namdak Tonpa</a> ISC
+            </div>
+        </section>
+        <section>
+        <figure><code>
+ $ mad get bpe && cd bpe
+ $ mad dep com pla rep
+        </code></figure>
+        </section>
+    </article>
+</aside>
+<main>
+    <section>
+        <a name=intro><h3>INTRO</h3></a>
+        <h4>Pi-calculus and Petri nets</h4>
+        <p>The nice thing about all palette of different implementation of workflow models is
+           that all of them reduced to one of two kinds of encoding: one is algebraic one and
+           the other is geometric.</p>
+
+<p>The geometric one is Petri nets. Carl Petri introduced it in 1962 during discrete
+analysis of asynchronous computer systems. Any its graphical representation could be
+defined with Petri nets formalism. Petri modeling in one of its forms is a good
+complementation to process algebra useful as computational model.</p>
+
+<p>
+The algebraic one is Pi-calculus developed by Robin Milner who gained
+Turing award for 1) Meta Language ML, 2) Calculus for Communication Systems CCS (1980),
+the general theory of concurrency and 3) theoretical base for proof assistants,
+Logic for Computable Functions LCF.
+The model of process calculus is a theoretical
+background of virtual environment of Erlang infrastructure, so BPE
+implementation fully relies on Pi-calculus (1999), the successor of CCS notion.
+Thus providing effective computational model for implementation of workflow
+process management.</P>
+
+<h4>Finite State Machines</h4>
+<p>One of the common known types of encoding process calculus is well developed {\bf FSM framework} (60-s).
+This language is widely used almost in any programming language presented as core
+feature or as library. The process defines with an extension to Turing machine
+with states, input, outputs and functions.</p>
+
+<h4>SADT</h4>
+<p>The next language (framework) that used in (80-s, 90-s) to describe similar
+to process calculus definitions with graphical Petri nets and model definitions
+was {\bf SADT} introduced by Marca and MacGowan 1988, 1991.</p>
+
+<h4>Reactive Systems</h4>
+<p>One of the wide range of semantics is Reactive Systems based on message passing
+and event routing, but also it could be known as Functional Reactive Programming FRP
+which is rather a set of combinators over streams. Both interpretations are
+used in languages and frameworks, depending on involvement of stream in core
+definition (2010-s).</p>
+
+<h4>Session Types in Pi-calculus</h4>
+<p>In typed theory Pi-calculus defines also the typing system (could be System F, e.g.) for
+input and outputs of processes or function signatures specified in process definition.
+In BPE the role of types was taken by document types, which is simple Erlang records,
+so in BPE workflow processing is type-safe on compilation stage with respect to document types.</p>
+    </section>
+    <section>
+        <a name=intro><h3>SCENARIOS</h3></a>
+
+<p>Workflows are complimentary to business rules and could be specified separately.
+BPE definitions provides front API to the end-user application.
+Workflow Engine -- is an Erlang/OTP application which handles process definitions,
+process instances, and provides very clean API for Workplaces.</p>
+
+<p>Before using Process Engine you need to define the set of business process
+workflows of your enterprise. This could be done via Erlang terms or some DSL
+that lately converted to Erlang terms. Internally BPE uses Erlang terms
+workflow definition:</p>
+
+            <figure><code>
+  bpe:start(#process{name="Order1",
+     flows=[#sequenceFlow{source='Start',target='Mid'},
+            #sequenceFlow{source='Mid',target='Finish'}],
+     tasks=[#userTask{name='Start'},
+            #userTask{name='Mid'},
+            #userTask{name='Finish'}],
+            beginEvent='Start',endEvent='Finish'},[]).
+            </code></figure>
+
+            <figure><code>
+  deposit_app() -> #process { name = 'Create Deposit Account',
+
+        flows = [
+            #sequenceFlow{source='Init',      target='Payment'},
+            #sequenceFlow{source='Payment',   target='Signatory'},
+            #sequenceFlow{source='Payment',   target='Process'},
+            #sequenceFlow{source='Process',   target='Final'},
+            #sequenceFlow{source='Signatory', target='Process'},
+            #sequenceFlow{source='Signatory', target='Finish'}
+        ],
+
+        tasks = [
+            #userTask    { name='Init',      module = deposit },
+            #userTask    { name='Signatory', module = deposit},
+            #serviceTask { name='Payment',   module = deposit},
+            #serviceTask { name='Process',   module = deposit},
+            #endEvent    { name='Finish'}
+        ],
+
+        beginEvent = 'Init',
+        endEvent = 'Final',
+        events = [
+             #messageEvent{name="PaymentReceived"}
+        ]
+    }.
+            </code></figure>
+
+    </section>
+    <section>
+        <a name=intro><h3>BPMN</h3></a>
+
+<p>The workflow definition uses following persistent workflow model which is stored in KVS:</p>
+
+            <figure><code>
+    -record(task,         { name, id, roles, module }).
+    -record(userTask,     { name, id, roles, module }).
+    -record(serviceTask,  { name, id, roles, module }).
+    -record(messageEvent, { name, id, payload }).
+    -record(beginEvent ,  { name, id }).
+    -record(endEvent,     { name, id }).
+    -record(sequenceFlow, { name, id, source, target }).
+    -record(history,      { ?ITERATOR(feed,true), name, task }).
+    -record(process,      { ?ITERATOR(feed,true), name,
+                            roles=[], tasks=[], events=[],
+                            history=[], flows=[], rules,
+                            docs=[], task, beginEvent,
+                            endEvent }).
+
+                </code></figure>
+
+<p>Full set of BPMN 2.0 fields could be obtained
+  at <a href="http://www.omg.org/spec/BPMN/2.0">OMG definition document, page 3-7</a>.</p>
+
+    </section>
+    <section>
+        <a name=plugin><h3>Contributors</h3></a>
+        <div>
+        <ul>
+           <li><a href="https://github.com/5HT">5HT</a> &mdash; Namdak Tonpa</li>
+           <li><a href="https://github.com/proger">proger</a> &mdash; Vlad Ki</li>
+           <li><a href="https://github.com/doxtop">doxtop</a> &mdash; Andrii Zadorozhnii</li>
+           <li><a href="https://github.com/cryoflamer">cryoflamer</a> &mdash; Yuri Maslovsky</li>
+           <li><a href="https://github.com/qomputer">qomputer</a> &mdash; Igor Kharin</li>
+        </ul></div>
+    </section>
+</main>
+
+<footer>
+    Made with <span class="heart">❤</span> to KVS and N2O
+</footer>
+
+</body>
+</html>
