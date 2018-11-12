@@ -72,50 +72,11 @@
 <main>
     <section>
         <a name=intro><h3>INTRO</h3></a>
-        <h4>Pi-calculus and Petri nets</h4>
-        <p>The nice thing about all palette of different implementation of workflow models is
-           that all of them reduced to one of two kinds of encoding: one is algebraic one and
-           the other is geometric.</p>
 
-<p>The geometric one is Petri nets. Carl Petri introduced it in 1962 during discrete
-analysis of asynchronous computer systems. Any its graphical representation could be
-defined with Petri nets formalism. Petri modeling in one of its forms is a good
-complementation to process algebra useful as computational model.</p>
+<p>BPE is a business process managament application that brings Erlang for enterprises.
+It provides infrastructure for workflow definitions, process orchestration,
+rule based production systems and distributed storage.</p>
 
-<p>
-The algebraic one is Pi-calculus developed by Robin Milner who gained
-Turing award for 1) Meta Language ML, 2) Calculus for Communication Systems CCS (1980),
-the general theory of concurrency and 3) theoretical base for proof assistants,
-Logic for Computable Functions LCF.
-The model of process calculus is a theoretical
-background of virtual environment of Erlang infrastructure, so BPE
-implementation fully relies on Pi-calculus (1999), the successor of CCS notion.
-Thus providing effective computational model for implementation of workflow
-process management.</P>
-
-<h4>Finite State Machines</h4>
-<p>One of the common known types of encoding process calculus is well developed {\bf FSM framework} (60-s).
-This language is widely used almost in any programming language presented as core
-feature or as library. The process defines with an extension to Turing machine
-with states, input, outputs and functions.</p>
-
-<h4>SADT</h4>
-<p>The next language (framework) that used in (80-s, 90-s) to describe similar
-to process calculus definitions with graphical Petri nets and model definitions
-was {\bf SADT} introduced by Marca and MacGowan 1988, 1991.</p>
-
-<h4>Reactive Systems</h4>
-<p>One of the wide range of semantics is Reactive Systems based on message passing
-and event routing, but also it could be known as Functional Reactive Programming FRP
-which is rather a set of combinators over streams. Both interpretations are
-used in languages and frameworks, depending on involvement of stream in core
-definition (2010-s).</p>
-
-<h4>Session Types in Pi-calculus</h4>
-<p>In typed theory Pi-calculus defines also the typing system (could be System F, e.g.) for
-input and outputs of processes or function signatures specified in process definition.
-In BPE the role of types was taken by document types, which is simple Erlang records,
-so in BPE workflow processing is type-safe on compilation stage with respect to document types.</p>
     </section>
     <section>
         <a name=intro><h3>PROTOCOL</h3></a>
