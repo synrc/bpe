@@ -158,6 +158,16 @@ set_rec_in_proc(Proc, [H|T]) ->
     ProcNew = Proc#process{ docs=plist_setkey(kvs:rname(element(1,H)),1,Proc#process.docs,H)},
     set_rec_in_proc(ProcNew, T).
 
+match(Rec1, Rec2) ->
+    F = fun ({X,[]}) -> true;
+            ({[],Y}) -> true;
+             ({X,X}) -> true;
+             ({X,Y}) -> false end,
+
+    lists:all(F,
+    lists:zip(tuple_to_list(Rec1),
+              tuple_to_list(Rec2))).
+
 transient(#process{docs=Docs}=Process) ->
     Process#process{docs=lists:filter(
         fun (X) -> not lists:member(element(1,X),
