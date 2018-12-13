@@ -1,5 +1,4 @@
 <html>
-
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -9,66 +8,61 @@
     <title>BPE</title>
     <link rel="stylesheet" href="https://synrc.space/synrc.css?v=2" />
 </head>
-
 <body>
-
-<nav>
-    <a href='https://n2o.space'>ECO</a>
-    <a href='https://o7.network'>O7</a>
-</nav>
-
-<header>
-    <a href="https://o7.network"><img src="https://synrc.space/images/Synrc Neo.svg?v=1"></a>
-    <h1>BPE</h1>
-</header>
-
-<aside>
-    <article>
-        <section>
-            <h3>SYNOPSIS</h3>
-            <div>BPE is a production grade business workflow engine that
-                 is enough for managing automated procesess.
-                 It can substitute WWF, BizTalk, Activity or Oracle BPM for those who
-                 chose the basic features of workflow systems.
-                 BPE is an subset of BPMN 2.0 standart, the evelution and unification
-                 of most previous worflow standards of the past:
-                 XPDL, BPML, OpenWFE, WWF and jBPM.</div><br>
-            <div>Erlang implementation more idiomatic
-                 and canonical due to semantic corresponding of process calculus and
-                 the core of underlying virtual machine. Send async messages across processes
-                 means exactly what it says up to Erlang pids. For sending documents to
-                 business process you can use process's name or its Pid:</div>
-            <figure><code>
+    <nav>
+        <a href='https://n2o.space'>ECO</a>
+        <a href='https://o7.network'>O7</a>
+    </nav>
+    <header>
+        <a href="https://o7.network"><img src="https://synrc.space/images/Synrc Neo.svg?v=1"></a>
+        <h1>BPE</h1>
+    </header>
+    <aside>
+        <article>
+            <section>
+                <h3>SYNOPSIS</h3>
+                <div>BPE is a production grade business workflow engine that
+                     is enough for managing automated procesess.
+                     It can substitute WWF, BizTalk, Activity or Oracle BPM for those who
+                     chose the basic features of workflow systems.
+                     BPE is an subset of BPMN 2.0 standart, the evelution and unification
+                     of most previous worflow standards of the past:
+                     XPDL, BPML, OpenWFE, WWF and jBPM.</div><br>
+                <div>Erlang implementation more idiomatic
+                     and canonical due to semantic corresponding of process calculus and
+                     the core of underlying virtual machine. Send async messages across processes
+                     means exactly what it says up to Erlang pids. For sending documents to
+                     business process you can use process's name or its Pid:</div>
+                <figure><code>
  1> bpe:amend(Process#process.id,#deposit{}).
-            </code></figure>
-            <div>Thanks to this isomorphic correspondance between Erlang processes
-                and processes in process-calculus,
-                code size of core BPE server was reduced to 400 LOC. This is definitely
-                most clean functional implementation of workflow engine avalible
-                for electronical banking systems.</div>
-        </section>
-        <section>
+                </code></figure>
+                <div>Thanks to this isomorphic correspondance between Erlang processes
+                    and processes in process-calculus,
+                    code size of core BPE server was reduced to 400 LOC. This is definitely
+                    most clean functional implementation of workflow engine avalible
+                    for electronical banking systems.</div>
+            </section>
+            <section>
             <h3>MODULES</h3>
             <div><ul>
-           <li><a href="man/bpe.htm">BPE</a></font></li>
-           <li><a href="man/bpe_task.htm">TASK</a></font></li>
-           <li><a href="man/bpe_event.htm">EVENT</a></font></li>
-           <li><a href="man/bpe_proc.htm">PROC</a></font></li>
+                <li><a href="man/bpe.htm">BPE</a></font></li>
+                <li><a href="man/task.htm">TASK</a></font></li>
+                <li><a href="man/event.htm">EVENT</a></font></li>
+                <li><a href="man/proc.htm">PROC</a></font></li>
             </ul></div>
             <br>
             <div>
                 Nov 2018 &copy; <a href="https://github.com/synrc/bpe">Namdak Tonpa</a> ISC
             </div>
-        </section>
-    </article>
-</aside>
-<main>
-    <section>
-        <a name=intro><h3>INTRO</h3></a>
-
-<p>BPE is a business process managament application that brings Erlang for enterprises.
-It provides infrastructure for workflow definitions, process orchestration,
-rule based production systems and distributed storage.</p>
+            </section>
+        </article>
+    </aside>
+    <main>
+        <section>
+            <a name=intro><h3>INTRO</h3></a>
+            <p>BPE is a business process managament application that brings Erlang for enterprises.
+            It provides infrastructure for workflow definitions, process orchestration,
+            rule based production systems and distributed storage.</p>
             <figure><code>
  $ mad get bpe && cd bpe
  $ mad dep com pla rep
