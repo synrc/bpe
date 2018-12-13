@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <meta name="author" content="Maxim Sokhatsky" />
-    <title>TASK</title>
+    <title>EVENT</title>
     <link rel="stylesheet" href="https://synrc.space/synrc.css" />
 </head>
 
@@ -15,26 +15,26 @@
 <nav>
     <a href='https://n2o.space'>ECO</a>
     <a href='https://o7.network'>O7</a>
-    <a href='../index.html'>TASK</a>
+    <a href='../index.html'>EVENT</a>
 </nav>
 
 <header>
     <a href="../index.html"><img src="https://n2o.space/img/Synrc Neo.svg"></a>
-    <h1>TASK</h1>
+    <h1>EVENT</h1>
 </header>
 
 <main>
     <section>
         <h3>INTRO</h3>
-        <p>The <b>bpe_task</b> module provides TASK handling functionality.</p>
+        <p>The <b>bpe_event</b> module provides EVENT handling functionality.</p>
     </section>
     <section>
         <h3>API</h3>
-        <h4>handle_task(Event,CurrentTask,Target,Proc) ->
+        <h4>handle_event(Event,CurrentTask,Target,Proc) ->
             {reply,{complete,Target},State} |
-            {reply,{error,Message,Task},State} |
-            {reply,{{complete,Message},Task},State} |
-            {reply,{complete,Task},State}</h4>
+            {reply,{complete,Task},State} |
+            {reply,{unknown_event,Target},Proc} |
+            {stop,{normal,Target},Proc}</h4>
     </section>
     <section>
         <p>This module may refer to:
