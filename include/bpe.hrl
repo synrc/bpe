@@ -8,16 +8,20 @@
 
 -record(task,         { name=[] :: [] | atom(),
                         roles=[] :: binary(),
-                        module=[] :: [] | atom() }).
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()) }).
 -record(userTask,     { name=[] :: [] | atom(),
                         roles=[] :: binary(),
-                        module=[] :: [] | atom() }).
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()) }).
 -record(serviceTask,  { name=[] :: [] | atom(),
                         roles=[] :: binary(),
-                        module=[] :: [] | atom() }).
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()) }).
 -record(receiveTask,  { name=[] :: [] | atom(),
                         roles=[] :: binary(),
-                        module=[] :: [] | atom() }).
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()) }).
 -record(messageEvent, { name=[] :: [] | atom(),
                         payload=[] :: binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}},
@@ -37,9 +41,11 @@
                         timeCycle=[] :: [] | binary(),
                         module=[] :: [] | atom() }).
 -record(beginEvent ,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom()}).
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple())}).
 -record(endEvent,     { name=[] :: [] | atom(),
-                        module=[] :: [] | atom()}).
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple())}).
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() }).
 -record(hist,         { ?ITERATOR(feed),
