@@ -3,7 +3,7 @@
   {description, "BPE Business Process Engine"},
   {vsn, "3.10"},
   {registered, []},
-  {applications, [kernel,stdlib,kvs,syn]},
+  {applications, [kernel,stdlib,kvs,syn,n2o]},
   {mod, { bpe_app, []}},
   {env, []}
  ]}.
