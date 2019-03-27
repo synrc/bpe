@@ -15,13 +15,13 @@
                         prompt=[] :: list(tuple()),
                         roles=[] :: binary() }).
 -record(serviceTask,  { name=[] :: [] | atom(),
-                        roles=[] :: binary(),
                         module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()) }).
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: binary()}).
 -record(receiveTask,  { name=[] :: [] | atom(),
-                        roles=[] :: binary(),
                         module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()) }).
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: binary()}).
 -record(messageEvent, { name=[] :: [] | atom(),
                         module :: atom(),
                         prompt=[] :: list(tuple()),
