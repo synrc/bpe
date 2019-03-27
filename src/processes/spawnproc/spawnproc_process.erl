@@ -5,7 +5,7 @@
 
 definition() ->
 
-    #process { name = 'Create Deposit Account',
+    #process { name = 'Deposit Account',
 
         flows = [
             #sequenceFlow{source='Init',      target='Payment'},
