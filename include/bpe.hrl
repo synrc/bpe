@@ -7,13 +7,13 @@
 % BPMN 2.0 API
 
 -record(task,         { name=[] :: [] | atom(),
-                        roles=[] :: binary(),
                         module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()) }).
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: binary() }).
 -record(userTask,     { name=[] :: [] | atom(),
-                        roles=[] :: binary(),
                         module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()) }).
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: binary() }).
 -record(serviceTask,  { name=[] :: [] | atom(),
                         roles=[] :: binary(),
                         module=[] :: [] | atom(),
@@ -23,23 +23,26 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()) }).
 -record(messageEvent, { name=[] :: [] | atom(),
+                        module :: atom(),
+                        prompt=[] :: list(tuple()),
                         payload=[] :: binary(),
-                        timeout=[] :: {integer(),{integer(),integer(),integer()}},
-                        module :: atom() }).
+                        timeout=[] :: {integer(),{integer(),integer(),integer()}} }).
 -record(boundaryEvent,{ name=[] :: [] | atom(),
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()),
                         payload=[] :: binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}},
                         timeDate=[] :: binary(),
                         timeDuration=[] :: binary(),
-                        timeCycle=[] :: binary(),
-                        module=[] :: [] | atom() }).
+                        timeCycle=[] :: binary() }).
 -record(timeoutEvent, { name=[] :: [] | atom(),
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | {integer(),{integer(),integer(),integer()}},
                         timeDate=[] :: [] | binary(),
                         timeDuration=[] :: [] | binary(),
-                        timeCycle=[] :: [] | binary(),
-                        module=[] :: [] | atom() }).
+                        timeCycle=[] :: [] | binary() }).
 -record(beginEvent ,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple())}).
