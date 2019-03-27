@@ -59,19 +59,19 @@ hist(ProcId,N) -> case kvs:entries(kvs:get(feed,{hist,ProcId}),hist,N) of
 source(Name, Proc) ->
     case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of
          [T] -> T;
-         [] -> [];
+         [] -> #beginEvent{};
          E -> E end.
 
 task(Name, Proc) -> 
     case [ Task || Task <- tasks(Proc), element(#task.name,Task) == Name] of
          [T] -> T;
-         [] -> [];
+         [] -> #task{};
          E -> E end.
 
 doc(Rec, Proc) ->
     case [ Doc || Doc <- docs(Proc), kvs:rname(element(1,Doc)) == element(1,Rec)] of
          [D] -> D;
-         [] -> [];
+         [] -> {empty};
          E -> E end.
 
 docs(Proc) -> Proc#process.docs.
