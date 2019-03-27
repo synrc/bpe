@@ -13,11 +13,11 @@ route_prefix(<<"/ws/",P/binary>>) -> route(P);
 route_prefix(<<"/",P/binary>>) -> route(P);
 route_prefix(P) -> route(P).
 
-route(<<>>)                     -> bpe_index;
-route(<<"index",_/binary>>    ) -> bpe_index;
-route(<<"login",_/binary>>)     -> bpe_login;
-route(<<"forms",_/binary>>)     -> bpe_forms;
-route(<<"app/index",_/binary>>) -> bpe_index;
-route(<<"app/login",_/binary>>) -> bpe_login;
-route(<<"app/forms",_/binary>>) -> bpe_forms;
-route(_)                        -> bpe_login.
+route(<<>>)                      -> bpe_index;
+route(<<"actors",_/binary>>    ) -> bpe_index;
+route(<<"login",_/binary>>)      -> bpe_login;
+route(<<"forms",_/binary>>)      -> bpe_forms;
+route(<<"app/actors",_/binary>>) -> bpe_index;
+route(<<"app/login",_/binary>>)  -> bpe_login;
+route(<<"app/forms",_/binary>>)  -> bpe_forms;
+route(_)                         -> bpe_login.

@@ -1,65 +1,178 @@
 <html>
-
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <meta name="author" content="Maxim Sokhatsky" />
-    <title>ACTORS</title>
-    <link rel="stylesheet" href="css/blank.css?v=1" />
-    <link rel="stylesheet" href="css/forms.css?v=1" />
+    <title>BPE</title>
+    <link rel="stylesheet" href="https://synrc.space/synrc.css?v=2" />
 </head>
-
 <body>
-
-<nav>
-    <a href='login.htm'>ENT</a>
-    <a href='forms.htm'>FORMS</a>
-    <a href='index.html' style="background:#ededed;">ACTORS</a>
-</nav>
-
-<aside>
-   <article>
-        <section>
-            <h2>ACTORS</h2>
-            <p>Managing persistent BPE/BPMN processes.</p>
+    <nav>
+        <a href='https://n2o.space'>ECO</a>
+        <a href='https://o7.network'>O7</a>
+        <a href='login.htm'>ADMIN</a>
+    </nav>
+    <header>
+        <a href="https://o7.network"><img src="https://synrc.space/images/Synrc Neo.svg?v=1"></a>
+        <h1>BPE</h1>
+    </header>
+    <aside>
+        <article>
+            <section>
+                <h3>SYNOPSIS</h3>
+                <div>BPE is a production grade business workflow engine that
+                     is enough for managing automated procesess.
+                     It can substitute WWF, BizTalk, Activity or Oracle BPM for those who
+                     chose the basic features of workflow systems.
+                     BPE is an subset of BPMN 2.0 standart, the evelution and unification
+                     of most previous worflow standards of the past:
+                     XPDL, BPML, OpenWFE, WWF and jBPM.</div><br>
+                <div>Erlang implementation more idiomatic
+                     and canonical due to semantic corresponding of process calculus and
+                     the core of underlying virtual machine. Send async messages across processes
+                     means exactly what it says up to Erlang pids. For sending documents to
+                     business process you can use process's name or its Pid:</div>
+                <figure><code>
+ 1> bpe:amend(Process#process.id,#deposit{}).
+                </code></figure>
+                <div>Thanks to this isomorphic correspondance between Erlang processes
+                    and processes in process-calculus,
+                    code size of core BPE server was reduced to 400 LOC. This is definitely
+                    most clean functional implementation of workflow engine avalible
+                    for electronical banking systems.</div>
+            </section>
+            <section>
+            <h3>MODULES</h3>
+            <div><ul>
+                <li><a href="man/bpe.htm">BPE</a></font></li>
+                <li><a href="man/task.htm">TASK</a></font></li>
+                <li><a href="man/event.htm">EVENT</a></font></li>
+            </ul></div>
             <br>
-            <div id="ctrl"> </div>
-            <div id="frms"></div>
-            <br>
-        </section>
-            <div class="table">
-            <div id="tableHead" class="trGroup">
-                <div id=header class="th">
-                    <div class="column6">No</div>
-                    <div class="column10">Name</div>
-                    <div class="column6">Module</div>
-                    <div class="column20">State</div>
-                    <div class="column20">Documents</div>
-                    <div class="column20">Manage</div>
-                </div>
+            <div>
+                Nov 2018 &copy; <a href="https://github.com/synrc/bpe">Namdak Tonpa</a> ISC
             </div>
-            </div>
-            <br>
+            </section>
+        </article>
+    </aside>
+    <main>
         <section>
-            <small>Made with <span class="heart"> ❤ </span> to BPE</small>
-        </section>
-   </article>
-</aside>
+            <a name=intro><h3>INTRO</h3></a>
+            <p>BPE is a business process managament application that brings Erlang for enterprises.
+            It provides infrastructure for workflow definitions, process orchestration,
+            rule based production systems and distributed storage.</p>
+            <figure><code>
+ $ mad get bpe
+ $ cd deps/bpe
+ $ mad dep com pla rep
+            </code></figure>
 
-    <script src='n2o/utf8.js?v=1'></script>
-    <script src='n2o/bert.js?v=1'></script>
-    <script src='n2o/heart.js?v=1'></script>
-    <script src='n2o/ieee754.js?v=1'></script>
-    <script src='n2o/n2o.js?v=5'></script>
-        <script>host = location.hostname === 'ent.n2o.space' ? 'ns.synrc.com' : location.hostname;
-                port = 8003;</script>
-        <script src='n2o/ftp.js?v=1'></script>
-        <script src='n2o/nitro.js?v=1'></script>
-        <script>protos = [$bert]; N2O_start();</script>
+    </section>
+    <section>
+        <a name=intro><h3>PROTOCOL</h3></a>
+            <figure><code>
+ -record(complete,  { id=[]   :: [] | integer() }).
+ -record(proc,      { id=[]   :: [] | integer() }).
+ -record(histo,     { id=[]   :: [] | integer() }).
+ -record(create,    { proc=[] :: [] | #process{}, docs=[] :: [] | list(tuple()) }).
+ -record(amend,     { id=[]   :: [] | integer(),  docs=[] :: [] | list(tuple()) }).
+            </code></figure>
+
+    </section>
+    <section>
+        <a name=intro><h3>BPMN</h3></a>
+
+<p>The workflow definition uses following persistent workflow model which is stored in KVS:</p>
+
+            <figure><code>
+ -record(task,         { name, id, roles, module }).
+ -record(userTask,     { name, id, roles, module }).
+ -record(serviceTask,  { name, id, roles, module }).
+ -record(messageEvent, { name, id, payload }).
+ -record(beginEvent ,  { name, id }).
+ -record(endEvent,     { name, id }).
+ -record(sequenceFlow, { name, id, source, target }).
+ -record(history,      { ?ITERATOR(feed,true), name, task }).
+ -record(process,      { ?ITERATOR(feed,true), name,
+                         roles=[], tasks=[], events=[],
+                         history=[], flows=[], rules,
+                         docs=[], task, beginEvent, endEvent }).
+                </code></figure>
+
+<p>Full set of BPMN 2.0 fields could be obtained
+  at <a href="http://www.omg.org/spec/BPMN/2.0">OMG definition document, page 3-7</a>.</p>
+
+    </section>
+    <section>
+        <a name=intro><h3>SCHEMA</h3></a>
+
+<p>Workflows are complimentary to business rules and could be specified separately.
+BPE definitions provides front API to the end-user application.
+Workflow Engine -- is an Erlang/OTP application which handles process definitions,
+process instances, and provides very clean API for Workplaces.</p>
+
+<p>Before using Process Engine you need to define the set of business process
+workflows of your enterprise. This could be done via Erlang terms or some DSL
+that lately converted to Erlang terms. Internally BPE uses Erlang terms
+workflow definition:</p>
+
+            <figure><code>
+  bpe:start(#process{name="Order1",
+     flows=[#sequenceFlow{source='Start',target='Mid'},
+            #sequenceFlow{source='Mid',target='Finish'}],
+     tasks=[#userTask{name='Start'},
+            #userTask{name='Mid'},
+            #userTask{name='Finish'}],
+            beginEvent='Start',endEvent='Finish'},[]).
+            </code></figure>
+
+            <figure><code>
+  deposit_app() -> #process { name = 'Create Deposit Account',
+
+        flows = [
+            #sequenceFlow{source='Init',      target='Payment'},
+            #sequenceFlow{source='Payment',   target='Signatory'},
+            #sequenceFlow{source='Payment',   target='Process'},
+            #sequenceFlow{source='Process',   target='Final'},
+            #sequenceFlow{source='Signatory', target='Process'},
+            #sequenceFlow{source='Signatory', target='Finish'}
+        ],
+
+        tasks = [
+            #userTask    { name='Init',      module = deposit },
+            #userTask    { name='Signatory', module = deposit},
+            #serviceTask { name='Payment',   module = deposit},
+            #serviceTask { name='Process',   module = deposit},
+            #endEvent    { name='Finish'}
+        ],
+
+        beginEvent = 'Init',
+        endEvent = 'Final',
+        events = [
+             #messageEvent{name="PaymentReceived"}
+        ]
+    }.
+            </code></figure>
+
+    </section>
+    <section>
+        <a name=plugin><h3>CONTRIBUTORS</h3></a>
+        <div>
+        <ul>
+           <li><a href="https://github.com/5HT">5HT</a> &mdash; Namdak Tonpa</li>
+           <li><a href="https://github.com/proger">proger</a> &mdash; Vlad Ki</li>
+           <li><a href="https://github.com/doxtop">doxtop</a> &mdash; Andrii Zadorozhnii</li>
+           <li><a href="https://github.com/cryoflamer">cryoflamer</a> &mdash; Yuri Maslovsky</li>
+           <li><a href="https://github.com/qomputer">qomputer</a> &mdash; Igor Kharin</li>
+        </ul></div>
+    </section>
+</main>
+
+<footer>
+    Made with <span class="heart">❤</span> to N2O
+</footer>
 
 </body>
 </html>
-
-
