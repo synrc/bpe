@@ -13,9 +13,10 @@ event(init) ->
       nitro:insert_bottom(stand,
                 forms:new(Module:new(Module,Module:id()), Module:id()));
 
-event({Event,Name}) ->
-    nitro:wire(lists:concat(["console.log(\"",io_lib:format("~p",[{Event,Name}]),"\");"])),
-    n2o:info(?MODULE,"Event:~p.~n", [{Event,nitro:q(nitro:to_atom(Name))}]),
+event({'Next',Name}) ->
+    nitro:redirect("actors.htm");
+
+event({'Close',Name}) ->
     nitro:redirect("index.html");
 
 event(Event) ->
