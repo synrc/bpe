@@ -5,7 +5,7 @@
 -include_lib("nitro/include/nitro.hrl").
 
 doc() -> "This is table row representation in FORMS CSS. Used to draw active processes"
-         " in <a href=\"index.html\">BPE process table</a> but displayed as class=form.".
+         " in <a href=\"actors.htm\">BPE process table</a> but displayed as class=form.".
 id() -> #process{}.
 new(Name,Proc) ->
     #panel { id=forms:atom([tr,Name]),
