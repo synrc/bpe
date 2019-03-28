@@ -27,7 +27,7 @@ definition() ->
         beginEvent = 'Init',
         endEvent = 'Final',
         events = [
-             #boundaryEvent{ name = '*', timeout={0,{0,30,0}} },
+%             #boundaryEvent{ name = '*', timeout={0,{0,30,0}} },
              #messageEvent{name="PaymentReceived"}
         ]
     }.
