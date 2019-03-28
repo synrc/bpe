@@ -4,6 +4,17 @@
 -compile(export_all).
 -record(pi, {code='Spawnproc'}).
 
+main() -> [].
+
+event(init) ->
+   nitro:update(n, nitro:qc(p)),
+   nitro:update(num, nitro:qc(p)),
+   ok;
+
+event(E) ->
+   io:format("Event:process:~p~n.",[E]),
+   ok.
+
 doc() -> "Dialog for creation of BPE processes.".
 id() -> #pi{}.
 new(Name,{pi,_Code}) ->
@@ -23,6 +34,6 @@ new(Name,{pi,_Code}) ->
                         type=select,
                         title= "Type",
                         tooltips = [],
-                        options = [ #opt{name=spawnproc,checked=true,title = "spawnproc"},
-                                    #opt{name=tour,checked=true,title = "tour"}
+                        options = [ #opt{name=spawnproc,checked=true,title = "Spawnproc [PB]"},
+                                    #opt{name=tour,checked=true,title = "Tournaments [ESM.ONE]"}
                        ]}]}.

@@ -17,7 +17,9 @@ route(<<>>)                      -> bpe_index;
 route(<<"actors",_/binary>>    ) -> bpe_index;
 route(<<"login",_/binary>>)      -> bpe_login;
 route(<<"forms",_/binary>>)      -> bpe_forms;
+route(<<"process",_/binary>>)    -> bpe_process;
 route(<<"app/actors",_/binary>>) -> bpe_index;
 route(<<"app/login",_/binary>>)  -> bpe_login;
 route(<<"app/forms",_/binary>>)  -> bpe_forms;
+route(<<"app/process",_/binary>>)-> bpe_process;
 route(_)                         -> bpe_login.
