@@ -9,9 +9,15 @@
 
 opt()        -> [ set, named_table, { keypos, 1 }, public ].
 tables()     -> [ processes ].
-start_link() ->  case application:get_env(bpe,nostand,true) of
-                   false -> cowboy:start_clear(http, [{port, 8003}],
-                            #{ env => #{dispatch => n2o_cowboy2:points()} }),
+port()       -> application:get_env(n2o,port,8003).
+start_link() -> case application:get_env(bpe,nostand,true) of
+                   false -> %cowboy:start_clear(http, [{port, 8003}],
+                            %#{ env => #{dispatch => n2o_cowboy2:points()} }),
+                            cowboy:start_tls(http, [{port, port()},
+                              {certfile, code:priv_dir(bpe)++"/ssl/fullchain.pem"},
+                              {keyfile, code:priv_dir(bpe)++"/ssl/privkey.pem"},
+                              {cacertfile, code:priv_dir(bpe)++"/ssl/fullchain.pem"}],
+                              #{env => #{dispatch => points()} }),
                             io:format("Cowboy Started~n");
                    true -> skip end,
                  supervisor:start_link({local, ?MODULE}, ?MODULE, []).

@@ -21,7 +21,7 @@ event(init) ->
 
 event({complete,Id}) ->
     bpe:start(bpe:load(Id),[]),
-    bpe:complete(Id),
+    io:format("Complete: ~p~n",[bpe:complete(Id)]),
     nitro:update(forms:atom([tr,row,Id]),
                 bpe_row:new(forms:atom([row,Id]),bpe:load(Id)));
 
