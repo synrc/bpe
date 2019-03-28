@@ -8,10 +8,11 @@ doc() -> "This is table row representation in FORMS CSS. Used to draw active pro
          " in <a href=\"actors.htm\">BPE process table</a> but displayed as class=form.".
 id() -> #process{}.
 new(Name,Proc) ->
+    Pid = nitro:to_list(Proc#process.id),
     #panel { id=forms:atom([tr,Name]),
              class=td,
              body=[
-        #panel{class=column6,   body = nitro:to_list(Proc#process.id) },
+        #panel{class=column6,   body = #link{href="process.htm?p="++Pid, body=Pid } },
         #panel{class=column6,   body = nitro:to_list(Proc#process.name) },
         #panel{class=column6,   body = nitro:to_list(element(#task.module,bpe:task(Proc#process.task,Proc)))},
         #panel{class=column20,  body = nitro:to_list(Proc#process.task)},
