@@ -54,6 +54,7 @@
 -record(hist,         { ?ITERATOR(feed),
                         name=[] :: [] | binary(),
                         task=[] :: atom(),
+                        docs=[] :: list(tuple()),
                         time=[] :: term() }).
 -record(process,      { ?ITERATOR(feed), name=[] :: [] | binary(),
                         roles=[] :: list(),

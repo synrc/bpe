@@ -17,12 +17,13 @@ process_event(Event,Proc) ->
                        feed_id = {hist,ProcState#process.id},
                        name = ProcState#process.name,
                        time = calendar:local_time(),
+                       docs = ProcState#process.docs,
                        task = { event, element(#messageEvent.name,Event) }}),
 
     NewProcState = ProcState#process{task = Target},
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     kvs:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
-    kvs:put(transient(NewProcState)),
+%    kvs:put(transient(NewProcState)),
     FlowReply.
 
 run(Task,Process) ->
@@ -54,6 +55,7 @@ process_flow(Stage,Proc,NoFlow) ->
                        feed_id = {hist,ProcState#process.id},
                        name = ProcState#process.name,
                        time = calendar:local_time(),
+                       docs = ProcState#process.docs,
                        task = {task, Curr} }),
 
     NewProcState = ProcState#process{task = Target},
