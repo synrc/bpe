@@ -4,9 +4,6 @@
 -include_lib("n2o/include/n2o.hrl").
 -include_lib("nitro/include/nitro.hrl").
 
-main() -> [].
-body() -> [].
-
 event(init) ->
     nitro:clear(stand),
       Module = bpe_otp,

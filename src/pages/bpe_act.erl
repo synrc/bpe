@@ -1,4 +1,4 @@
--module(bpe_process).
+-module(bpe_act).
 -copyright('Maxim Sokhatsky').
 -include_lib("nitro/include/nitro.hrl").
 -include_lib("forms/include/meta.hrl").
@@ -6,23 +6,21 @@
 -compile(export_all).
 -record(pi, {code='Spawnproc'}).
 
-main() -> [].
-
 event(init) ->
    nitro:clear(tableHead),
    nitro:insert_top(tableHead, header()),
    Bin = nitro:qc(p),
+   nitro:update(n, Bin),
+   nitro:update(num, Bin),
    Id = binary_to_integer(Bin),
-   io:format("Id: ~p~n",[Id]),
    case bpe:hist(Id) of
         []  -> skip;
-        History -> nitro:update(n, Bin),
-                  nitro:update(num, Bin),
-               [ nitro:insert_bottom(tableHead, bpe_trace:new(forms:atom([trace,nitro:to_list(I#hist.id)]),I))
-               || I <- History ],
-                ok
-   end,
-   ok;
+        History ->
+                 [ nitro:insert_bottom(tableHead,
+                   bpe_trace:new(forms:atom([trace,nitro:to_list(I#hist.id)]),I))
+                || I <- History ],
+                   ok
+   end;
 
 event(E) ->
    io:format("Event:process:~p~n.",[E]),

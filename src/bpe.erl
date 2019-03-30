@@ -5,8 +5,6 @@
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
-% Instance Management
-
 load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
 
 cleanup(P) -> [ kvs:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],

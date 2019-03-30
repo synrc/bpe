@@ -5,19 +5,16 @@
 -include_lib("bpe/include/bpe.hrl").
 -include_lib("nitro/include/nitro.hrl").
 
-main() -> [].
-body() -> [].
-
 event(init) ->
     nitro:clear(frms),
     nitro:clear(ctrl),
-      Module = bpe_process,
-      nitro:insert_bottom(frms, forms:new(Module:new(Module,Module:id()), Module:id())),
-      nitro:insert_bottom(ctrl, #link{id=creator, body="New",postback=create, class=[button,sgreen]}),
-      nitro:hide(frms),
-      [ nitro:insert_bottom(tableHead, bpe_row:new(forms:atom([row,I#process.id]),I))
-     || I <- kvs:entries(kvs:get(feed,process),process,-1) ],
-        ok;
+    Module = bpe_act,
+    nitro:insert_bottom(frms, forms:new(Module:new(Module,Module:id()), Module:id())),
+    nitro:insert_bottom(ctrl, #link{id=creator, body="New",postback=create, class=[button,sgreen]}),
+    nitro:hide(frms),
+  [ nitro:insert_bottom(tableHead, bpe_row:new(forms:atom([row,I#process.id]),I))
+ || I <- kvs:entries(kvs:get(feed,process),process,-1) ],
+    ok;
 
 event({complete,Id}) ->
     bpe:start(bpe:load(Id),[]),
@@ -30,7 +27,7 @@ event(create) ->
     nitro:show(frms);
 
 event({'Spawn',_}) ->
-    {ok,Id} = bpe:start((nitro:to_atom(nitro:q(process_type_pi_bpe_process))):def(), []),
+    {ok,Id} = bpe:start((nitro:to_atom(nitro:q(process_type_pi_bpe_act))):def(), []),
     nitro:insert_after(header, bpe_row:new(forms:atom([row,Id]),bpe:process(Id))),
     nitro:hide(frms),
     nitro:show(ctrl),

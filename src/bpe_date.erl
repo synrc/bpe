@@ -1,6 +1,5 @@
 -module(bpe_date).
 -author('David Weldon').
--license('APACHE').
 -compile(export_all).
 
 beginning_of_month({Y, M, _D}) -> {Y, M, 1}.

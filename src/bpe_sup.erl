@@ -1,6 +1,5 @@
 -module(bpe_sup).
 -author('Maxim Sokhatsky').
--description('BPE Supervisor').
 -include("bpe.hrl").
 -behaviour(supervisor).
 -compile(export_all).
