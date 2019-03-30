@@ -4,7 +4,7 @@
 -include_lib("bpe/include/bpe.hrl").
 -include_lib("nitro/include/nitro.hrl").
 
-doc() -> "This is table row representation in FORMS CSS. Used to draw active processes"
+doc() -> "This is the actor table row representation in FORMS CSS. Used to draw active processes"
          " in <a href=\"actors.htm\">BPE process table</a> but displayed as class=form.".
 id() -> #process{}.
 new(Name,Proc) ->

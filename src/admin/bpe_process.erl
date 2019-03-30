@@ -1,19 +1,37 @@
 -module(bpe_process).
 -copyright('Maxim Sokhatsky').
+-include_lib("nitro/include/nitro.hrl").
 -include_lib("forms/include/meta.hrl").
+-include("bpe.hrl").
 -compile(export_all).
 -record(pi, {code='Spawnproc'}).
 
 main() -> [].
 
 event(init) ->
-   nitro:update(n, nitro:qc(p)),
-   nitro:update(num, nitro:qc(p)),
+   nitro:clear(tableHead),
+   nitro:insert_top(tableHead, header()),
+   Bin = nitro:qc(p),
+   Id = binary_to_integer(Bin),
+   io:format("Id: ~p~n",[Id]),
+   case bpe:hist(Id) of
+        []  -> skip;
+        History -> nitro:update(n, Bin),
+                  nitro:update(num, Bin),
+               [ nitro:insert_bottom(tableHead, bpe_trace:new(forms:atom([trace,nitro:to_list(I#hist.id)]),I))
+               || I <- History ],
+                ok
+   end,
    ok;
 
 event(E) ->
    io:format("Event:process:~p~n.",[E]),
    ok.
+
+header() ->
+  #panel{id=header,class=th,body=
+    [#panel{class=column6,body="State"},
+     #panel{class=column6,body="Documents"}]}.
 
 doc() -> "Dialog for creation of BPE processes.".
 id() -> #pi{}.
