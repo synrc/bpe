@@ -5,7 +5,19 @@
 -include_lib("bpe/include/bpe.hrl").
 -include_lib("nitro/include/nitro.hrl").
 
+header() ->
+  #panel{id=header,class=th,body=
+    [#panel{class=column6,body="No"},
+     #panel{class=column10,body="Name"},
+     #panel{class=column6,body="Module"},
+     #panel{class=column20,body="State"},
+     #panel{class=column20,body="Documents"},
+     #panel{class=column20,body="Manage"}
+     ]}.
+
 event(init) ->
+    nitro:clear(tableHead),
+    nitro:insert_top(tableHead, header()),
     nitro:clear(frms),
     nitro:clear(ctrl),
     Module = bpe_act,
