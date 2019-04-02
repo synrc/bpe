@@ -2,7 +2,6 @@
 -define(BPE_HRL, true).
 
 -include_lib("kvs/include/kvs.hrl").
--include("tour.hrl").
 
 % BPMN 2.0 API
 
@@ -79,8 +78,8 @@
 -record(proc,         { id=[] :: [] | integer() }).
 -record(histo,        { id=[] :: [] | integer() }).
 -record(create,       { proc=[] :: [] | #process{} | binary(),
-                        docs=[] :: [] | list(#join_application{} | #max_tour{} | #tour_list{}) }).
+                        docs=[] :: [] | list(tuple()) }).
 -record(amend,        { id=[] :: [] | integer(),
-                        docs=[] :: [] | list(#join_application{} | #max_tour{} | #tour_list{}) }).
+                        docs=[] :: [] | list(tuple()) }).
 
 -endif.

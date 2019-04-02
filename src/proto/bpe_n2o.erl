@@ -1,6 +1,6 @@
 -module(bpe_n2o).
 -include("bpe.hrl").
--include("tour.hrl").
+-include("doc.hrl").
 -compile({parse_transform, bert_javascript}).
 -compile(export_all).
 

@@ -1,6 +1,6 @@
 -module(tour).
 -include("bpe.hrl").
--include("tour.hrl").
+-include("doc.hrl").
 -compile(export_all).
 
 def() ->

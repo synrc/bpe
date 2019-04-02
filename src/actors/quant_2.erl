@@ -1,8 +1,7 @@
 -module(quant_2).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
--include("tour.hrl").
--include_lib("kvs/include/user.hrl").
+-include("doc.hrl").
 -compile(export_all).
 
 def() ->
