@@ -56,8 +56,8 @@ new(Name,{pi,_Code}) ->
                         type=select,
                         title= "Type",
                         tooltips = [],
-                        options = [ #opt{name=quant_1,checked=true,title = "Client Acquire [QUANTERALL]"},
-                                    #opt{name=quant_2,checked=true,title = "Client Tracking [QUANTERALL]"},
+                        options = [ #opt{name=quant_1,title = "Client Acquire [QUANTERALL]"},
+                                    #opt{name=quant_2,title = "Client Tracking [QUANTERALL]"},
                                     #opt{name=bpe_account,checked=true,title = "Client Account [SYNRC BANK]"},
-                                    #opt{name=tour,checked=true,title = "Tournaments [ESM.ONE]"}
+                                    #opt{name=tour,title = "Tournaments [ESM.ONE]"}
                        ]}]}.
