@@ -56,6 +56,8 @@ new(Name,{pi,_Code}) ->
                         type=select,
                         title= "Type",
                         tooltips = [],
-                        options = [ #opt{name=spawnproc,checked=true,title = "Spawnproc [PB]"},
+                        options = [ #opt{name=quant_1,checked=true,title = "Client Acquire [QUANTERALL]"},
+                                    #opt{name=quant_2,checked=true,title = "Client Tracking [QUANTERALL]"},
+                                    #opt{name=spawnproc,checked=true,title = "Spawnproc [PB]"},
                                     #opt{name=tour,checked=true,title = "Tournaments [ESM.ONE]"}
                        ]}]}.

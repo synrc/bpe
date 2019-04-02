@@ -39,6 +39,7 @@ event(create) ->
     nitro:show(frms);
 
 event({'Spawn',_}) ->
+    io:format("trsty: ~p~n",[(nitro:to_atom(nitro:q(process_type_pi_bpe_act)))]),
     {ok,Id} = bpe:start((nitro:to_atom(nitro:q(process_type_pi_bpe_act))):def(), []),
     nitro:insert_after(header, bpe_row:new(forms:atom([row,Id]),bpe:process(Id))),
     nitro:hide(frms),
