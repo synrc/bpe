@@ -5,7 +5,7 @@
 -compile(export_all).
 
 def() ->
-    #process { name = 'Account',
+    #process { name = 'IBAN Account',
         flows = [
             #sequenceFlow{source='Init',      target='Upload'},
             #sequenceFlow{source='Upload',    target='Payment'},
