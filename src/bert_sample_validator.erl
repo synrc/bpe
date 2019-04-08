@@ -1,6 +1,6 @@
 -module(bert_sample_validator).
--include("/Users/maxim/depot/o/o7/bpe/deps/bert/include/bert.hrl").
--include("/Users/maxim/depot/o/o7/bpe/deps/bert/include/sample.hrl").
+-include_lib("bert/include/bert.hrl").
+-include_lib("bert/include/sample.hrl").
 -compile(export_all).
 -define(COND_FUN(Cond), fun(Rec) when Cond -> true; (_) -> false end).
 
