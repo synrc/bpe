@@ -22,7 +22,7 @@
                         prompt=[] :: list(tuple()),
                         roles=[] :: binary()}).
 -record(messageEvent, { name=[] :: [] | atom(),
-                        module :: atom(),
+                        module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         payload=[] :: binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}} }).
@@ -68,7 +68,7 @@
                         timer=[] :: [] | binary(),
                         notifications=[] :: [] | term(),
                         result=[] :: [] | binary(),
-                        started=[] :: [] | binary(),
+                        started=[] :: [] | {term(),term(),term()},
                         beginEvent=[] :: [] | atom(),
                         endEvent=[] :: [] | atom()}).
 

@@ -21,7 +21,7 @@ def() ->
             #endEvent    { name='Final',     module = bpe_account } ],
         beginEvent = 'Init',
         endEvent = 'Final',
-        events = [ #messageEvent{name="PaymentReceived"} ] }.
+        events = [ #messageEvent{name='PaymentReceived'} ] }.
 
 action({request,'Init'}, Proc) ->
     {reply,Proc};

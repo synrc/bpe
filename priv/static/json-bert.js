@@ -554,7 +554,7 @@ function encprocess(d) {
     var timer = 'timer' in d && d.timer ? bin(d.timer) : nil();
     var notifications = 'notifications' in d && d.notifications ? encode(d.notifications) : nil();
     var result = 'result' in d && d.result ? bin(d.result) : nil();
-    var started = 'started' in d && d.started ? bin(d.started) : nil();
+    var started = 'started' in d && d.started ? encode(d.started) : nil();
     var beginEvent = 'beginEvent' in d && d.beginEvent ? atom(d.beginEvent) : nil();
     var endEvent = 'endEvent' in d && d.endEvent ? atom(d.endEvent) : nil();
     return tuple(tup,id,container,feed_id,prev,next,feeds,name,roles,tasks,events,
@@ -600,7 +600,7 @@ function decprocess(d) {
     r.timer = d && d.v[17] ? utf8_arr(d.v[17].v) : undefined;
     r.notifications = d && d.v[18] ? decode(d.v[18]) : undefined;
     r.result = d && d.v[19] ? utf8_arr(d.v[19].v) : undefined;
-    r.started = d && d.v[20] ? utf8_arr(d.v[20].v) : undefined;
+    r.started = d && d.v[20] ? decode(d.v[20]) : undefined;
     r.beginEvent = d && d.v[21] ? d.v[21].v : undefined;
     r.endEvent = d && d.v[22] ? d.v[22].v : undefined;
     return clean(r); }
