@@ -50,8 +50,8 @@
                 port = 8003;</script>
         <script src='n2o/ftp.js?v=1'></script>
         <script src='n2o/nitro.js?v=1'></script>
-        <script src='json-bert.js'></script>
-        <script>$io.do = function(r) { if (utf8_arr(r.v[1].v) === '') console.log(decio(r.v[2])); };</script>
+        <script src='json-bert.js?v=2'></script>
+        <script>$io.do = function(r) { console.log(decode(r)); };</script>
         <script>protos = [$bert]; N2O_start();</script>
 
 </body>

@@ -49,7 +49,7 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple())}).
 -record(sequenceFlow, { source=[] :: [] | atom(),
-                        target=[] :: [] | atom() }).
+                        target=[] :: [] | atom() | list(atom()) }).
 -record(hist,         { ?ITERATOR(feed),
                         name=[] :: [] | binary(),
                         task=[] :: atom(),
@@ -76,6 +76,7 @@
 
 -record(complete,     { id=[] :: [] | integer() }).
 -record(proc,         { id=[] :: [] | integer() }).
+-record(load,         { id=[] :: [] | integer() }).
 -record(histo,        { id=[] :: [] | integer() }).
 -record(create,       { proc=[] :: [] | #process{} | binary(),
                         docs=[] :: [] | list(tuple()) }).

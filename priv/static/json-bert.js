@@ -1,5 +1,5 @@
 function clean(r)      { for(var k in r) if(!r[k]) delete r[k]; return r; }
-function check_len(x)  { try { return (eval('len'+utf8_dec(x.v[0].v))() == x.v.length) ? true : false }
+function check_len(x)  { try { return (eval('len'+utf8_arr(x.v[0].v))() == x.v.length) ? true : false }
                          catch (e) { return false; } }
 
 function scalar(data)    {
@@ -18,7 +18,7 @@ function decode(x) {
     } else if (x.t == 108) {
         var r = []; x.v.forEach(function(y) { r.push(decode(y)) }); return r;
     } else if (x.t == 109) {
-        return utf8_dec(x.v);
+        return utf8_arr(x.v);
     } else if (x.t == 104 && check_len(x)) {
         return eval('dec'+x.v[0].v)(x);
     } else if (x.t == 104) {
@@ -260,7 +260,7 @@ function dectask(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.roles = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.roles = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     return clean(r); }
 
 function encuserTask(d) {
@@ -283,7 +283,7 @@ function decuserTask(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.roles = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.roles = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     return clean(r); }
 
 function encserviceTask(d) {
@@ -306,7 +306,7 @@ function decserviceTask(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.roles = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.roles = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     return clean(r); }
 
 function encreceiveTask(d) {
@@ -329,7 +329,7 @@ function decreceiveTask(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.roles = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.roles = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     return clean(r); }
 
 function encmessageEvent(d) {
@@ -353,7 +353,7 @@ function decmessageEvent(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.payload = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.payload = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     r.timeout = d && d.v[5] ? decode(d.v[5]) : undefined;
     return clean(r); }
 
@@ -381,11 +381,11 @@ function decboundaryEvent(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.payload = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.payload = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     r.timeout = d && d.v[5] ? decode(d.v[5]) : undefined;
-    r.timeDate = d && d.v[6] ? utf8_dec(d.v[6].v) : undefined;
-    r.timeDuration = d && d.v[7] ? utf8_dec(d.v[7].v) : undefined;
-    r.timeCycle = d && d.v[8] ? utf8_dec(d.v[8].v) : undefined;
+    r.timeDate = d && d.v[6] ? utf8_arr(d.v[6].v) : undefined;
+    r.timeDuration = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
+    r.timeCycle = d && d.v[8] ? utf8_arr(d.v[8].v) : undefined;
     return clean(r); }
 
 function enctimeoutEvent(d) {
@@ -412,11 +412,11 @@ function dectimeoutEvent(d) {
 	 (d && d.v[3] && d.v[3].v) ?
 	 d.v[3].v.forEach(function(x){r.prompt.push(decode(x))}) :
 	 r.prompt = undefined;
-    r.payload = d && d.v[4] ? utf8_dec(d.v[4].v) : undefined;
+    r.payload = d && d.v[4] ? utf8_arr(d.v[4].v) : undefined;
     r.timeout = d && d.v[5] ? decode(d.v[5]) : undefined;
-    r.timeDate = d && d.v[6] ? utf8_dec(d.v[6].v) : undefined;
-    r.timeDuration = d && d.v[7] ? utf8_dec(d.v[7].v) : undefined;
-    r.timeCycle = d && d.v[8] ? utf8_dec(d.v[8].v) : undefined;
+    r.timeDate = d && d.v[6] ? utf8_arr(d.v[6].v) : undefined;
+    r.timeDuration = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
+    r.timeCycle = d && d.v[8] ? utf8_arr(d.v[8].v) : undefined;
     return clean(r); }
 
 function encbeginEvent(d) {
@@ -464,14 +464,14 @@ function decendEvent(d) {
 function encsequenceFlow(d) {
     var tup = atom('sequenceFlow');
     var source = 'source' in d && d.source ? atom(d.source) : nil();
-    var target = 'target' in d && d.target ? atom(d.target) : nil();
+    var target = 'target' in d && d.target ? encode(d.target) : nil();
     return tuple(tup,source,target); }
 
 function lensequenceFlow() { return 3; }
 function decsequenceFlow(d) {
     var r={}; r.tup = 'sequenceFlow';
     r.source = d && d.v[1] ? d.v[1].v : undefined;
-    r.target = d && d.v[2] ? d.v[2].v : undefined;
+    r.target = d && d.v[2] ? decode(d.v[2]) : undefined;
     return clean(r); }
 
 function enchist(d) {
@@ -506,7 +506,7 @@ function dechist(d) {
 	 (d && d.v[6] && d.v[6].v) ?
 	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
-    r.name = d && d.v[7] ? utf8_dec(d.v[7].v) : undefined;
+    r.name = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
     r.task = d && d.v[8] ? d.v[8].v : undefined;
     r.docs = [];
 	 (d && d.v[9] && d.v[9].v) ?
@@ -572,7 +572,7 @@ function decprocess(d) {
 	 (d && d.v[6] && d.v[6].v) ?
 	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
-    r.name = d && d.v[7] ? utf8_dec(d.v[7].v) : undefined;
+    r.name = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
     r.roles = [];
 	 (d && d.v[8] && d.v[8].v) ?
 	 d.v[8].v.forEach(function(x){r.roles.push(decode(x))}) :
@@ -597,10 +597,10 @@ function decprocess(d) {
 	 r.docs = undefined;
     r.options = d && d.v[15] ? decode(d.v[15]) : undefined;
     r.task = d && d.v[16] ? d.v[16].v : undefined;
-    r.timer = d && d.v[17] ? utf8_dec(d.v[17].v) : undefined;
+    r.timer = d && d.v[17] ? utf8_arr(d.v[17].v) : undefined;
     r.notifications = d && d.v[18] ? decode(d.v[18]) : undefined;
-    r.result = d && d.v[19] ? utf8_dec(d.v[19].v) : undefined;
-    r.started = d && d.v[20] ? utf8_dec(d.v[20].v) : undefined;
+    r.result = d && d.v[19] ? utf8_arr(d.v[19].v) : undefined;
+    r.started = d && d.v[20] ? utf8_arr(d.v[20].v) : undefined;
     r.beginEvent = d && d.v[21] ? d.v[21].v : undefined;
     r.endEvent = d && d.v[22] ? d.v[22].v : undefined;
     return clean(r); }
@@ -624,6 +624,17 @@ function encproc(d) {
 function lenproc() { return 2; }
 function decproc(d) {
     var r={}; r.tup = 'proc';
+    r.id = d && d.v[1] ? d.v[1].v : undefined;
+    return clean(r); }
+
+function encload(d) {
+    var tup = atom('load');
+    var id = 'id' in d && d.id ? number(d.id) : nil();
+    return tuple(tup,id); }
+
+function lenload() { return 2; }
+function decload(d) {
+    var r={}; r.tup = 'load';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
     return clean(r); }
 
@@ -700,7 +711,7 @@ function lenjoin_application() { return 4; }
 function decjoin_application(d) {
     var r={}; r.tup = 'join_application';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.name = d && d.v[2] ? utf8_dec(d.v[2].v) : undefined;
+    r.name = d && d.v[2] ? utf8_arr(d.v[2].v) : undefined;
     r.data = d && d.v[3] ? decode(d.v[3]) : undefined;
     return clean(r); }
 
@@ -719,6 +730,17 @@ function dectour_list(d) {
 	 (d && d.v[1] && d.v[1].v) ?
 	 d.v[1].v.forEach(function(x){r.users.push(decode(x))}) :
 	 r.users = undefined;
+    return clean(r); }
+
+function encToken(d) {
+    var tup = atom('Token');
+    var data = 'data' in d && d.data ? bin(d.data) : nil();
+    return tuple(tup,data); }
+
+function lenToken() { return 2; }
+function decToken(d) {
+    var r={}; r.tup = 'Token';
+    r.data = d && d.v[1] ? utf8_arr(d.v[1].v) : undefined;
     return clean(r); }
 
 function encio(d) {
