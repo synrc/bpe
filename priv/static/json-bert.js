@@ -721,3 +721,16 @@ function dectour_list(d) {
 	 r.users = undefined;
     return clean(r); }
 
+function encio(d) {
+    var tup = atom('io');
+    var code = 'code' in d && d.code ? encode(d.code) : nil();
+    var data = 'data' in d && d.data ? encode(d.data) : nil();
+    return tuple(tup,code,data); }
+
+function lenio() { return 3; }
+function decio(d) {
+    var r={}; r.tup = 'io';
+    r.code = d && d.v[1] ? decode(d.v[1]) : undefined;
+    r.data = d && d.v[2] ? decode(d.v[2]) : undefined;
+    return clean(r); }
+
