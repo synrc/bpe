@@ -28,9 +28,9 @@ action({request,'Init'}, Proc) ->
 
 action({request,'Payment'}, Proc) ->
     Payment = bpe:doc({payment_notification},Proc),
-    case is_tuple(Payment) of
-         true  -> {reply,'Process',Proc#process{docs=[#tx{}]}};
-         false -> {reply,'Signatory',Proc} end;
+    case Payment of
+         [] -> {reply,'Process',Proc#process{docs=[#tx{}]}};
+          _ -> {reply,'Signatory',Proc} end;
 
 action({request,'Signatory'}, Proc) ->
     {reply,'Process',Proc};
