@@ -12,11 +12,11 @@
 -record(userTask,     { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: binary() }).
+                        roles=[] :: [] | binary() }).
 -record(serviceTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: binary()}).
+                        roles=[] :: [] | binary()}).
 -record(receiveTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -24,7 +24,7 @@
 -record(messageEvent, { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        payload=[] :: binary(),
+                        payload=[] :: [] | binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}} }).
 -record(boundaryEvent,{ name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
