@@ -7,12 +7,12 @@
 
 % flow API
 
--spec process(pid()) -> #process{}.
--spec complete(pid()) -> {complete,any()}.
--spec complete(any(),pid()) -> {complete,any()}.
--spec amend(pid(),any()) -> {complete,any()}.
--spec event(pid(),any()) -> {complete,any()}.
--spec hist(pid()) -> list(#hist{}).
+-spec process(integer()) -> #process{}.
+-spec complete(integer()) -> {complete,any()}.
+-spec complete(any(),integer()) -> {complete,any()}.
+-spec amend(integer(),any()) -> {complete,any()}.
+-spec event(integer(),any()) -> {complete,any()}.
+-spec hist(integer()) -> list(#hist{}).
 
 % find task or document in process
 
