@@ -26,15 +26,8 @@ process_event(Event,Proc) ->
 %    kvs:put(transient(NewProcState)),
     FlowReply.
 
-run(Task,Process) ->
-    CurrentTask = Process#process.task,
-    case bpe_proc:process_flow([],Process,false) of
-         {reply,{complete,Reached},NewProc}
-           when Reached /= CurrentTask andalso Reached /= Task -> run(Task,NewProc);
-         Else -> Else end.
-
-process_flow(Stage,Proc) -> process_flow(Stage,Proc,false).
-process_flow(Stage,Proc,NoFlow) ->
+process_task(Stage,Proc) -> process_task(Stage,Proc,false).
+process_task(Stage,Proc,NoFlow) ->
     Curr = Proc#process.task,
     Term = [],
     Task = bpe:task(Curr,Proc),
@@ -68,20 +61,18 @@ process_flow(Stage,Proc,NoFlow) ->
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
-handle_call({get},_,Proc)              -> { reply,Proc,Proc };
-handle_call({run},_,Proc)              ->   run('Finish',Proc);
-handle_call({until,Stage},_,Proc)      ->   run(Stage,Proc);
-handle_call({start},_,Proc)            ->   process_flow([],Proc);
-handle_call({complete},_,Proc)         ->   process_flow([],Proc);
-handle_call({complete,Stage},_,Proc)   ->   process_flow(Stage,Proc);
-handle_call({event,Event},_,Proc)      ->   process_event(Event,Proc);
-handle_call({amend,Form,true},_,Proc)
-                   when is_list(Form)  ->   process_flow([],set_rec_in_proc(Proc,Form),true);
-handle_call({amend,Form,true},_,Proc)  ->   process_flow([],Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)},true);
-handle_call({amend,Form},_,Proc)
-                   when is_list(Form)  ->   process_flow([],set_rec_in_proc(Proc,Form));
-handle_call({amend,Form},_,Proc)       ->   process_flow([],Proc#process{docs=plist_setkey(element(1,Form),1,Proc#process.docs,Form)});
-handle_call(Command,_,Proc)            -> { reply,{unknown,Command},Proc }.
+handle_call({get},            _,Proc) -> { reply,Proc,Proc };
+handle_call({run},            _,Proc) ->   run('Finish',Proc);
+handle_call({until,Stage},    _,Proc) ->   run(Stage,Proc);
+handle_call({event,Event},    _,Proc) ->   process_event(Event,Proc);
+handle_call({start},          _,Proc) ->   process_task([],Proc);
+handle_call({complete},       _,Proc) ->   process_task([],Proc);
+handle_call({complete,Stage}, _,Proc) ->   process_task(Stage,Proc);
+handle_call({amend,Form,true},_,Proc) ->   process_task([],Proc#process{docs=[Form]},true);
+handle_call({amend,Form},     _,Proc) ->   process_task([],Proc#process{docs=[Form]});
+handle_call({remove,Form},    _,Proc) ->   process_task([],Proc#process{docs=[
+                                         { remove,element(1,Form),element(2,Form)}]},true);
+handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     kvs:info(?MODULE,"Process ~p spawned ~p",[Process#process.id,self()]),
@@ -122,7 +113,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
         {false,timeoutEvent} ->
             kvs:info(?MODULE,"BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
-            case process_flow([],State) of
+            case process_task([],State) of
                 {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
         {false,_} -> kvs:info(?MODULE,"BPE process ~p: Closing Timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
@@ -150,27 +141,14 @@ terminate(Reason, #process{id=Id}) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-plist_setkey(Name,Pos,List,New) ->
-    case lists:keyfind(Name,Pos,List) of
-        false -> [New|List];
-        _Element -> lists:keyreplace(Name,Pos,List,New) end.
-
-set_rec_in_proc(Proc, []) -> Proc;
-set_rec_in_proc(Proc, [H|T]) ->
-    ProcNew = Proc#process{ docs=plist_setkey(kvs:rname(element(1,H)),1,Proc#process.docs,H)},
-    set_rec_in_proc(ProcNew, T).
-
-match(Rec1, Rec2) ->
-    F = fun ({X,[]}) -> true;
-            ({[],Y}) -> true;
-             ({X,X}) -> true;
-             ({X,Y}) -> false end,
-
-    lists:all(F,
-    lists:zip(tuple_to_list(Rec1),
-              tuple_to_list(Rec2))).
+run(Task,Process) ->
+    CurrentTask = Process#process.task,
+    case bpe_proc:process_task([],Process,false) of
+         {reply,{complete,Reached},NewProc}
+           when Reached /= CurrentTask andalso Reached /= Task -> run(Task,NewProc);
+         Else -> Else end.
 
 transient(#process{docs=Docs}=Process) ->
     Process#process{docs=lists:filter(
         fun (X) -> not lists:member(element(1,X),
-            kvs:config(bpe,transient,[])) end,Docs)}.
+            application:get_env(bpe,transient,[])) end,Docs)}.

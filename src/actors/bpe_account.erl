@@ -2,6 +2,7 @@
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
 -include("doc.hrl").
+-export([def/0]).
 -compile(export_all).
 
 def() ->

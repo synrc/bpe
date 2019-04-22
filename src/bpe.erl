@@ -34,16 +34,13 @@ start(Proc0, Options) ->
 find_pid(Id) -> bpe:cache({process,Id}).
 
 process(ProcId)           -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
-complete(ProcId)          -> %io:format("complete:~p~n",[ProcId]),
-                             gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
+complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
 run(ProcId)               -> gen_server:call(find_pid(ProcId),{run},            ?TIMEOUT).
 until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task},     ?TIMEOUT).
 complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}, ?TIMEOUT).
 amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form},     ?TIMEOUT).
 amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true},?TIMEOUT).
 event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
-
-add_recs(Proc, RecordsList) -> bpe_proc:set_rec_in_proc(Proc, RecordsList).
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
@@ -93,9 +90,6 @@ val(Document,Proc,Cond,Action) ->
          {false,Message} -> {{reply,Message},Proc#process.task,Proc};
          ErrorList -> io:format("BPE:val/4 failed: ~tp~n",[ErrorList]),
                       {{reply,ErrorList},Proc#process.task,Proc} end.
-
-option(Proc, Key) -> proplists:get_value(Key,Proc#process.options).
-option(Proc, Key, Value) -> Proc#process{options=bpe_proc:plist_setkey(Key,1,Proc#process.options,{Key,Value})}.
 
 cache(Key, undefined) -> ets:delete(processes,Key);
 cache(Key, Value) -> ets:insert(processes,{Key,till(calendar:local_time(), ttl()),Value}), Value.

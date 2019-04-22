@@ -10,10 +10,10 @@ event(init) ->
       nitro:insert_bottom(stand,
                 forms:new(Module:new(Module,Module:id()), Module:id()));
 
-event({'Next',Name}) ->
+event({'Next',_}) ->
     nitro:redirect("actors.htm");
 
-event({'Close',Name}) ->
+event({'Close',_}) ->
     nitro:redirect("index.html");
 
 event(Event) ->

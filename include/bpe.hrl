@@ -21,11 +21,11 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         roles=[] :: binary()}).
--record(messageEvent, { name=[] :: [] | atom(),
+-record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         payload=[] :: [] | binary(),
-                        timeout=[] :: {integer(),{integer(),integer(),integer()}} }).
+                        timeout=[] :: [] | {integer(),{integer(),integer(),integer()}} }).
 -record(boundaryEvent,{ name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
