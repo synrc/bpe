@@ -18,10 +18,8 @@ start(_StartType, _StartArgs) ->
 
 stop(_State) -> ok.
 
-worker(#process{id=Id}=P) ->
-    case bpe:hist(Id) of
-         [H|_] -> worker_do(calendar:time_difference(H#hist.time,calendar:local_time()),P);
-            __ -> skip end.
+worker(#process{id=Id}=P) -> [H|_] = bpe:hist(Id),
+   worker_do(calendar:time_difference(H#hist.time,calendar:local_time()),P).
 
 worker_do({Days,_Time},_) when Days >= 14 -> skip;
 worker_do({_Days,_Time},P) -> kvs:info(?MODULE,"BPE Start: ~p~n",[bpe:start(P,[])]).

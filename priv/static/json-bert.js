@@ -334,7 +334,7 @@ function decreceiveTask(d) {
 
 function encmessageEvent(d) {
     var tup = atom('messageEvent');
-    var name = 'name' in d && d.name ? atom(d.name) : nil();
+    var name = 'name' in d && d.name ? encode(d.name) : nil();
     var module = 'module' in d && d.module ? atom(d.module) : nil();
     var prompt = []; if ('prompt' in d && d.prompt)
 	 { d.prompt.forEach(function(x){
@@ -347,7 +347,7 @@ function encmessageEvent(d) {
 function lenmessageEvent() { return 6; }
 function decmessageEvent(d) {
     var r={}; r.tup = 'messageEvent';
-    r.name = d && d.v[1] ? d.v[1].v : undefined;
+    r.name = d && d.v[1] ? decode(d.v[1]) : undefined;
     r.module = d && d.v[2] ? d.v[2].v : undefined;
     r.prompt = [];
 	 (d && d.v[3] && d.v[3].v) ?
@@ -486,7 +486,7 @@ function enchist(d) {
 	feeds.push(encode(x))});
 	 feeds={t:108,v:feeds}; } else { feeds = nil() };
     var name = 'name' in d && d.name ? bin(d.name) : nil();
-    var task = 'task' in d && d.task ? atom(d.task) : nil();
+    var task = 'task' in d && d.task ? encode(d.task) : nil();
     var docs = []; if ('docs' in d && d.docs)
 	 { d.docs.forEach(function(x){
 	docs.push(encode(x))});
@@ -507,7 +507,7 @@ function dechist(d) {
 	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
     r.name = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
-    r.task = d && d.v[8] ? d.v[8].v : undefined;
+    r.task = d && d.v[8] ? decode(d.v[8]) : undefined;
     r.docs = [];
 	 (d && d.v[9] && d.v[9].v) ?
 	 d.v[9].v.forEach(function(x){r.docs.push(decode(x))}) :
@@ -526,7 +526,7 @@ function encprocess(d) {
 	 { d.feeds.forEach(function(x){
 	feeds.push(encode(x))});
 	 feeds={t:108,v:feeds}; } else { feeds = nil() };
-    var name = 'name' in d && d.name ? bin(d.name) : nil();
+    var name = 'name' in d && d.name ? encode(d.name) : nil();
     var roles = []; if ('roles' in d && d.roles)
 	 { d.roles.forEach(function(x){
 	roles.push(encode(x))});
@@ -572,7 +572,7 @@ function decprocess(d) {
 	 (d && d.v[6] && d.v[6].v) ?
 	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
-    r.name = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
+    r.name = d && d.v[7] ? decode(d.v[7]) : undefined;
     r.roles = [];
 	 (d && d.v[8] && d.v[8].v) ?
 	 d.v[8].v.forEach(function(x){r.roles.push(decode(x))}) :
@@ -605,52 +605,52 @@ function decprocess(d) {
     r.endEvent = d && d.v[22] ? d.v[22].v : undefined;
     return clean(r); }
 
-function enccomplete(d) {
-    var tup = atom('complete');
+function encComp(d) {
+    var tup = atom('Comp');
     var id = 'id' in d && d.id ? number(d.id) : nil();
     return tuple(tup,id); }
 
-function lencomplete() { return 2; }
-function deccomplete(d) {
-    var r={}; r.tup = 'complete';
+function lenComp() { return 2; }
+function decComp(d) {
+    var r={}; r.tup = 'Comp';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
     return clean(r); }
 
-function encproc(d) {
-    var tup = atom('proc');
+function encProc(d) {
+    var tup = atom('Proc');
     var id = 'id' in d && d.id ? number(d.id) : nil();
     return tuple(tup,id); }
 
-function lenproc() { return 2; }
-function decproc(d) {
-    var r={}; r.tup = 'proc';
+function lenProc() { return 2; }
+function decProc(d) {
+    var r={}; r.tup = 'Proc';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
     return clean(r); }
 
-function encload(d) {
-    var tup = atom('load');
+function encLoad(d) {
+    var tup = atom('Load');
     var id = 'id' in d && d.id ? number(d.id) : nil();
     return tuple(tup,id); }
 
-function lenload() { return 2; }
-function decload(d) {
-    var r={}; r.tup = 'load';
+function lenLoad() { return 2; }
+function decLoad(d) {
+    var r={}; r.tup = 'Load';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
     return clean(r); }
 
-function enchisto(d) {
-    var tup = atom('histo');
+function encHist(d) {
+    var tup = atom('Hist');
     var id = 'id' in d && d.id ? number(d.id) : nil();
     return tuple(tup,id); }
 
-function lenhisto() { return 2; }
-function dechisto(d) {
-    var r={}; r.tup = 'histo';
+function lenHist() { return 2; }
+function decHist(d) {
+    var r={}; r.tup = 'Hist';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
     return clean(r); }
 
-function enccreate(d) {
-    var tup = atom('create');
+function encMake(d) {
+    var tup = atom('Make');
     var proc = 'proc' in d && d.proc ? encode(d.proc) : nil();
     var docs = []; if ('docs' in d && d.docs)
 	 { d.docs.forEach(function(x){
@@ -658,9 +658,9 @@ function enccreate(d) {
 	 docs={t:108,v:docs}; } else { docs = nil() };
     return tuple(tup,proc,docs); }
 
-function lencreate() { return 3; }
-function deccreate(d) {
-    var r={}; r.tup = 'create';
+function lenMake() { return 3; }
+function decMake(d) {
+    var r={}; r.tup = 'Make';
     r.proc = d && d.v[1] ? decode(d.v[1]) : undefined;
     r.docs = [];
 	 (d && d.v[2] && d.v[2].v) ?
@@ -668,8 +668,8 @@ function deccreate(d) {
 	 r.docs = undefined;
     return clean(r); }
 
-function encamend(d) {
-    var tup = atom('amend');
+function encAmen(d) {
+    var tup = atom('Amen');
     var id = 'id' in d && d.id ? number(d.id) : nil();
     var docs = []; if ('docs' in d && d.docs)
 	 { d.docs.forEach(function(x){
@@ -677,9 +677,9 @@ function encamend(d) {
 	 docs={t:108,v:docs}; } else { docs = nil() };
     return tuple(tup,id,docs); }
 
-function lenamend() { return 3; }
-function decamend(d) {
-    var r={}; r.tup = 'amend';
+function lenAmen() { return 3; }
+function decAmen(d) {
+    var r={}; r.tup = 'Amen';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
     r.docs = [];
 	 (d && d.v[2] && d.v[2].v) ?

@@ -31,7 +31,7 @@ def() ->
         endEvent = 'Final',
         events = [
 %             #boundaryEvent{ name = '*', timeout={0,{0,30,0}} },
-             #messageEvent{name="PaymentReceived"}
+             #messageEvent{name='PaymentReceived'}
         ]
     }.
 
@@ -42,7 +42,7 @@ action({request,'JoinTeams'}, Proc)  ->
     J = #join_application{}     = bpe:doc(#join_application{}, Proc),
     #tour_list{users=Users}     = bpe:doc(#tour_list{}, Proc),
     Modify = [#max_tour{count=N,joined=M+1},#tour_list{users=[J|Users]}],
-    Proc2 = bpe:add_recs(Proc,Modify),
+    Proc2 = Proc#process{docs=Modify},
     case M + 1 == N of
          false -> {reply,'JoinTeams',Proc2};
          true  -> {reply,'EmitGroups',Proc2} end;
@@ -59,4 +59,5 @@ test() ->
     bpe:amend(Id,#join_application{name=doxtop,data=2}),
     bpe:amend(Id,#join_application{name=maxim,data=3}),
     bpe:complete(Id),
-    bpe:process(Id).
+    bpe:process(Id),
+    ok.

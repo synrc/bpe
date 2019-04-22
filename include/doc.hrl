@@ -2,7 +2,7 @@
 -define(BPE_DOCS_HRL, true).
 
 -record(max_tour, {count=10::integer(),joined=0::integer()}).
--record(join_application, {id=[]::integer(),name=[]::binary(),data=[]::term()}).
+-record(join_application, {id=[]::[]|integer(),name=[]::[]|binary(),data=[]::term()}).
 -record(tour_list, {users=[]::list(#join_application{})}).
 -record(approve, {}).
 -record(close_account, {}).

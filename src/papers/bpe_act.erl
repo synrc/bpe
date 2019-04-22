@@ -11,7 +11,7 @@ event(init) ->
    Bin = nitro:qc(p),
    Id = try binary_to_integer(Bin) catch _:_ -> 0 end,
    case kvs:get(process,Id) of
-        {error,not_found} -> 
+        {error,not_found} ->
            nitro:update(n, "ERR"),
            nitro:update(desc, "No process found."),
            nitro:update(num, "ERR");
@@ -19,14 +19,11 @@ event(init) ->
            nitro:insert_top(tableHead, header()),
            nitro:update(n, Bin),
            nitro:update(num, Bin),
-   case bpe:hist(Id) of
-        []  -> skip;
-        History ->
-                 [ nitro:insert_bottom(tableHead,
-                   bpe_trace:new(forms:atom([trace,nitro:to_list(I#hist.id)]),I))
-                || I <- History ],
-                   ok
-   end end;
+   History = bpe:hist(Id),
+ [ nitro:insert_bottom(tableHead,
+   bpe_trace:new(forms:atom([trace,nitro:to_list(I#hist.id)]),I))
+   || I <- History ]
+   end;
 
 event(E) ->
    io:format("Event:process:~p~n.",[E]),

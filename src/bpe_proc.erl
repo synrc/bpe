@@ -81,7 +81,7 @@ init(Process) ->
          {error,_} -> Process end,
     Till = bpe:till(calendar:local_time(), kvs:config(bpe,ttl,24*60*60)),
     bpe:cache({process,Proc#process.id},self(),Till),
-    [ bpe:reg({messageEvent,Name,Proc#process.id}) || {Name,_} <- bpe:events(Proc) ],
+    [ bpe:reg({messageEvent,element(1,EventRec),Proc#process.id}) || EventRec <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(rand:uniform(10000),self(),{timer,ping})}}.
 
 handle_cast(Msg, State) ->
@@ -92,7 +92,7 @@ timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),se
 ping() -> application:get_env(bpe,ping,{0,0,5}).
 
 handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
-    case Timer of undefined -> skip; _ -> erlang:cancel_timer(Timer) end,
+    case Timer of [] -> skip; _ -> erlang:cancel_timer(Timer) end,
     Wildcard = '*',
 
     Terminal= case lists:keytake(Wildcard,#messageEvent.name,Events) of

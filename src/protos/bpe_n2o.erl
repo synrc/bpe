@@ -2,16 +2,15 @@
 -include("bpe.hrl").
 -include("doc.hrl").
 -record('Token', {data= [] :: binary()}).
--record(io, {code= [] :: term(),data = [] :: [] | #'Token'{} | #process{} | #io{} }).
+-record(io, {code= [] :: term(),data = [] :: [] | #'Token'{} | #process{} | #io{} | term() }).
+
 -compile({parse_transform, bert_javascript}).
 -compile(export_all).
 
-info(#amend{id=Proc,docs=Docs},R,S) -> {reply,{bert,#io{data=bpe:amend(Proc,Docs)}},R,S};
-info(#histo{id=Proc},R,S)           -> {reply,{bert,#io{data=bpe:hist(Proc)}},      R,S};
-info(#proc{id=Proc},R,S)            -> {reply,{bert,#io{data=bpe:process(Proc)}},   R,S};
-info(#load{id=Proc},R,S)            -> {reply,{bert,#io{data=bpe:load(Proc)}},      R,S};
-info(#complete{id=Proc},R,S)        -> {reply,{bert,#io{data=bpe:complete(Proc)}},  R,S};
-info(#create{proc=Module,docs=Docs},R,S) ->
-    {reply,{bert,#io{data=bpe:start((nitro:to_atom(Module)):def(),Docs)}},R,S};
-
-info(M,R,S) -> {unknown,M,R,S}.
+info(#'Amen'{id=Proc,docs=Docs},R,S) -> {reply,{bert,#io{data=bpe:amend(Proc,Docs)}},R,S};
+info(#'Hist'{id=Proc},R,S)           -> {reply,{bert,#io{data=bpe:hist(Proc)}},      R,S};
+info(#'Proc'{id=Proc},R,S)           -> {reply,{bert,#io{data=bpe:process(Proc)}},   R,S};
+info(#'Load'{id=Proc},R,S)           -> {reply,{bert,#io{data=bpe:load(Proc)}},      R,S};
+info(#'Comp'{id=Proc},R,S)           -> {reply,{bert,#io{data=bpe:complete(Proc)}},  R,S};
+info(#'Make'{proc=M,docs=Docs},R,S)  -> {reply,{bert,#io{data=bpe:start((nitro:to_atom(M)):def(),Docs)}},R,S};
+info(M,R,S)                          -> {unknown,M,R,S}.

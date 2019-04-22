@@ -13,7 +13,7 @@ cleanup(P) -> [ kvs:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
 
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
-    Proc = case Proc0#process.id == undefined orelse Proc0#process.id == [] of
+    Proc = case Proc0#process.id == [] of
                 true -> Id = kvs:next_id("process",1),
                       Proc0#process{id=Id,task=Proc0#process.beginEvent,
                                     options = Options,notifications = Pid,
