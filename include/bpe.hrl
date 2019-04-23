@@ -53,11 +53,11 @@
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
--type histId() :: [] | {atom()|string(),any()}.
+-type histId() :: [] | integer() | {atom()|string(),any()}.
 
 -record(hist,         { id = [] :: histId(),
                         container=[] :: [] | atom(),
-                        feed_id=[] :: term(),
+                        feed_id=[] :: any(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         feeds=[] :: list(),
@@ -70,7 +70,7 @@
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
 -type procId() :: [] | integer() | {atom(),any()}.
 
--record(process,      { id = 0 :: procId(),
+-record(process,      { id = [] :: procId(),
                         container=[] :: [] | atom(),
                         feed_id=feed :: atom() | term(),
                         prev=[] :: [] | integer(),

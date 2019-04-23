@@ -476,7 +476,6 @@ function decsequenceFlow(d) {
 
 function enchist(d) {
     var tup = atom('hist');
-    var id = 'id' in d && d.id ? encode(d.id) : nil();
     var container = 'container' in d && d.container ? atom(d.container) : nil();
     var feed_id = 'feed_id' in d && d.feed_id ? encode(d.feed_id) : nil();
     var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
@@ -492,32 +491,30 @@ function enchist(d) {
 	docs.push(encode(x))});
 	 docs={t:108,v:docs}; } else { docs = nil() };
     var time = 'time' in d && d.time ? encode(d.time) : nil();
-    return tuple(tup,id,container,feed_id,prev,next,feeds,name,task,docs,time); }
+    return tuple(tup,container,feed_id,prev,next,feeds,name,task,docs,time); }
 
-function lenhist() { return 11; }
+function lenhist() { return 10; }
 function dechist(d) {
     var r={}; r.tup = 'hist';
-    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
-    r.container = d && d.v[2] ? d.v[2].v : undefined;
-    r.feed_id = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.prev = d && d.v[4] ? d.v[4].v : undefined;
-    r.next = d && d.v[5] ? d.v[5].v : undefined;
+    r.container = d && d.v[1] ? d.v[1].v : undefined;
+    r.feed_id = d && d.v[2] ? decode(d.v[2]) : undefined;
+    r.prev = d && d.v[3] ? d.v[3].v : undefined;
+    r.next = d && d.v[4] ? d.v[4].v : undefined;
     r.feeds = [];
-	 (d && d.v[6] && d.v[6].v) ?
-	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
+	 (d && d.v[5] && d.v[5].v) ?
+	 d.v[5].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
-    r.name = d && d.v[7] ? utf8_arr(d.v[7].v) : undefined;
-    r.task = d && d.v[8] ? decode(d.v[8]) : undefined;
+    r.name = d && d.v[6] ? utf8_arr(d.v[6].v) : undefined;
+    r.task = d && d.v[7] ? decode(d.v[7]) : undefined;
     r.docs = [];
-	 (d && d.v[9] && d.v[9].v) ?
-	 d.v[9].v.forEach(function(x){r.docs.push(decode(x))}) :
+	 (d && d.v[8] && d.v[8].v) ?
+	 d.v[8].v.forEach(function(x){r.docs.push(decode(x))}) :
 	 r.docs = undefined;
-    r.time = d && d.v[10] ? decode(d.v[10]) : undefined;
+    r.time = d && d.v[9] ? decode(d.v[9]) : undefined;
     return clean(r); }
 
 function encprocess(d) {
     var tup = atom('process');
-    var id = 'id' in d && d.id ? encode(d.id) : nil();
     var container = 'container' in d && d.container ? atom(d.container) : nil();
     var feed_id = 'feed_id' in d && d.feed_id ? encode(d.feed_id) : nil();
     var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
@@ -557,52 +554,51 @@ function encprocess(d) {
     var started = 'started' in d && d.started ? encode(d.started) : nil();
     var beginEvent = 'beginEvent' in d && d.beginEvent ? atom(d.beginEvent) : nil();
     var endEvent = 'endEvent' in d && d.endEvent ? atom(d.endEvent) : nil();
-    return tuple(tup,id,container,feed_id,prev,next,name,feeds,roles,tasks,events,
-	hist,flows,rules,docs,options,task,timer,notifications,result,started,beginEvent,endEvent); }
+    return tuple(tup,container,feed_id,prev,next,name,feeds,roles,tasks,events,hist,
+	flows,rules,docs,options,task,timer,notifications,result,started,beginEvent,endEvent); }
 
-function lenprocess() { return 23; }
+function lenprocess() { return 22; }
 function decprocess(d) {
     var r={}; r.tup = 'process';
-    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
-    r.container = d && d.v[2] ? d.v[2].v : undefined;
-    r.feed_id = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.prev = d && d.v[4] ? d.v[4].v : undefined;
-    r.next = d && d.v[5] ? d.v[5].v : undefined;
-    r.name = d && d.v[6] ? decode(d.v[6]) : undefined;
+    r.container = d && d.v[1] ? d.v[1].v : undefined;
+    r.feed_id = d && d.v[2] ? decode(d.v[2]) : undefined;
+    r.prev = d && d.v[3] ? d.v[3].v : undefined;
+    r.next = d && d.v[4] ? d.v[4].v : undefined;
+    r.name = d && d.v[5] ? decode(d.v[5]) : undefined;
     r.feeds = [];
-	 (d && d.v[7] && d.v[7].v) ?
-	 d.v[7].v.forEach(function(x){r.feeds.push(decode(x))}) :
+	 (d && d.v[6] && d.v[6].v) ?
+	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
     r.roles = [];
-	 (d && d.v[8] && d.v[8].v) ?
-	 d.v[8].v.forEach(function(x){r.roles.push(decode(x))}) :
+	 (d && d.v[7] && d.v[7].v) ?
+	 d.v[7].v.forEach(function(x){r.roles.push(decode(x))}) :
 	 r.roles = undefined;
     r.tasks = [];
-	 (d && d.v[9] && d.v[9].v) ?
-	 d.v[9].v.forEach(function(x){r.tasks.push(decode(x))}) :
+	 (d && d.v[8] && d.v[8].v) ?
+	 d.v[8].v.forEach(function(x){r.tasks.push(decode(x))}) :
 	 r.tasks = undefined;
     r.events = [];
-	 (d && d.v[10] && d.v[10].v) ?
-	 d.v[10].v.forEach(function(x){r.events.push(decode(x))}) :
+	 (d && d.v[9] && d.v[9].v) ?
+	 d.v[9].v.forEach(function(x){r.events.push(decode(x))}) :
 	 r.events = undefined;
-    r.hist = d && d.v[11] ? decode(d.v[11]) : undefined;
+    r.hist = d && d.v[10] ? decode(d.v[10]) : undefined;
     r.flows = [];
-	 (d && d.v[12] && d.v[12].v) ?
-	 d.v[12].v.forEach(function(x){r.flows.push(decode(x))}) :
+	 (d && d.v[11] && d.v[11].v) ?
+	 d.v[11].v.forEach(function(x){r.flows.push(decode(x))}) :
 	 r.flows = undefined;
-    r.rules = d && d.v[13] ? decode(d.v[13]) : undefined;
+    r.rules = d && d.v[12] ? decode(d.v[12]) : undefined;
     r.docs = [];
-	 (d && d.v[14] && d.v[14].v) ?
-	 d.v[14].v.forEach(function(x){r.docs.push(decode(x))}) :
+	 (d && d.v[13] && d.v[13].v) ?
+	 d.v[13].v.forEach(function(x){r.docs.push(decode(x))}) :
 	 r.docs = undefined;
-    r.options = d && d.v[15] ? decode(d.v[15]) : undefined;
-    r.task = d && d.v[16] ? d.v[16].v : undefined;
-    r.timer = d && d.v[17] ? decode(d.v[17]) : undefined;
-    r.notifications = d && d.v[18] ? decode(d.v[18]) : undefined;
-    r.result = d && d.v[19] ? utf8_arr(d.v[19].v) : undefined;
-    r.started = d && d.v[20] ? decode(d.v[20]) : undefined;
-    r.beginEvent = d && d.v[21] ? d.v[21].v : undefined;
-    r.endEvent = d && d.v[22] ? d.v[22].v : undefined;
+    r.options = d && d.v[14] ? decode(d.v[14]) : undefined;
+    r.task = d && d.v[15] ? d.v[15].v : undefined;
+    r.timer = d && d.v[16] ? decode(d.v[16]) : undefined;
+    r.notifications = d && d.v[17] ? decode(d.v[17]) : undefined;
+    r.result = d && d.v[18] ? utf8_arr(d.v[18].v) : undefined;
+    r.started = d && d.v[19] ? decode(d.v[19]) : undefined;
+    r.beginEvent = d && d.v[20] ? d.v[20].v : undefined;
+    r.endEvent = d && d.v[21] ? d.v[21].v : undefined;
     return clean(r); }
 
 function encComp(d) {

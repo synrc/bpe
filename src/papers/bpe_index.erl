@@ -30,7 +30,7 @@ event(init) ->
 
 event({complete,Id}) ->
     bpe:start(bpe:load(Id),[]),
-    io:format("Complete: ~p~n",[bpe:complete(Id)]),
+    io:format("Complete: ~p~n",[bpe:complete(list_to_integer(Id))]),
     nitro:update(forms:atom([tr,row,Id]),
                 bpe_row:new(forms:atom([row,Id]),bpe:load(Id)));
 
@@ -41,7 +41,7 @@ event(create) ->
 event({'Spawn',_}) ->
     Atom = nitro:to_atom(nitro:q(process_type_pi_bpe_act)),
     Id = case bpe:start(Atom:def(), []) of
-              {error,_} -> 0;
+              {error,_} -> [];
               {ok,I} -> I end,
     io:format("trsty ~p: ~p~n",[Id,Atom]),
     nitro:insert_after(header, bpe_row:new(forms:atom([row,Id]),bpe:process(Id))),

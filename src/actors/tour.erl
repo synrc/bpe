@@ -53,11 +53,12 @@ action({request,'Eliminate'}, Proc)  -> {reply,Proc};
 action({request,'Final'}, Proc)      -> {reply,Proc}.
 
 test() ->
-    {ok,Id} = bpe:start(tour:def(),[]),
+    case bpe:start(tour:def(),[]) of
+      {ok,Id} ->
     bpe:complete(Id),
     bpe:amend(Id,#join_application{name=vlad,data=1}),
     bpe:amend(Id,#join_application{name=doxtop,data=2}),
     bpe:amend(Id,#join_application{name=maxim,data=3}),
     bpe:complete(Id),
-    bpe:process(Id),
-    ok.
+    bpe:process(Id);
+      {error,_} -> skip end.
