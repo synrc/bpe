@@ -699,7 +699,7 @@ function decmax_tour(d) {
 function encjoin_application(d) {
     var tup = atom('join_application');
     var id = 'id' in d && d.id ? number(d.id) : nil();
-    var name = 'name' in d && d.name ? bin(d.name) : nil();
+    var name = 'name' in d && d.name ? encode(d.name) : nil();
     var data = 'data' in d && d.data ? encode(d.data) : nil();
     return tuple(tup,id,name,data); }
 
@@ -707,7 +707,7 @@ function lenjoin_application() { return 4; }
 function decjoin_application(d) {
     var r={}; r.tup = 'join_application';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.name = d && d.v[2] ? utf8_arr(d.v[2].v) : undefined;
+    r.name = d && d.v[2] ? decode(d.v[2]) : undefined;
     r.data = d && d.v[3] ? decode(d.v[3]) : undefined;
     return clean(r); }
 

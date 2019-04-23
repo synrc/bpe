@@ -2,8 +2,8 @@
 
 % service
 
--spec load(string()) -> #process{}.
--spec start(#process{},list()) -> {ok,pid()} | {error,any()}.
+-spec load(integer()) -> #process{}.
+-spec start(#process{},list()) -> {ok,integer()} | {error,integer()}.
 
 % flow API
 

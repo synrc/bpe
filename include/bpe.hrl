@@ -56,7 +56,7 @@
 -type histId() :: [] | integer() | {atom()|string(),any()}.
 
 -record(hist,         { id = [] :: histId(),
-                        container=[] :: [] | atom(),
+                        container=feed :: [] | atom(),
                         feed_id=[] :: any(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
@@ -71,8 +71,8 @@
 -type procId() :: [] | integer() | {atom(),any()}.
 
 -record(process,      { id = [] :: procId(),
-                        container=[] :: [] | atom(),
-                        feed_id=feed :: atom() | term(),
+                        container=feed :: [] | atom(),
+                        feed_id=[] :: [] | atom() | term(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | string() | atom(),

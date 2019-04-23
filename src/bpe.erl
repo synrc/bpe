@@ -27,9 +27,9 @@ start(Proc0, Options) ->
                   Restart, Shutdown, worker, [bpe_proc] },
 
     case supervisor:start_child(bpe_sup,ChildSpec) of
-         {ok,_}   -> {ok,Proc#process.id};
-         {ok,_,_} -> {ok,Proc#process.id};
-         Else     -> Else end.
+         {ok,_}    -> {ok,Proc#process.id};
+         {ok,_,_}  -> {ok,Proc#process.id};
+         {error,_} -> {error,Proc#process.id} end.
 
 find_pid(Id) -> bpe:cache({process,Id}).
 
