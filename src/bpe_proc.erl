@@ -21,10 +21,10 @@ process_event(Event,Proc) ->
                        task = { event, element(#messageEvent.name,Event) }}),
 
     NewProcState = ProcState#process{task = Target},
-    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    kvs:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
+    begin fix_reply({Status,{Reason,Target},NewProcState}) end.
+%    kvs:info(?MODULE,"Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
 %    kvs:put(transient(NewProcState)),
-    FlowReply.
+%    FlowReply.
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->

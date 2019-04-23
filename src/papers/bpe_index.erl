@@ -39,8 +39,11 @@ event(create) ->
     nitro:show(frms);
 
 event({'Spawn',_}) ->
-    io:format("trsty: ~p~n",[(nitro:to_atom(nitro:q(process_type_pi_bpe_act)))]),
-    {ok,Id} = bpe:start((nitro:to_atom(nitro:q(process_type_pi_bpe_act))):def(), []),
+    Atom = nitro:to_atom(nitro:q(process_type_pi_bpe_act)),
+    Id = case bpe:start(Atom:def(), []) of
+              {error,_} -> 0;
+              {ok,I} -> I end,
+    io:format("trsty ~p: ~p~n",[Id,Atom]),
     nitro:insert_after(header, bpe_row:new(forms:atom([row,Id]),bpe:process(Id))),
     nitro:hide(frms),
     nitro:show(ctrl),

@@ -62,7 +62,7 @@ function encreader(d) {
     var tup = atom('reader');
     var id = 'id' in d && d.id ? encode(d.id) : nil();
     var pos = 'pos' in d && d.pos ? number(d.pos) : nil();
-    var cache = 'cache' in d && d.cache ? number(d.cache) : nil();
+    var cache = 'cache' in d && d.cache ? encode(d.cache) : nil();
     var args = 'args' in d && d.args ? encode(d.args) : nil();
     var feed = 'feed' in d && d.feed ? encode(d.feed) : nil();
     var dir = 'dir' in d && d.dir ? encode(d.dir) : nil();
@@ -73,7 +73,7 @@ function decreader(d) {
     var r={}; r.tup = 'reader';
     r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
     r.pos = d && d.v[2] ? d.v[2].v : undefined;
-    r.cache = d && d.v[3] ? d.v[3].v : undefined;
+    r.cache = d && d.v[3] ? decode(d.v[3]) : undefined;
     r.args = d && d.v[4] ? decode(d.v[4]) : undefined;
     r.feed = d && d.v[5] ? decode(d.v[5]) : undefined;
     r.dir = d && d.v[6] ? decode(d.v[6]) : undefined;
@@ -476,7 +476,7 @@ function decsequenceFlow(d) {
 
 function enchist(d) {
     var tup = atom('hist');
-    var id = 'id' in d && d.id ? number(d.id) : nil();
+    var id = 'id' in d && d.id ? encode(d.id) : nil();
     var container = 'container' in d && d.container ? atom(d.container) : nil();
     var feed_id = 'feed_id' in d && d.feed_id ? encode(d.feed_id) : nil();
     var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
@@ -497,7 +497,7 @@ function enchist(d) {
 function lenhist() { return 11; }
 function dechist(d) {
     var r={}; r.tup = 'hist';
-    r.id = d && d.v[1] ? d.v[1].v : undefined;
+    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
     r.container = d && d.v[2] ? d.v[2].v : undefined;
     r.feed_id = d && d.v[3] ? decode(d.v[3]) : undefined;
     r.prev = d && d.v[4] ? d.v[4].v : undefined;
@@ -517,16 +517,16 @@ function dechist(d) {
 
 function encprocess(d) {
     var tup = atom('process');
-    var id = 'id' in d && d.id ? number(d.id) : nil();
+    var id = 'id' in d && d.id ? encode(d.id) : nil();
     var container = 'container' in d && d.container ? atom(d.container) : nil();
     var feed_id = 'feed_id' in d && d.feed_id ? encode(d.feed_id) : nil();
     var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
     var next = 'next' in d && d.next ? number(d.next) : nil();
+    var name = 'name' in d && d.name ? encode(d.name) : nil();
     var feeds = []; if ('feeds' in d && d.feeds)
 	 { d.feeds.forEach(function(x){
 	feeds.push(encode(x))});
 	 feeds={t:108,v:feeds}; } else { feeds = nil() };
-    var name = 'name' in d && d.name ? encode(d.name) : nil();
     var roles = []; if ('roles' in d && d.roles)
 	 { d.roles.forEach(function(x){
 	roles.push(encode(x))});
@@ -551,28 +551,28 @@ function encprocess(d) {
 	 docs={t:108,v:docs}; } else { docs = nil() };
     var options = 'options' in d && d.options ? encode(d.options) : nil();
     var task = 'task' in d && d.task ? atom(d.task) : nil();
-    var timer = 'timer' in d && d.timer ? bin(d.timer) : nil();
+    var timer = 'timer' in d && d.timer ? encode(d.timer) : nil();
     var notifications = 'notifications' in d && d.notifications ? encode(d.notifications) : nil();
     var result = 'result' in d && d.result ? bin(d.result) : nil();
     var started = 'started' in d && d.started ? encode(d.started) : nil();
     var beginEvent = 'beginEvent' in d && d.beginEvent ? atom(d.beginEvent) : nil();
     var endEvent = 'endEvent' in d && d.endEvent ? atom(d.endEvent) : nil();
-    return tuple(tup,id,container,feed_id,prev,next,feeds,name,roles,tasks,events,
+    return tuple(tup,id,container,feed_id,prev,next,name,feeds,roles,tasks,events,
 	hist,flows,rules,docs,options,task,timer,notifications,result,started,beginEvent,endEvent); }
 
 function lenprocess() { return 23; }
 function decprocess(d) {
     var r={}; r.tup = 'process';
-    r.id = d && d.v[1] ? d.v[1].v : undefined;
+    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
     r.container = d && d.v[2] ? d.v[2].v : undefined;
     r.feed_id = d && d.v[3] ? decode(d.v[3]) : undefined;
     r.prev = d && d.v[4] ? d.v[4].v : undefined;
     r.next = d && d.v[5] ? d.v[5].v : undefined;
+    r.name = d && d.v[6] ? decode(d.v[6]) : undefined;
     r.feeds = [];
-	 (d && d.v[6] && d.v[6].v) ?
-	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
+	 (d && d.v[7] && d.v[7].v) ?
+	 d.v[7].v.forEach(function(x){r.feeds.push(decode(x))}) :
 	 r.feeds = undefined;
-    r.name = d && d.v[7] ? decode(d.v[7]) : undefined;
     r.roles = [];
 	 (d && d.v[8] && d.v[8].v) ?
 	 d.v[8].v.forEach(function(x){r.roles.push(decode(x))}) :
@@ -597,7 +597,7 @@ function decprocess(d) {
 	 r.docs = undefined;
     r.options = d && d.v[15] ? decode(d.v[15]) : undefined;
     r.task = d && d.v[16] ? d.v[16].v : undefined;
-    r.timer = d && d.v[17] ? utf8_arr(d.v[17].v) : undefined;
+    r.timer = d && d.v[17] ? decode(d.v[17]) : undefined;
     r.notifications = d && d.v[18] ? decode(d.v[18]) : undefined;
     r.result = d && d.v[19] ? utf8_arr(d.v[19].v) : undefined;
     r.started = d && d.v[20] ? decode(d.v[20]) : undefined;

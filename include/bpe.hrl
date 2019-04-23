@@ -5,11 +5,10 @@
 
 % BPMN 2.0 API
 
-
 -record(task,         { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: binary() }).
+                        roles=[] :: [] | binary() }).
 -record(userTask,     { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -21,7 +20,8 @@
 -record(receiveTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: binary()}).
+                        roles=[] :: [] | binary()}).
+
 -record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -30,11 +30,11 @@
 -record(boundaryEvent,{ name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        payload=[] :: binary(),
+                        payload=[] :: [] | binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}},
-                        timeDate=[] :: binary(),
-                        timeDuration=[] :: binary(),
-                        timeCycle=[] :: binary() }).
+                        timeDate=[] :: [] | binary(),
+                        timeDuration=[] :: [] | binary(),
+                        timeCycle=[] :: [] | binary() }).
 -record(timeoutEvent, { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -49,18 +49,34 @@
 -record(endEvent,     { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple())}).
+
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
--record(hist,         { ?ITERATOR(feed),
+
+-type histId() :: [] | {atom()|string(),any()}.
+
+-record(hist,         { id = [] :: histId(),
+                        container=[] :: [] | atom(),
+                        feed_id=[] :: term(),
+                        prev=[] :: [] | integer(),
+                        next=[] :: [] | integer(),
+                        feeds=[] :: list(),
                         name=[] :: [] | binary(),
-                        task=[] :: [] | atom() | {atom(),atom()},
+                        task=[] :: [] | atom() | {atom()|string(),any()},
                         docs=[] :: list(tuple()),
                         time=[] :: term() }).
 
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
+-type procId() :: [] | integer() | {atom(),any()}.
 
--record(process,      { ?ITERATOR(feed), name=[] :: [] | binary() | string() | atom(),
+-record(process,      { id = 0 :: procId(),
+                        container=[] :: [] | atom(),
+                        feed_id=feed :: atom() | term(),
+                        prev=[] :: [] | integer(),
+                        next=[] :: [] | integer(),
+                        name=[] :: [] | binary() | string() | atom(),
+                        feeds=[] :: list(),
                         roles      = [] :: list(),
                         tasks      = [] :: list(tasks()),
                         events     = [] :: list(events()),
@@ -73,7 +89,7 @@
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
-                        started    = [] :: [] | {term(),term(),term()},
+                        started    = [] :: [] | {term(),term(),term()} | calendar:datetime(),
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
 
