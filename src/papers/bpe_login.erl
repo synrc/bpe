@@ -17,4 +17,4 @@ event({'Close',_}) ->
     nitro:redirect("index.html");
 
 event(Event) ->
-    n2o:info(?MODULE,"Unknown:~p.~n", [Event]).
+    ?LOG_INFO("Unknown:~p.~n", [Event]).

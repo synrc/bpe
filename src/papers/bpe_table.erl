@@ -24,4 +24,4 @@ event(init) ->
     ok;
 
 event(Event) ->
-    n2o:info(?MODULE,"Unknown:~p.~n", [Event]).
+    ?LOG_INFO("Unknown:~p.~n", [Event]).

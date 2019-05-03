@@ -12,11 +12,11 @@ event({client,{form,Module}}) ->
 event(init) ->
     nitro:clear(stand),
     [ self() ! {client,{form,F}} || F <- application:get_env(forms, registry, []) ],
-    n2o:info(?MODULE,"HELO.~n",[]);
+    ?LOG_INFO("HELO.~n",[]);
 
 event({Event,Name}) ->
     nitro:wire(lists:concat(["console.log(\"",io_lib:format("~p",[{Event,Name}]),"\");"])),
-    n2o:info(?MODULE,"Event:~p.~n", [{Event,Name}]);
+    ?LOG_INFO("Event:~p.~n", [{Event,Name}]);
 
 event(Event) ->
-    n2o:info(?MODULE,"Unknown:~p.~n", [Event]).
+    ?LOG_INFO("Unknown:~p.~n", [Event]).

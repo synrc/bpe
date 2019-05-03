@@ -6,7 +6,6 @@ finish(State, Ctx) -> {ok, State, Ctx}.
 init(State, #cx{req=Req}=Cx) ->
     #{path:=Path}=Req,
     Fix  = route_prefix(Path),
-    n2o:info(?MODULE,"Route: ~p~n",[{Fix,Path}]),
     {ok, State, Cx#cx{path=Path,module=Fix}}.
 
 route_prefix(<<"/ws/",P/binary>>) -> route(P);

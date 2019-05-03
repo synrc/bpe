@@ -47,7 +47,7 @@ event({'Spawn',_}) ->
     nitro:insert_after(header, bpe_row:new(forms:atom([row,Id]),bpe:process(Id))),
     nitro:hide(frms),
     nitro:show(ctrl),
-    n2o:info(?MODULE,"BPE: ~p.~n", [Id]);
+    ?LOG_INFO("BPE: ~p.~n", [Id]);
 
 event({'Discard',[]}) ->
     nitro:hide(frms),
@@ -55,7 +55,7 @@ event({'Discard',[]}) ->
 
 event({Event,Name}) ->
     nitro:wire(lists:concat(["console.log(\"",io_lib:format("~p",[{Event,Name}]),"\");"])),
-    n2o:info(?MODULE,"Event:~p.~n", [{Event,Name}]);
+    ?LOG_INFO("Event:~p.~n", [{Event,Name}]);
 
 event(Event) ->
-    n2o:info(?MODULE,"Unknown:~p.~n", [Event]).
+    ?LOG_INFO("Unknown:~p.~n", [Event]).
