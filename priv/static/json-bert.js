@@ -62,7 +62,7 @@ function encreader(d) {
     var tup = atom('reader');
     var id = 'id' in d && d.id ? encode(d.id) : nil();
     var pos = 'pos' in d && d.pos ? number(d.pos) : nil();
-    var cache = 'cache' in d && d.cache ? encode(d.cache) : nil();
+    var cache = 'cache' in d && d.cache ? number(d.cache) : nil();
     var args = 'args' in d && d.args ? encode(d.args) : nil();
     var feed = 'feed' in d && d.feed ? encode(d.feed) : nil();
     var dir = 'dir' in d && d.dir ? encode(d.dir) : nil();
@@ -73,7 +73,7 @@ function decreader(d) {
     var r={}; r.tup = 'reader';
     r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
     r.pos = d && d.v[2] ? d.v[2].v : undefined;
-    r.cache = d && d.v[3] ? decode(d.v[3]) : undefined;
+    r.cache = d && d.v[3] ? d.v[3].v : undefined;
     r.args = d && d.v[4] ? decode(d.v[4]) : undefined;
     r.feed = d && d.v[5] ? decode(d.v[5]) : undefined;
     r.dir = d && d.v[6] ? decode(d.v[6]) : undefined;
