@@ -70,7 +70,7 @@
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
 -type procId() :: [] | integer() | {atom(),any()}.
 
--record(process,      { id = [] :: procId(),
+-record(process,      { id = [] :: [] | integer() | {atom(),any()}, % procId
                         container=feed :: [] | atom(),
                         feed_id=[] :: [] | atom() | term(),
                         prev=[] :: [] | integer(),
@@ -78,8 +78,8 @@
                         name=[] :: [] | binary() | string() | atom(),
                         feeds=[] :: list(),
                         roles      = [] :: list(),
-                        tasks      = [] :: list(tasks()),
-                        events     = [] :: list(events()),
+                        tasks      = [] :: list(#task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}), % tasks
+                        events     = [] :: list(#messageEvent{} | #boundaryEvent{} | #timeoutEvent{}), % events
                         hist       = [] :: [] | term(),
                         flows      = [] :: list(#sequenceFlow{}),
                         rules      = [] :: [] | term(),
