@@ -25,10 +25,3 @@
 -spec docs(#process{}) -> list().
 -spec events(#process{}) -> list().
 
-% return helper
-
--spec val(Document::any(),
-          Proc::#process{},
-          fun((any(),#process{})->false|true),
-          fun((any(),#process{})->any())) -> {reply,#process{}}
-                                           | {reply,any(),#process{}}.

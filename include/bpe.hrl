@@ -89,7 +89,7 @@
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
-                        started    = [] :: [] | {term(),term(),term()} | calendar:datetime(),
+                        started    = [] :: [] | {term(),term(),term()},
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
 
