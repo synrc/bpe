@@ -1,6 +1,7 @@
 -module(bpe_proc).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
+-include_lib("kvx/include/cursors.hrl").
 -behaviour(gen_server).
 -export([start_link/1]).
 -export([init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
@@ -13,18 +14,17 @@ process_event(Event,Proc) ->
     io:format("Event Targets: ~p",[Targets]),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
 
-    kvs:add(#hist { id = kvs:next_id("hist",1),
-                       feed_id = {hist,ProcState#process.id},
-                       name = ProcState#process.name,
-                       time = calendar:local_time(),
-                       docs = ProcState#process.docs,
-                       task = { event, element(#messageEvent.name,Event) }}),
+    Key = {hist,ProcState#process.id},
+    Writer = kvx:writer(Key),
+
+    kvx:append(#hist{ id = Writer#writer.count,
+                    name = ProcState#process.name,
+                    time = calendar:local_time(),
+                    docs = ProcState#process.docs,
+                    task = { event, element(#messageEvent.name,Event) }}, Key),
 
     NewProcState = ProcState#process{task = Target},
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
-%    ?LOG_INFO("Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
-%    kvs:put(transient(NewProcState)),
-%    FlowReply.
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
@@ -44,18 +44,20 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
-    kvs:add(#hist { id = kvs:next_id("hist",1),
-                       feed_id = {hist,ProcState#process.id},
-                       name = ProcState#process.name,
-                       time = calendar:local_time(),
-                       docs = ProcState#process.docs,
-                       task = {task, Curr} }),
+    Key = {hist,ProcState#process.id},
+    Writer = kvx:writer(Key),
+
+    kvx:append(#hist{   id = Writer#writer.count,
+                      name = ProcState#process.name,
+                      time = calendar:local_time(),
+                      docs = ProcState#process.docs,
+                      task = {task, Curr} }, Key),
 
     NewProcState = ProcState#process{task = Target},
 
     FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
     io:format("Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
-    kvs:put(transient(NewProcState)),
+    kvx:put(transient(NewProcState)),
     FlowReply.
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
@@ -76,10 +78,10 @@ handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     io:format("Process ~p spawned ~p",[Process#process.id,self()]),
-    Proc = case kvs:get(process,Process#process.id) of
+    Proc = case kvx:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
-    Till = bpe:till(calendar:local_time(), kvs:config(bpe,ttl,24*60*60)),
+    Till = bpe:till(calendar:local_time(), application:get_env(bpe,ttl,24*60*60)),
     bpe:cache({process,Proc#process.id},self(),Till),
     [ bpe:reg({messageEvent,element(1,EventRec),Proc#process.id}) || EventRec <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(rand:uniform(10000),self(),{timer,ping})}}.
@@ -103,11 +105,12 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
-    %io:format("Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
+%    io:format("Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
 
-    {DD,Diff} = case bpe:hist(Id,1) of
-         [#hist{time=Time1}] -> calendar:time_difference(Time1,Time2);
-          _ -> {immediate,timeout} end,
+    Writer = kvx:writer({hist,Id}),
+    {DD,Diff} = case bpe:hist(Id,Writer#writer.count - 1) of
+         #hist{time=Time1} -> calendar:time_difference(Time1,Time2);
+          _ -> {immediate,timeout} end, % we miss history, better to stop
 
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};

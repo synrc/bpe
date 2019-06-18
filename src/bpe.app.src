@@ -1,9 +1,9 @@
 {application, bpe,
  [
   {description, "BPE Business Process Engine"},
-  {vsn, "4.5"},
+  {vsn, "4.6"},
   {registered, []},
-  {applications, [kernel,stdlib,kvs,syn,n2o]},
+  {applications, [kernel,stdlib,kvx,syn,n2o]},
   {mod, { bpe_app, []}},
   {env, []}
  ]}.

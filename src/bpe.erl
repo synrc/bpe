@@ -1,11 +1,13 @@
 -module(bpe).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
+-include_lib("kvx/include/cursors.hrl").
 -include("api.hrl").
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
-load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
+load(#process{id = ProcName}) -> {ok,Proc} = kvx:get(process,ProcName), Proc;
+load(ProcName) -> {ok,Proc} = kvx:get(process,ProcName), Proc.
 
 cleanup(P) -> [ kvs:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
                 kvs:delete(feed,{hist,P}),
@@ -14,12 +16,23 @@ cleanup(P) -> [ kvs:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
     Proc = case Proc0#process.id == [] of
-                true -> Id = kvs:next_id("process",1),
+                true -> Id = kvx:seq([],[]),
                       Proc0#process{id=Id,task=Proc0#process.beginEvent,
                                     options = Options,notifications = Pid,
                                     started=calendar:local_time()};
                  _ -> Proc0#process{started=calendar:local_time()} end,
-    kvs:add(Proc),
+
+    kvx:append(Proc, process),
+
+    Key = {hist,Proc#process.id},
+    kvx:ensure(#writer{id=Key}),
+
+    kvx:append(#hist{ id = 0,
+                    name = Proc#process.name,
+                    time = Proc#process.started,
+                    docs = Proc#process.docs,
+                    task = { event, Proc#process.beginEvent }}, Key),
+
     Restart = transient,
     Shutdown = ?TIMEOUT,
     ChildSpec = { Proc#process.id,
@@ -44,12 +57,12 @@ event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    
 
 delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
-                                lists:member(Task#task.name,Tasks) ] }.
+                   lists:member(Task#task.name,Tasks) ] }.
 
-hist(ProcId)   -> hist(ProcId,undefined).
-hist(ProcId,N) -> case kvs:entries(kvs:get(feed,{hist,ProcId}),hist,N) of
-                          [] -> [#hist{time=(bpe:load(ProcId))#process.started}];
-                          Res -> Res end.
+hist(ProcId)   -> kvx:all({hist,ProcId}).
+hist(ProcId,N) -> case kvx:get({hist,ProcId},N) of
+                          {ok,Res} -> Res;
+                          {error,Reason} -> [] end.
 
 source(Name, Proc) ->
     case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of

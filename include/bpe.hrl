@@ -1,7 +1,7 @@
 -ifndef(BPE_HRL).
 -define(BPE_HRL, true).
 
--include_lib("kvs/include/kvs.hrl").
+-include_lib("kvx/include/kvx.hrl").
 
 % BPMN 2.0 API
 
