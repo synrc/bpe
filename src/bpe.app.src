@@ -4,6 +4,6 @@
   {vsn, "4.6"},
   {registered, []},
   {applications, [kernel,stdlib,kvx,syn,n2o]},
-  {mod, { bpe_app, []}},
+  {mod, { bpe_otp, []}},
   {env, []}
  ]}.

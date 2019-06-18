@@ -39,205 +39,71 @@ function encode(x) {
     } else return scalar(x);
 }
 
-function encwriter(d) {
-    var tup = atom('writer');
-    var id = 'id' in d && d.id ? encode(d.id) : nil();
-    var count = 'count' in d && d.count ? number(d.count) : nil();
-    var cache = 'cache' in d && d.cache ? encode(d.cache) : nil();
-    var args = 'args' in d && d.args ? encode(d.args) : nil();
-    var first = 'first' in d && d.first ? encode(d.first) : nil();
-    return tuple(tup,id,count,cache,args,first); }
+function encid_seq(d) {
+    var tup = atom('id_seq');
+    var thing = 'thing' in d && d.thing ? encode(d.thing) : nil();
+    var id = 'id' in d && d.id ? number(d.id) : nil();
+    return tuple(tup,thing,id); }
 
-function lenwriter() { return 6; }
-function decwriter(d) {
-    var r={}; r.tup = 'writer';
-    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
-    r.count = d && d.v[2] ? d.v[2].v : undefined;
-    r.cache = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.args = d && d.v[4] ? decode(d.v[4]) : undefined;
-    r.first = d && d.v[5] ? decode(d.v[5]) : undefined;
+function lenid_seq() { return 3; }
+function decid_seq(d) {
+    var r={}; r.tup = 'id_seq';
+    r.thing = d && d.v[1] ? decode(d.v[1]) : undefined;
+    r.id = d && d.v[2] ? d.v[2].v : undefined;
     return clean(r); }
 
-function encreader(d) {
-    var tup = atom('reader');
-    var id = 'id' in d && d.id ? encode(d.id) : nil();
-    var pos = 'pos' in d && d.pos ? number(d.pos) : nil();
-    var cache = 'cache' in d && d.cache ? encode(d.cache) : nil();
-    var args = 'args' in d && d.args ? encode(d.args) : nil();
-    var feed = 'feed' in d && d.feed ? encode(d.feed) : nil();
-    var dir = 'dir' in d && d.dir ? encode(d.dir) : nil();
-    return tuple(tup,id,pos,cache,args,feed,dir); }
+function encit(d) {
+    var tup = atom('it');
+    var id = 'id' in d && d.id ? number(d.id) : nil();
+    return tuple(tup,id); }
 
-function lenreader() { return 7; }
-function decreader(d) {
-    var r={}; r.tup = 'reader';
-    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
-    r.pos = d && d.v[2] ? d.v[2].v : undefined;
-    r.cache = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.args = d && d.v[4] ? decode(d.v[4]) : undefined;
-    r.feed = d && d.v[5] ? decode(d.v[5]) : undefined;
-    r.dir = d && d.v[6] ? decode(d.v[6]) : undefined;
+function lenit() { return 2; }
+function decit(d) {
+    var r={}; r.tup = 'it';
+    r.id = d && d.v[1] ? d.v[1].v : undefined;
     return clean(r); }
 
-function enccur(d) {
-    var tup = atom('cur');
-    var id = 'id' in d && d.id ? encode(d.id) : nil();
-    var top = 'top' in d && d.top ? number(d.top) : nil();
-    var bot = 'bot' in d && d.bot ? number(d.bot) : nil();
-    var dir = 'dir' in d && d.dir ? encode(d.dir) : nil();
-    var reader = 'reader' in d && d.reader ? encode(d.reader) : nil();
-    var writer = 'writer' in d && d.writer ? encode(d.writer) : nil();
-    var left = 'left' in d && d.left ? encode(d.left) : nil();
-    var right = 'right' in d && d.right ? encode(d.right) : nil();
-    var args = []; if ('args' in d && d.args)
-	 { d.args.forEach(function(x){
-	args.push(encode(x))});
-	 args={t:108,v:args}; } else { args = nil() };
-    var money = 'money' in d && d.money ? encode(d.money) : nil();
-    var status = 'status' in d && d.status ? encode(d.status) : nil();
-    return tuple(tup,id,top,bot,dir,reader,writer,left,right,args,money,status); }
+function encite(d) {
+    var tup = atom('ite');
+    var id = 'id' in d && d.id ? number(d.id) : nil();
+    var next = 'next' in d && d.next ? number(d.next) : nil();
+    return tuple(tup,id,next); }
 
-function lencur() { return 12; }
-function deccur(d) {
-    var r={}; r.tup = 'cur';
-    r.id = d && d.v[1] ? decode(d.v[1]) : undefined;
-    r.top = d && d.v[2] ? d.v[2].v : undefined;
-    r.bot = d && d.v[3] ? d.v[3].v : undefined;
-    r.dir = d && d.v[4] ? decode(d.v[4]) : undefined;
-    r.reader = d && d.v[5] ? decode(d.v[5]) : undefined;
-    r.writer = d && d.v[6] ? decode(d.v[6]) : undefined;
-    r.left = d && d.v[7] ? decode(d.v[7]) : undefined;
-    r.right = d && d.v[8] ? decode(d.v[8]) : undefined;
-    r.args = [];
-	 (d && d.v[9] && d.v[9].v) ?
-	 d.v[9].v.forEach(function(x){r.args.push(decode(x))}) :
-	 r.args = undefined;
-    r.money = d && d.v[10] ? decode(d.v[10]) : undefined;
-    r.status = d && d.v[11] ? decode(d.v[11]) : undefined;
+function lenite() { return 3; }
+function decite(d) {
+    var r={}; r.tup = 'ite';
+    r.id = d && d.v[1] ? d.v[1].v : undefined;
+    r.next = d && d.v[2] ? d.v[2].v : undefined;
     return clean(r); }
 
 function enciter(d) {
     var tup = atom('iter');
     var id = 'id' in d && d.id ? number(d.id) : nil();
-    var container = 'container' in d && d.container ? atom(d.container) : nil();
-    var feed = 'feed' in d && d.feed ? encode(d.feed) : nil();
     var next = 'next' in d && d.next ? number(d.next) : nil();
     var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
-    return tuple(tup,id,container,feed,next,prev); }
+    return tuple(tup,id,next,prev); }
 
-function leniter() { return 6; }
+function leniter() { return 4; }
 function deciter(d) {
     var r={}; r.tup = 'iter';
     r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.container = d && d.v[2] ? d.v[2].v : undefined;
-    r.feed = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.next = d && d.v[4] ? d.v[4].v : undefined;
-    r.prev = d && d.v[5] ? d.v[5].v : undefined;
+    r.next = d && d.v[2] ? d.v[2].v : undefined;
+    r.prev = d && d.v[3] ? d.v[3].v : undefined;
     return clean(r); }
 
-function enccontainer(d) {
-    var tup = atom('container');
-    var id = 'id' in d && d.id ? number(d.id) : nil();
-    var top = 'top' in d && d.top ? number(d.top) : nil();
-    var rear = 'rear' in d && d.rear ? number(d.rear) : nil();
-    var count = 'count' in d && d.count ? number(d.count) : nil();
-    return tuple(tup,id,top,rear,count); }
+function enckvx(d) {
+    var tup = atom('kvx');
+    var mod = 'mod' in d && d.mod ? atom(d.mod) : nil();
+    var st = 'st' in d && d.st ? atom(d.st) : nil();
+    var cx = 'cx' in d && d.cx ? encode(d.cx) : nil();
+    return tuple(tup,mod,st,cx); }
 
-function lencontainer() { return 5; }
-function deccontainer(d) {
-    var r={}; r.tup = 'container';
-    r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.top = d && d.v[2] ? d.v[2].v : undefined;
-    r.rear = d && d.v[3] ? d.v[3].v : undefined;
-    r.count = d && d.v[4] ? d.v[4].v : undefined;
-    return clean(r); }
-
-function enciterator(d) {
-    var tup = atom('iterator');
-    var id = 'id' in d && d.id ? number(d.id) : nil();
-    var container = 'container' in d && d.container ? atom(d.container) : nil();
-    var feed_id = 'feed_id' in d && d.feed_id ? encode(d.feed_id) : nil();
-    var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
-    var next = 'next' in d && d.next ? number(d.next) : nil();
-    var feeds = []; if ('feeds' in d && d.feeds)
-	 { d.feeds.forEach(function(x){
-	feeds.push(encode(x))});
-	 feeds={t:108,v:feeds}; } else { feeds = nil() };
-    return tuple(tup,id,container,feed_id,prev,next,feeds); }
-
-function leniterator() { return 7; }
-function deciterator(d) {
-    var r={}; r.tup = 'iterator';
-    r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.container = d && d.v[2] ? d.v[2].v : undefined;
-    r.feed_id = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.prev = d && d.v[4] ? d.v[4].v : undefined;
-    r.next = d && d.v[5] ? d.v[5].v : undefined;
-    r.feeds = [];
-	 (d && d.v[6] && d.v[6].v) ?
-	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
-	 r.feeds = undefined;
-    return clean(r); }
-
-function enclog(d) {
-    var tup = atom('log');
-    var id = 'id' in d && d.id ? number(d.id) : nil();
-    var top = 'top' in d && d.top ? number(d.top) : nil();
-    var rear = 'rear' in d && d.rear ? number(d.rear) : nil();
-    var count = 'count' in d && d.count ? number(d.count) : nil();
-    return tuple(tup,id,top,rear,count); }
-
-function lenlog() { return 5; }
-function declog(d) {
-    var r={}; r.tup = 'log';
-    r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.top = d && d.v[2] ? d.v[2].v : undefined;
-    r.rear = d && d.v[3] ? d.v[3].v : undefined;
-    r.count = d && d.v[4] ? d.v[4].v : undefined;
-    return clean(r); }
-
-function encoperation(d) {
-    var tup = atom('operation');
-    var id = 'id' in d && d.id ? number(d.id) : nil();
-    var container = 'container' in d && d.container ? atom(d.container) : nil();
-    var feed_id = 'feed_id' in d && d.feed_id ? encode(d.feed_id) : nil();
-    var prev = 'prev' in d && d.prev ? number(d.prev) : nil();
-    var next = 'next' in d && d.next ? number(d.next) : nil();
-    var feeds = []; if ('feeds' in d && d.feeds)
-	 { d.feeds.forEach(function(x){
-	feeds.push(encode(x))});
-	 feeds={t:108,v:feeds}; } else { feeds = nil() };
-    var body = 'body' in d && d.body ? encode(d.body) : nil();
-    var name = 'name' in d && d.name ? encode(d.name) : nil();
-    var status = 'status' in d && d.status ? encode(d.status) : nil();
-    return tuple(tup,id,container,feed_id,prev,next,feeds,body,name,status); }
-
-function lenoperation() { return 10; }
-function decoperation(d) {
-    var r={}; r.tup = 'operation';
-    r.id = d && d.v[1] ? d.v[1].v : undefined;
-    r.container = d && d.v[2] ? d.v[2].v : undefined;
-    r.feed_id = d && d.v[3] ? decode(d.v[3]) : undefined;
-    r.prev = d && d.v[4] ? d.v[4].v : undefined;
-    r.next = d && d.v[5] ? d.v[5].v : undefined;
-    r.feeds = [];
-	 (d && d.v[6] && d.v[6].v) ?
-	 d.v[6].v.forEach(function(x){r.feeds.push(decode(x))}) :
-	 r.feeds = undefined;
-    r.body = d && d.v[7] ? decode(d.v[7]) : undefined;
-    r.name = d && d.v[8] ? decode(d.v[8]) : undefined;
-    r.status = d && d.v[9] ? decode(d.v[9]) : undefined;
-    return clean(r); }
-
-function enckvs(d) {
-    var tup = atom('kvs');
-    var mod = 'mod' in d && d.mod ? encode(d.mod) : nil();
-    return tuple(tup,mod); }
-
-function lenkvs() { return 2; }
-function deckvs(d) {
-    var r={}; r.tup = 'kvs';
+function lenkvx() { return 4; }
+function deckvx(d) {
+    var r={}; r.tup = 'kvx';
     r.mod = d && d.v[1] ? decode(d.v[1]) : undefined;
+    r.st = d && d.v[2] ? decode(d.v[2]) : undefined;
+    r.cx = d && d.v[3] ? decode(d.v[3]) : undefined;
     return clean(r); }
 
 function enctask(d) {

@@ -9,9 +9,9 @@
 load(#process{id = ProcName}) -> {ok,Proc} = kvx:get(process,ProcName), Proc;
 load(ProcName) -> {ok,Proc} = kvx:get(process,ProcName), Proc.
 
-cleanup(P) -> [ kvs:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
-                kvs:delete(feed,{hist,P}),
-                kvs:remove(process,P).
+cleanup(P) -> [ kvx:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
+                kvx:delete(writer,{hist,P}),
+                kvx:remove(process,P).
 
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
@@ -23,10 +23,8 @@ start(Proc0, Options) ->
                  _ -> Proc0#process{started=calendar:local_time()} end,
 
     kvx:append(Proc, process),
-
     Key = {hist,Proc#process.id},
     kvx:ensure(#writer{id=Key}),
-
     kvx:append(#hist{ id = 0,
                     name = Proc#process.name,
                     time = Proc#process.started,
@@ -39,7 +37,7 @@ start(Proc0, Options) ->
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
 
-    case supervisor:start_child(bpe_sup,ChildSpec) of
+    case supervisor:start_child(bpe_otp,ChildSpec) of
          {ok,_}    -> {ok,Proc#process.id};
          {ok,_,_}  -> {ok,Proc#process.id};
          {error,_} -> {error,Proc#process.id} end.
@@ -62,7 +60,7 @@ delete_tasks(Proc, Tasks) ->
 hist(ProcId)   -> kvx:all({hist,ProcId}).
 hist(ProcId,N) -> case kvx:get({hist,ProcId},N) of
                           {ok,Res} -> Res;
-                          {error,Reason} -> [] end.
+                          {error,_Reason} -> [] end.
 
 source(Name, Proc) ->
     case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of
@@ -77,7 +75,7 @@ task(Name, Proc) ->
          E -> E end.
 
 doc(Rec, Proc) ->
-    case [ Doc || Doc <- docs(Proc), kvs:rname(element(1,Doc)) == element(1,Rec)] of
+    case [ Doc || Doc <- docs(Proc), element(1,Doc) == element(1,Rec)] of
          [D] -> D;
          [] -> [];
          E -> E end.
@@ -116,7 +114,7 @@ cache(Key) ->
                                   true ->  ets:delete(processes,Key), undefined;
                                   false -> X end end.
 
-ttl() -> kvs:config(n2o,ttl,60*15).
+ttl() -> application:get_env(bpe,ttl,60*15).
 
 till(Now,TTL) ->
     calendar:gregorian_seconds_to_datetime(
@@ -135,3 +133,13 @@ unreg(Pool) ->
          undefined -> skip;
           _Defined -> syn:leave(Pool, self()),
                       erlang:erase({pool,Pool}) end.
+
+reload(Module) ->
+    {Module, Binary, Filename} = code:get_object_code(Module),
+    case code:load_binary(Module, Filename, Binary) of
+        {module, Module} ->
+            {reloaded, Module};
+        {error, Reason} ->
+            {load_error, Module, Reason}
+    end.
+

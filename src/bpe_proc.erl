@@ -10,19 +10,21 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 process_event(Event,Proc) ->
-    Targets = bpe_task:targets(element(#messageEvent.name,Event),Proc),
-    io:format("Event Targets: ~p",[Targets]),
+    EventName = element(#messageEvent.name,Event),
+    Targets = bpe_task:targets(EventName,Proc),
+
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
 
     Key = {hist,ProcState#process.id},
     Writer = kvx:writer(Key),
-
     kvx:append(#hist{ id = Writer#writer.count,
                     name = ProcState#process.name,
                     time = calendar:local_time(),
                     docs = ProcState#process.docs,
                     task = { event, element(#messageEvent.name,Event) }}, Key),
 
+    io:format("Process: ~p Event: ~p Targets: ~p~n",[Proc#process.id,EventName,Targets]),
+    io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
     NewProcState = ProcState#process{task = Target},
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
@@ -35,7 +37,6 @@ process_task(Stage,Proc,NoFlow) ->
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
 
-    io:format("Process ~p Task: ~p Targets: ~p",[Proc#process.id, Curr,Targets]),
     {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task,Stage} of
          {noflow,_,_} -> {reply,{complete,Curr},Proc};
          {[],Term,_}  -> bpe_task:already_finished(Proc);
@@ -46,19 +47,17 @@ process_task(Stage,Proc,NoFlow) ->
 
     Key = {hist,ProcState#process.id},
     Writer = kvx:writer(Key),
-
     kvx:append(#hist{   id = Writer#writer.count,
                       name = ProcState#process.name,
                       time = calendar:local_time(),
                       docs = ProcState#process.docs,
                       task = {task, Curr} }, Key),
 
+    io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
+    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]),
     NewProcState = ProcState#process{task = Target},
-
-    FlowReply = fix_reply({Status,{Reason,Target},NewProcState}),
-    io:format("Process ~p Flow Reply ~tp ",[Proc#process.id,{Status,{Reason,Target}}]),
     kvx:put(transient(NewProcState)),
-    FlowReply.
+    begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
@@ -77,7 +76,7 @@ handle_call({remove,Form},    _,Proc) ->   process_task([],Proc#process{docs=[
 handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
-    io:format("Process ~p spawned ~p",[Process#process.id,self()]),
+    io:format("Process ~p spawned as ~p.~n",[Process#process.id,self()]),
     Proc = case kvx:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
@@ -87,7 +86,7 @@ init(Process) ->
     {ok, Proc#process{timer=erlang:send_after(rand:uniform(10000),self(),{timer,ping})}}.
 
 handle_cast(Msg, State) ->
-    io:format("Unknown API async: ~p", [Msg]),
+    io:format("Unknown API async: ~p.~n", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
 timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
@@ -115,11 +114,11 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
         {false,timeoutEvent} ->
-            io:format("BPE process ~p: next step by timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
+            io:format("BPE ~p: next step by timeout.~nDiff: ~p.~n",[Id,{DD,Diff}]),
             case process_task([],State) of
                 {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
-        {false,_} -> io:format("BPE process ~p: Closing Timeout. ~nTime Diff is ~p~n",[Id,{DD,Diff}]),
+        {false,_} -> io:format("BPE ~p: closing Timeout.~nDiff: ~p.~n",[Id,{DD,Diff}]),
             case is_pid(Pid) of
                 true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                 false -> skip end,
@@ -127,7 +126,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
             {stop,normal,State} end;
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
-    io:format(?MODULE, "connection closed, shutting down session:~p", [Msg]),
+    io:format(?MODULE, "connection closed, shutting down session: ~p.~n", [Msg]),
     bpe:cache({process,Id},undefined),
     {stop, normal, State};
 
@@ -137,7 +136,7 @@ handle_info(Info, State=#process{}) ->
 
 terminate(Reason, #process{id=Id}) ->
     io:format("Terminating session Id cache: ~p~n Reason: ~p", [Id,Reason]),
-    spawn(fun() -> supervisor:delete_child(bpe_sup,Id) end),
+    spawn(fun() -> supervisor:delete_child(bpe_otp,Id) end),
     bpe:cache({process,Id},undefined),
     ok.
 

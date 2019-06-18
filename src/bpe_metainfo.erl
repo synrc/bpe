@@ -9,6 +9,3 @@ metainfo() ->
           #table{name = hist, fields=record_info(fields, hist)}
          ]}.
 
-mnesia(copy)->
-    #schema{tables =Tables}=metainfo(),
-      [ekka_mnesia:copy_table(Tab,disc_copies) || Tab <- Tables].
