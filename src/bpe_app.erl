@@ -6,7 +6,7 @@
 
 start(_StartType, _StartArgs) ->
     Res = bpe_sup:start_link(),
-    kvs:join(),
+    kvs:join(), syn:init(),
     Table = process,
     spawn(fun() -> case kvs:get(feed,Table) of
           {ok,Feed} -> kvs:fold(fun(A,_) ->
