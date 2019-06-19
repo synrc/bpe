@@ -104,12 +104,14 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
-%    io:format("Ping: ~p, Task ~p, Event ~p, Record ~p ~n", [Id,Task,Name,Record]),
 
     Writer = kvx:writer({hist,Id}),
-    {DD,Diff} = case bpe:hist(Id,Writer#writer.count - 1) of
+    Hist = Writer#writer.count - 1,
+    {DD,Diff} = case bpe:hist(Id,Hist) of
          #hist{time=Time1} -> calendar:time_difference(Time1,Time2);
           _ -> {immediate,timeout} end, % we miss history, better to stop
+
+%   io:format("Ping: ~p, Task: ~p Hist: ~p~n", [Id,Task,Hist]),
 
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};

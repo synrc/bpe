@@ -9,9 +9,15 @@
 load(#process{id = ProcName}) -> {ok,Proc} = kvx:get(process,ProcName), Proc;
 load(ProcName) -> {ok,Proc} = kvx:get(process,ProcName), Proc.
 
-cleanup(P) -> [ kvx:remove(hist,Id) || #hist{id=Id} <- bpe:hist(P) ],
-                kvx:delete(writer,{hist,P}),
-                kvx:remove(process,P).
+seen(P,H) ->
+    kvx:cut({hist,P},H),
+    Writer = kvx:writer({hist,P}),
+    kvx:put(Writer#writer{count=Writer#writer.count-H-1}).
+
+cleanup(P) ->
+  [ kvx:delete({hist,P},Id) || #hist{id=Id} <- bpe:hist(P) ],
+    kvx:delete(writer,{hist,P}),
+    kvx:delete(process,P).
 
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
@@ -80,8 +86,8 @@ doc(Rec, Proc) ->
          [] -> [];
          E -> E end.
 
-docs(Proc) -> Proc#process.docs.
-tasks(Proc) -> Proc#process.tasks.
+docs  (Proc) -> Proc#process.docs.
+tasks (Proc) -> Proc#process.tasks.
 events(Proc) -> Proc#process.events.
 
 % Process Schema
