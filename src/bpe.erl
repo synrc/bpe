@@ -9,11 +9,6 @@
 load(#process{id = ProcName}) -> {ok,Proc} = kvx:get(process,ProcName), Proc;
 load(ProcName) -> {ok,Proc} = kvx:get(process,ProcName), Proc.
 
-seen(P,H) ->
-    kvx:cut({hist,P},H),
-    Writer = kvx:writer({hist,P}),
-    kvx:put(Writer#writer{count=Writer#writer.count-H-1}).
-
 cleanup(P) ->
   [ kvx:delete({hist,P},Id) || #hist{id=Id} <- bpe:hist(P) ],
     kvx:delete(writer,{hist,P}),
