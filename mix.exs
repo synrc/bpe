@@ -12,7 +12,7 @@ defmodule BPE.Mixfile do
   end
 
   def application do
-    [mod: {:bpe_app, []}, applications: [:syn, :n2o, :kvx]]
+    [mod: {:bpe_otp, []}, applications: [:syn, :n2o, :kvx]]
   end
 
   def package do
