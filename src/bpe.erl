@@ -45,7 +45,7 @@ start(Proc0, Options) ->
 
 find_pid(Id) -> bpe:cache({process,Id}).
 
-process(ProcId)           -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
+proc(ProcId)           -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
 run(ProcId)               -> gen_server:call(find_pid(ProcId),{run},            ?TIMEOUT).
 until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task},     ?TIMEOUT).
@@ -69,7 +69,7 @@ source(Name, Proc) ->
          [] -> #beginEvent{};
          E -> E end.
 
-task(Name, Proc) -> 
+step(Name, Proc) -> 
     case [ Task || Task <- tasks(Proc), element(#task.name,Task) == Name] of
          [T] -> T;
          [] -> #task{};

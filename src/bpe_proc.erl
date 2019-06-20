@@ -32,7 +32,7 @@ process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
     Curr = Proc#process.task,
     Term = [],
-    Task = bpe:task(Curr,Proc),
+    Task = bpe:step(Curr,Proc),
     Targets = case NoFlow of
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,

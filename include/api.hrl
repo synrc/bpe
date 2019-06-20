@@ -7,7 +7,7 @@
 
 % flow API
 
--spec process(integer()) -> #process{}.
+-spec proc(integer()) -> #process{}.
 -spec complete(integer()) -> {complete,any()}.
 -spec complete(any(),integer()) -> {complete,any()}.
 -spec amend(integer(),any()) -> {complete,any()}.
@@ -16,7 +16,7 @@
 
 % find task or document in process
 
--spec task(Name::list(),#process{}) -> [tuple()] | tuple().
+-spec step(Name::list(),#process{}) -> [tuple()] | tuple().
 -spec doc(Record::tuple(),#process{}) -> [tuple()] | tuple().
 
 % retrieve process field
