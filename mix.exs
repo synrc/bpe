@@ -12,13 +12,13 @@ defmodule BPE.Mixfile do
   end
 
   def application do
-    [mod: {:bpe_otp, []}, applications: [:syn, :n2o, :kvx]]
+    [mod: {:bpe_otp, []}, applications: [:syn, :n2o, :kvs]]
   end
 
   def package do
     [
-      files: ["include", "priv", "src", "LICENSE", "README.md", "rebar.config"],
-      licenses: ["MIT"],
+      files: ~w(doc include priv lib src mix.exs LICENSE rebar.config),
+      licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
       links: %{"GitHub" => "https://github.com/synrc/bpe"}
@@ -27,9 +27,9 @@ defmodule BPE.Mixfile do
 
   def deps do
     [
-      {:syn, github: "ostinelli/syn", tag: "1.5.0"},
-      {:rocksdb, github: "voxoz/rocks"},
-      {:kvx, github: "synrc/kvx"}
+      {:rocksdb, "~> 1.2.0"},
+      {:syn, "~> 1.6.3"},
+      {:kvs, "~> 6.6"}
     ]
   end
 end

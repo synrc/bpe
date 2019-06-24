@@ -1,6 +1,6 @@
 -module(bpe_metainfo).
 -include("bpe.hrl").
--include_lib("kvx/include/metainfo.hrl").
+-include_lib("kvs/include/metainfo.hrl").
 -compile(export_all).
 
 metainfo() ->

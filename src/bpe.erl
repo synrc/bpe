@@ -1,32 +1,32 @@
 -module(bpe).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
--include_lib("kvx/include/cursors.hrl").
+-include_lib("kvs/include/cursors.hrl").
 -include("api.hrl").
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
-load(#process{id = ProcName}) -> {ok,Proc} = kvx:get(process,ProcName), Proc;
-load(ProcName) -> {ok,Proc} = kvx:get(process,ProcName), Proc.
+load(#process{id = ProcName}) -> {ok,Proc} = kvs:get(process,ProcName), Proc;
+load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
 
 cleanup(P) ->
-  [ kvx:delete({hist,P},Id) || #hist{id=Id} <- bpe:hist(P) ],
-    kvx:delete(writer,{hist,P}),
-    kvx:delete(process,P).
+  [ kvs:delete({hist,P},Id) || #hist{id=Id} <- bpe:hist(P) ],
+    kvs:delete(writer,{hist,P}),
+    kvs:delete(process,P).
 
 start(Proc0, Options) ->
     Pid = proplists:get_value(notification,Options,undefined),
     Proc = case Proc0#process.id == [] of
-                true -> Id = kvx:seq([],[]),
+                true -> Id = kvs:seq([],[]),
                       Proc0#process{id=Id,task=Proc0#process.beginEvent,
                                     options = Options,notifications = Pid,
                                     started=calendar:local_time()};
                  _ -> Proc0#process{started=calendar:local_time()} end,
 
-    kvx:append(Proc, process),
+    kvs:append(Proc, process),
     Key = {hist,Proc#process.id},
-    kvx:ensure(#writer{id=Key}),
-    kvx:append(#hist{ id = 0,
+    kvs:ensure(#writer{id=Key}),
+    kvs:append(#hist{ id = 0,
                     name = Proc#process.name,
                     time = Proc#process.started,
                     docs = Proc#process.docs,
@@ -58,8 +58,8 @@ delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                    lists:member(Task#task.name,Tasks) ] }.
 
-hist(ProcId)   -> kvx:all({hist,ProcId}).
-hist(ProcId,N) -> case kvx:get({hist,ProcId},N) of
+hist(ProcId)   -> kvs:all({hist,ProcId}).
+hist(ProcId,N) -> case kvs:get({hist,ProcId},N) of
                           {ok,Res} -> Res;
                           {error,_Reason} -> [] end.
 

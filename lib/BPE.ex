@@ -20,7 +20,7 @@ defmodule BPE do
           alias unquote(mod), as: unquote(upcased)
         end
       else
-        IO.warn("🚨 Unknown module #{mod} was requested to be used by ::bpe. Skipping.")
+        IO.warn("🚨 Unknown module #{mod} was requested to be used by :bpe. Skipping.")
       end
     end)
   end

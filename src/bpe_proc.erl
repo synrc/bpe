@@ -1,7 +1,7 @@
 -module(bpe_proc).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
--include_lib("kvx/include/cursors.hrl").
+-include_lib("kvs/include/cursors.hrl").
 -behaviour(gen_server).
 -export([start_link/1]).
 -export([init/1,handle_call/3,handle_cast/2,handle_info/2,terminate/2,code_change/3]).
@@ -16,8 +16,8 @@ process_event(Event,Proc) ->
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
 
     Key = {hist,ProcState#process.id},
-    Writer = kvx:writer(Key),
-    kvx:append(#hist{ id = Writer#writer.count,
+    Writer = kvs:writer(Key),
+    kvs:append(#hist{ id = Writer#writer.count,
                     name = ProcState#process.name,
                     time = calendar:local_time(),
                     docs = ProcState#process.docs,
@@ -46,8 +46,8 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
     Key = {hist,ProcState#process.id},
-    Writer = kvx:writer(Key),
-    kvx:append(#hist{   id = Writer#writer.count,
+    Writer = kvs:writer(Key),
+    kvs:append(#hist{   id = Writer#writer.count,
                       name = ProcState#process.name,
                       time = calendar:local_time(),
                       docs = ProcState#process.docs,
@@ -56,7 +56,7 @@ process_task(Stage,Proc,NoFlow) ->
     io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]),
     NewProcState = ProcState#process{task = Target},
-    kvx:put(transient(NewProcState)),
+    kvs:put(transient(NewProcState)),
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
@@ -77,7 +77,7 @@ handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     io:format("Process ~p spawned as ~p.~n",[Process#process.id,self()]),
-    Proc = case kvx:get(process,Process#process.id) of
+    Proc = case kvs:get(process,Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
     Till = bpe:till(calendar:local_time(), application:get_env(bpe,ttl,24*60*60)),
@@ -105,7 +105,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
 
-    Writer = kvx:writer({hist,Id}),
+    Writer = kvs:writer({hist,Id}),
     Hist = Writer#writer.count - 1,
     {DD,Diff} = case bpe:hist(Id,Hist) of
          #hist{time=Time1} -> calendar:time_difference(Time1,Time2);
