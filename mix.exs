@@ -17,7 +17,7 @@ defmodule BPE.Mixfile do
 
   def package do
     [
-      files: ~w(doc include priv lib src mix.exs LICENSE rebar.config),
+      files: ~w(doc include lib src mix.exs LICENSE rebar.config),
       licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
