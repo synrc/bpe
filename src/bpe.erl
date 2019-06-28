@@ -26,7 +26,7 @@ start(Proc0, Options) ->
     kvs:append(Proc, process),
     Key = {hist,Proc#process.id},
     kvs:ensure(#writer{id=Key}),
-    kvs:append(#hist{ id = 0,
+    kvs:append(#hist{ id = {0,Proc#process.id},
                     name = Proc#process.name,
                     time = Proc#process.started,
                     docs = Proc#process.docs,
@@ -58,10 +58,14 @@ delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                    lists:member(Task#task.name,Tasks) ] }.
 
-hist(ProcId)   -> kvs:all({hist,ProcId}).
-hist(ProcId,N) -> case kvs:get({hist,ProcId},N) of
-                          {ok,Res} -> Res;
-                          {error,_Reason} -> [] end.
+hist(ProcId)   -> kvs:feed({hist,ProcId}).
+hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
+                       kvs_mnesia -> case kvs:get(hist,{N,ProcId}) of
+                                          {ok,Res} -> Res;
+                                          {error,_Reason} -> [] end;
+                       kvs_rocks  -> case kvs:get({hist,ProcId},N) of
+                                          {ok,Res} -> Res;
+                                          {error,_Reason} -> [] end end .
 
 source(Name, Proc) ->
     case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of

@@ -17,7 +17,7 @@ process_event(Event,Proc) ->
 
     Key = {hist,ProcState#process.id},
     Writer = kvs:writer(Key),
-    kvs:append(#hist{ id = Writer#writer.count,
+    kvs:append(#hist{ id = {Writer#writer.count,ProcState#process.id},
                     name = ProcState#process.name,
                     time = calendar:local_time(),
                     docs = ProcState#process.docs,
@@ -47,7 +47,7 @@ process_task(Stage,Proc,NoFlow) ->
 
     Key = {hist,ProcState#process.id},
     Writer = kvs:writer(Key),
-    kvs:append(#hist{   id = Writer#writer.count,
+    kvs:append(#hist{   id = {Writer#writer.count,ProcState#process.id},
                       name = ProcState#process.name,
                       time = calendar:local_time(),
                       docs = ProcState#process.docs,
@@ -105,11 +105,9 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
 
-    Writer = kvs:writer({hist,Id}),
-    Hist = Writer#writer.count - 1,
-    {DD,Diff} = case bpe:hist(Id,Hist) of
-         #hist{time=Time1} -> calendar:time_difference(Time1,Time2);
-          _ -> {immediate,timeout} end, % we miss history, better to stop
+    {DD,Diff} = case kvs:head({hist,Id}) of
+                     #hist{time=Time1} -> calendar:time_difference(Time1,Time2);
+                                     _ -> {immediate,timeout} end,
 
 %   io:format("Ping: ~p, Task: ~p Hist: ~p~n", [Id,Task,Hist]),
 
