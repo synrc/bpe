@@ -45,7 +45,7 @@ start(Proc0, Options) ->
 
 find_pid(Id) -> bpe:cache({process,Id}).
 
-proc(ProcId)           -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
+proc(ProcId)              -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
 run(ProcId)               -> gen_server:call(find_pid(ProcId),{run},            ?TIMEOUT).
 until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task},     ?TIMEOUT).
