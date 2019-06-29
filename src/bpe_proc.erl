@@ -17,6 +17,11 @@ process_event(Event,Proc) ->
 
     Key = {hist,ProcState#process.id},
     Writer = kvs:writer(Key),
+
+    % the reason we needs compund keys here for id fieldd
+    % is that in mnesia backend all hist entry are stored in one table
+    % so step position is not enough. For RocksDB you can you just writer.count.
+
     kvs:append(#hist{ id = {Writer#writer.count,ProcState#process.id},
                     name = ProcState#process.name,
                     time = calendar:local_time(),
@@ -25,6 +30,7 @@ process_event(Event,Proc) ->
 
     io:format("Process: ~p Event: ~p Targets: ~p~n",[Proc#process.id,EventName,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
+
     NewProcState = ProcState#process{task = Target},
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
@@ -55,6 +61,7 @@ process_task(Stage,Proc,NoFlow) ->
 
     io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]),
+
     NewProcState = ProcState#process{task = Target},
     kvs:put(transient(NewProcState)),
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.

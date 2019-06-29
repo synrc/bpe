@@ -58,6 +58,8 @@ delete_tasks(Proc, Tasks) ->
     Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
                    lists:member(Task#task.name,Tasks) ] }.
 
+% BPE for now supports only MNESIA and ROCKS backends.
+
 hist(ProcId)   -> kvs:feed({hist,ProcId}).
 hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
                        kvs_mnesia -> case kvs:get(hist,{N,ProcId}) of
