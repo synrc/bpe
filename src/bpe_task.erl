@@ -25,7 +25,7 @@ task_action(Module,CurrentTask,Target,Proc) ->
          {until,Task,State}           -> bpe_proc:run(Task,State);
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
-         {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
+         {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State}; % TODO: REFACTOR
          {reply,Task,State}           -> {reply,{complete,Task},State} end.
 
 handle_task(#beginEvent{},_CurrentTask,Target,Proc) ->
