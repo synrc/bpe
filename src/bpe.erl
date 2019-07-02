@@ -31,7 +31,7 @@ start(Proc0, Options) ->
                     name = Proc#process.name,
                     time = Proc#process.started,
                     docs = Proc#process.docs,
-                    task = { event, Proc#process.beginEvent }}, Key),
+                    task = { event, 'Created' }}, Key),
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
