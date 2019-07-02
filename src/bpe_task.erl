@@ -21,7 +21,7 @@ already_finished(Proc) ->
 
 task_action(Module,CurrentTask,Target,Proc) ->
     case Module:action({request,CurrentTask},Proc) of
-         {run,State}                  -> bpe_proc:run('Finish',State);
+         {run,State}                  -> bpe_proc:run('Final',State);
          {until,Task,State}           -> bpe_proc:run(Task,State);
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};

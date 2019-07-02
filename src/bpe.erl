@@ -8,34 +8,39 @@
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
 load(#process{id = ProcName}) -> {ok,Proc} = kvs:get("/bpe/proc",ProcName), Proc;
-load(ProcName) -> {ok,Proc} = kvs:get("/bpe/proc",ProcName), Proc.
+load(ProcName) ->
+    {ok,Proc} = kvs:get("/bpe/proc",ProcName),
+    {_,T} = current_task(ProcName),
+    Proc#process{task = element(2,T)}.
 
 cleanup(P) ->
-  [ kvs:delete({hist,P},Id) || #hist{id=Id} <- bpe:hist(P) ],
+  [ kvs:delete("/bpe/hist",Id) || #hist{id=Id} <- bpe:hist(P) ],
     kvs:delete(writer,"/bpe/hist/" ++ P),
-    kvs:delete(process,P).
+    kvs:delete("/bpe/proc",P).
+
+current_task(Id) ->
+    {Hist,Task} = case bpe:head(Id) of
+                       [] -> {0,{task, 'Created'}};
+                       #hist{id={H,_},task=T} -> {H,T} end.
 
 start(Proc0, Options) ->
-    Pid = proplists:get_value(notification,Options,undefined),
-    Proc = case Proc0#process.id == [] of
-                true -> Id = kvs:seq([],[]),
-                      Proc0#process{id=Id,task=Proc0#process.beginEvent,
-                                    options = Options,notifications = Pid,
-                                    started=calendar:local_time()};
-                 _ -> Proc0#process{started=calendar:local_time()} end,
+    Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
+    Key  = "/bpe/hist/" ++ Id,
+    {Hist,Task} = current_task(Id),
+    Pid  = proplists:get_value(notification,Options,undefined),
+    Proc = Proc0#process{id=Id,task= element(2,Task), options = Options,notifications = Pid, started=calendar:local_time()},
 
     kvs:append(Proc, "/bpe/proc"),
-    Key = "/bpe/hist/" ++ Proc#process.id,
     kvs:ensure(#writer{id=Key}),
-    kvs:append(#hist{ id = {0,Proc#process.id},
+    kvs:append(#hist{ id = {Hist,Id},
                     name = Proc#process.name,
                     time = Proc#process.started,
                     docs = Proc#process.docs,
-                    task = { event, 'Created' }}, Key),
+                    task = Task}, Key),
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
-    ChildSpec = { Proc#process.id,
+    ChildSpec = { Id,
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
 
@@ -63,9 +68,9 @@ delete_tasks(Proc, Tasks) ->
 
 
 head(ProcId) ->
-  {ok, #writer{count = C}} = kvs:get(writer,"/bpe/hist/" ++ ProcId),
-  {ok, X} = kvs:get("/bpe/hist/" ++ ProcId,{C - 1,ProcId}),
-  X.
+  case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
+       {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{C - 1,ProcId}) of
+       {ok, X} -> X; _ -> [] end; _ -> [] end.
 
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
 hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of

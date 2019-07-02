@@ -8,6 +8,7 @@
 def() ->
     #process { name = 'IBAN Account',
         flows = [
+            #sequenceFlow{source='Created',   target='Init'},
             #sequenceFlow{source='Init',      target='Upload'},
             #sequenceFlow{source='Upload',    target='Payment'},
             #sequenceFlow{source='Payment',   target=['Signatory','Process']},
@@ -23,6 +24,9 @@ def() ->
         beginEvent = 'Init',
         endEvent = 'Final',
         events = [ #messageEvent{name='PaymentReceived'} ] }.
+
+action({request,'Created'}, Proc) ->
+    {reply,Proc};
 
 action({request,'Init'}, Proc) ->
     {reply,Proc};

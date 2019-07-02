@@ -85,7 +85,7 @@
                         rules      = [] :: [] | term(),
                         docs       = [] :: list(tuple()),
                         options    = [] :: term(),
-                        task       = 'Init' :: [] | atom(),
+                        task       = 'Created' :: [] | atom(),
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),

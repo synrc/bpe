@@ -18,7 +18,7 @@ init([])     -> [ ets:new(T,opt()) || T <- [ processes ] ],
 worker(#process{id=Id}=P) ->
    io:format("Attempt to restart process ~p.~n",[Id]),
    case bpe:head(Id) of
-        #hist{time = Time} -> worker_do(calendar:time_difference(Time,calendar:local_time()),P);
+        #hist{time = Time, task = Task} -> worker_do(calendar:time_difference(Time,calendar:local_time()),P);
         _ -> broken end;
 worker(P) -> io:format("Unknown: ~p~n",[P]).
 

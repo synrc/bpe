@@ -57,13 +57,12 @@ process_task(Stage,Proc,NoFlow) ->
                       name = ProcState#process.name,
                       time = calendar:local_time(),
                       docs = ProcState#process.docs,
-                      task = {task, Curr} }, Key),
+                      task = {task, Target} }, Key),
 
     io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]),
 
     NewProcState = ProcState#process{task = Target},
-    kvs:put(transient(NewProcState)),
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
