@@ -15,7 +15,7 @@ process_event(Event,Proc) ->
 
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
 
-    Key = {hist,ProcState#process.id},
+    Key = "/bpe/hist/" ++ ProcState#process.id,
     Writer = kvs:writer(Key),
 
     % the reason we need compund keys here for id field
@@ -51,7 +51,7 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
-    Key = {hist,ProcState#process.id},
+    Key = "/bpe/hist/" ++ProcState#process.id,
     Writer = kvs:writer(Key),
     kvs:append(#hist{   id = {Writer#writer.count,ProcState#process.id},
                       name = ProcState#process.name,
@@ -84,7 +84,7 @@ handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     io:format("Process ~p spawned as ~p.~n",[Process#process.id,self()]),
-    Proc = case kvs:get(process,Process#process.id) of
+    Proc = case kvs:get("/bpe/proc",Process#process.id) of
          {ok,Exists} -> Exists;
          {error,_} -> Process end,
     Till = bpe:till(calendar:local_time(), application:get_env(bpe,ttl,24*60*60)),
@@ -112,7 +112,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                                        false -> Terminal end,
     Time2 = calendar:local_time(),
 
-    {DD,Diff} = case kvs:head({hist,Id}) of
+    {DD,Diff} = case bpe:head(Id) of
                      #hist{time=Time1} -> calendar:time_difference(Time1,Time2);
                                      _ -> {immediate,timeout} end,
 

@@ -3,15 +3,16 @@
 -include("bpe.hrl").
 -include_lib("kvs/include/cursors.hrl").
 -include("api.hrl").
+-export([head/1]).
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
-load(#process{id = ProcName}) -> {ok,Proc} = kvs:get(process,ProcName), Proc;
-load(ProcName) -> {ok,Proc} = kvs:get(process,ProcName), Proc.
+load(#process{id = ProcName}) -> {ok,Proc} = kvs:get("/bpe/proc",ProcName), Proc;
+load(ProcName) -> {ok,Proc} = kvs:get("/bpe/proc",ProcName), Proc.
 
 cleanup(P) ->
   [ kvs:delete({hist,P},Id) || #hist{id=Id} <- bpe:hist(P) ],
-    kvs:delete(writer,{hist,P}),
+    kvs:delete(writer,"/bpe/hist/" ++ P),
     kvs:delete(process,P).
 
 start(Proc0, Options) ->
@@ -23,8 +24,8 @@ start(Proc0, Options) ->
                                     started=calendar:local_time()};
                  _ -> Proc0#process{started=calendar:local_time()} end,
 
-    kvs:append(Proc, process),
-    Key = {hist,Proc#process.id},
+    kvs:append(Proc, "/bpe/proc"),
+    Key = "/bpe/hist/" ++ Proc#process.id,
     kvs:ensure(#writer{id=Key}),
     kvs:append(#hist{ id = {0,Proc#process.id},
                     name = Proc#process.name,
@@ -60,12 +61,18 @@ delete_tasks(Proc, Tasks) ->
 
 % BPE for now supports only MNESIA and ROCKS backends.
 
-hist(ProcId)   -> kvs:feed({hist,ProcId}).
+
+head(ProcId) ->
+  {ok, #writer{count = C}} = kvs:get(writer,"/bpe/hist/" ++ ProcId),
+  {ok, X} = kvs:get("/bpe/hist/" ++ ProcId,{C - 1,ProcId}),
+  X.
+
+hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
 hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
                        kvs_mnesia -> case kvs:get(hist,{N,ProcId}) of
                                           {ok,Res} -> Res;
                                           {error,_Reason} -> [] end;
-                       kvs_rocks  -> case kvs:get({hist,ProcId},N) of
+                       kvs_rocks  -> case kvs:get("/bpe/hist/" ++ ProcId,{N,ProcId}) of
                                           {ok,Res} -> Res;
                                           {error,_Reason} -> [] end end .
 
