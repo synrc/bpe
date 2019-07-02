@@ -7,11 +7,12 @@
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
-load(#process{id = ProcName}) -> {ok,Proc} = kvs:get("/bpe/proc",ProcName), Proc;
-load(ProcName) ->
-    {ok,Proc} = kvs:get("/bpe/proc",ProcName),
-    {_,T} = current_task(ProcName),
-    Proc#process{task = element(2,T)}.
+load(Id) -> load(Id, []).
+load(Id, Def) ->
+    case kvs:get("/bpe/proc",Id) of
+         {error,_} -> Def;
+         {ok,Proc} -> {_,{_,T}} = current_task(Id),
+                      Proc#process{task=T} end.
 
 cleanup(P) ->
   [ kvs:delete("/bpe/hist",Id) || #hist{id=Id} <- bpe:hist(P) ],

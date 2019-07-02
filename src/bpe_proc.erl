@@ -82,10 +82,8 @@ handle_call({remove,Form},    _,Proc) ->   process_task([],Proc#process{docs=[
 handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
-    io:format("Process ~p spawned as ~p.~n",[Process#process.id,self()]),
-    Proc = case kvs:get("/bpe/proc",Process#process.id) of
-         {ok,Exists} -> Exists;
-         {error,_} -> Process end,
+    Proc = bpe:load(Process#process.id,Process),
+    io:format("Process ~p spawned as ~p.~n",[Proc#process.id,self()]),
     Till = bpe:till(calendar:local_time(), application:get_env(bpe,ttl,24*60*60)),
     bpe:cache({process,Proc#process.id},self(),Till),
     [ bpe:reg({messageEvent,element(1,EventRec),Proc#process.id}) || EventRec <- bpe:events(Proc) ],
