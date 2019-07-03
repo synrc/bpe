@@ -2,6 +2,7 @@
 -define(BPE_HRL, true).
 
 -include_lib("kvs/include/kvs.hrl").
+-include_lib("kvs/include/kvs.hrl").
 
 % BPMN 2.0 API
 
@@ -89,7 +90,7 @@
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
-                        started    = [] :: [] | {term(),term(),term()},
+                        started    = [] :: [] | calendar:datetime(),
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
 

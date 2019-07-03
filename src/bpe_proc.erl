@@ -20,7 +20,7 @@ process_event(Event,Proc) ->
 
     % the reason we need compund keys here for id field
     % is that in mnesia backend all hist entries are stored in one table
-    % so step position is not enough. For RocksDB you can you just writer.count.
+    % so step position is not enough. For RocksDB you can use just writer.count.
 
     kvs:append(#hist{ id = {Writer#writer.count,ProcState#process.id},
                     name = ProcState#process.name,

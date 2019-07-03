@@ -20,9 +20,9 @@ cleanup(P) ->
     kvs:delete("/bpe/proc",P).
 
 current_task(Id) ->
-    {Hist,Task} = case bpe:head(Id) of
-                       [] -> {0,{task, 'Created'}};
-                       #hist{id={H,_},task=T} -> {H,T} end.
+    case bpe:head(Id) of
+         [] -> {0,{task, 'Created'}};
+         #hist{id={H,_},task=T} -> {H,T} end.
 
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
