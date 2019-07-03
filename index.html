@@ -1,0 +1,221 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="author" content="Maxim Sokhatsky" />
+    <title>BPE</title>
+    <link rel="stylesheet" href="https://synrc.space/synrc.css?v=2" />
+</head>
+<body>
+<nav>
+    <a href='https://n2o.dev'>DEV</a>
+    <a href='https://bpe.n2o.space' style="background:#ededed;">BPE</a>
+</nav>
+<header>
+    <a href="https://github.com/synrc/kvx"><img src="https://synrc.space/images/Synrc Neo.svg?v=1"></a>
+    <h1>BPE</h1>
+</header>
+<aside>
+    <article>
+        <section>
+            <h3>SYNOPSIS</h3>
+            <div>
+                Business Processing for Enterprises (BPE) provides infrastructure
+                for workflow definitions, process orchestration,
+                rule based production systems and distributed storage.
+            </div>
+            <br>
+            <div>
+                04 JUL 2019 &copy; <a href="https://github.com/5hT">5HT</a> <a href="https://5ht.co/license.htm">ISC</a>
+            </div>
+        </section>
+        <section>
+            <h3>MODULES</h3>
+            <div><ul>
+                 <li><a href="man/bpe.htm">BPE</a></li>
+                 <li><a href="man/task.htm">BPE_TASK</a></li>
+                 <li><a href="man/event.htm">BPE_EVENT</a></li>
+            </ul></div>
+            <br>
+            <div>
+                JUL 2019 &copy; <a href="https://github.com/5HT">5HT</a> ISC<br>
+                VER 6.7 6.5 6.4
+            </div>
+        </section>
+        <section>
+        <figure>
+        <code>
+ $ mad get bpe && cd bpe
+ $ mad com pla rep
+ > bpe:start(bpe_account:def(),[]).
+        </code>
+        </figure>
+        </section>
+    </article>
+</aside>
+<main>
+    <section>
+
+<h3>SESSION</h3>
+
+<figure><pre>
+> bpe:start(bpe_account:def(),[]).
+Process "1562195753535380000" spawned as <0.139.0>.
+{ok,"1562195753535380000"}
+
+> bpe:complete("1562195753535380000").
+Process: "1562195753535380000" Task: 'Created' Targets: ['Init']
+Target: 'Init' Status: reply Reason: unknown_task
+{unknown_task,'Init'}
+
+> bpe:hist("1562195753535380000").
+[{hist,{1,"1562195753535380000"},
+       feed,[],[],[],[],'IBAN Account',
+       {task,'Init'},
+       [],
+       {{2019,7,4},{2,13,43}}},
+ {hist,{0,"1562195753535380000"},
+       feed,[],[],[],[],'IBAN Account',
+       {task,'Created'},
+       [],
+       {{2019,7,4},{2,13,7}}}]
+
+> bpe:head("1562195753535380000").
+{hist,{1,"1562195753535380000"},
+      feed,[],[],[],[],'IBAN Account',
+      {task,'Init'},
+      [],
+      {{2019,7,4},{2,13,43}}}
+
+> supervisor:which_children(bpe_otp).
+[{"1562195753535380000",<0.139.0>,worker,[bpe_proc]}]
+</pre></figure>
+
+<figure>
+    <figcaption>How the data is stored in KVS</figcaption>
+<pre>
+> kvs:all(writer).
+[{writer,"/bpe/proc",1,[],[],[]},
+ {writer,"/bpe/hist/1562195753535380000",2,[],[],[]}]
+
+> kvs:get("/bpe/hist/1562195753535380000",{1,"1562195753535380000"}).
+{ok,{hist,{1,"1562195753535380000"},
+          feed,[],[],[],[],'IBAN Account',
+          {task,'Init'},
+          [],
+          {{2019,7,4},{2,16,7}}}}
+</pre></figure>
+    </section>
+     <section>
+<h3>BPMN SPEC</h3>
+
+<p>This schema covers 80% of all workflows and provides only 20% of standard coverage.
+   We call it Lightweight BPMN or BPE.</p>
+
+<figure>
+    <figcaption>Lightweight BPMN</figcaption>
+<pre>
+-type bst()    :: binary() | string() | atom().
+-type procId() :: [] | integer() | {atom(),any()}.
+-type histId() :: [] | integer() | {atom()|string(),any()}.
+
+-record(hist,   { id = [] :: histId(),
+                  container=feed :: [] | atom(),
+                  feed_id=[] :: any(),
+                  prev=[] :: [] | integer(),
+                  next=[] :: [] | integer(),
+                  feeds=[] :: list(),
+                  name=[] :: [] | binary(),
+                  task=[] :: [] | {atom()|string(),any()},
+                  docs=[] :: list(tuple()),
+                  time=[] :: term() }).
+
+-type tasks()  :: #task{} | #serviceTask{} | #userTask{}
+                | #receiveTask{} | #beginEvent{} | #endEvent{}.
+
+-type events() :: #messageEvent{} | #boundaryEvent{}
+                | #timeoutEvent{}.
+
+-record(process,{ id            = [] :: procId(),
+                  container   = feed :: [] | atom(),
+                  feed_id       = [] :: [] | term(),
+                  prev          = [] :: [] | integer(),
+                  next          = [] :: [] | integer(),
+                  name          = [] :: [] | bst(),
+                  feeds         = [] :: list(),
+                  roles         = [] :: list(),
+                  tasks         = [] :: list(tasks()),
+                  events        = [] :: list(events()),
+                  hist          = [] :: [] | term(),
+                  flows         = [] :: list(#sequenceFlow{}),
+                  rules         = [] :: [] | term(),
+                  docs          = [] :: list(tuple()),
+                  options       = [] :: term(),
+                  task          = 'Created' :: [] | atom(),
+                  timer         = [] :: [] | reference(),
+                  notifications = [] :: [] | term(),
+                  result        = [] :: [] | binary(),
+                  started       = [] :: [] | calendat:datetime(),
+                  beginEvent    = [] :: [] | atom(),
+                  endEvent      = [] :: [] | atom()}).
+</pre></figure>
+
+    </section>
+     <section>
+
+     <h3>SAMPLE</h3>
+<figure>
+    <figcaption>Sample Process  Definition</figcaption>
+<pre>
+-module(bpe_account).
+-compile(export_all).
+def() ->
+
+   #process { name = 'IBAN Account',
+        flows = [
+            #sequenceFlow { source='Created',   target='Init'},
+            #sequenceFlow { source='Init',      target='Upload'},
+            #sequenceFlow { source='Upload',    target='Payment'},
+            #sequenceFlow { source='Payment',   target=['Signatory','Process']},
+            #sequenceFlow { source='Process',   target=['Process','Final']},
+            #sequenceFlow { source='Signatory', target=['Process','Final']} ],
+        tasks = [
+            #userTask     { name='Init',        module = bpe_account },
+            #userTask     { name='Upload',      module = bpe_account },
+            #userTask     { name='Signatory',   module = bpe_account },
+            #serviceTask  { name='Payment',     module = bpe_account },
+            #serviceTask  { name='Process',     module = bpe_account }, 
+            #endEvent     { name='Final',       module = bpe_account } ],
+        beginEvent = 'Init',
+        endEvent = 'Final',
+        events = [ #messageEvent{name='PaymentReceived'} ] }.
+
+</pre></figure>
+    </section>
+     <section>
+        <a name=plugin><h3>PRESENCE</h3></a>
+        <p>Companies that uses BPE:</p>
+        <div>
+        <ul>
+           <li><a href="https://pb.ua/depozit">pb.ua/depozit</a> &mdash; АТ КБ "ПриватБанк"</li>
+           <li><a href="https://nynja.io">nynja.io</a> &mdash; NYNJA, Inc.</li>
+           <li><a href="http://quanterall.com">quanterall.com</a> &mdash; Quanterall, OOD.</li>
+        </ul></div>
+        <br><br>
+    </section>
+     <section>
+        <a name=plugin><h3>CONTRIBUTORS</h3></a>
+        <div>
+        <ul>
+           <li><a href="https://github.com/5HT">5HT</a> &mdash; Namdak Tonpa</li>
+        </ul></div>
+        <br><br>
+    </section>
+</main>
+<footer>
+    Made with <span class="heart">❤</span> to N2O
+</footer>
+</body>
+</html>
