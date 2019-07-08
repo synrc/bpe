@@ -172,26 +172,24 @@ Target: 'Init' Status: reply Reason: unknown_task
 -module(bpe_account).
 -compile(export_all).
 def() ->
-
-   #process { name = 'IBAN Account',
-        flows = [
-            #sequenceFlow { source='Created',   target='Init'},
-            #sequenceFlow { source='Init',      target='Upload'},
-            #sequenceFlow { source='Upload',    target='Payment'},
-            #sequenceFlow { source='Payment',   target=['Signatory','Process']},
-            #sequenceFlow { source='Process',   target=['Process','Final']},
-            #sequenceFlow { source='Signatory', target=['Process','Final']} ],
-        tasks = [
-            #userTask     { name='Init',        module = bpe_account },
-            #userTask     { name='Upload',      module = bpe_account },
-            #userTask     { name='Signatory',   module = bpe_account },
-            #serviceTask  { name='Payment',     module = bpe_account },
-            #serviceTask  { name='Process',     module = bpe_account }, 
-            #endEvent     { name='Final',       module = bpe_account } ],
-        beginEvent = 'Init',
-        endEvent = 'Final',
-        events = [ #messageEvent{name='PaymentReceived'} ] }.
-
+  #process { name = 'IBAN Account',
+    flows = [
+      #sequenceFlow { source='Created',   target='Init'},
+      #sequenceFlow { source='Init',      target='Upload'},
+      #sequenceFlow { source='Upload',    target='Payment'},
+      #sequenceFlow { source='Payment',   target=['Signatory','Process']},
+      #sequenceFlow { source='Process',   target=['Process','Final']},
+      #sequenceFlow { source='Signatory', target=['Process','Final']} ],
+    tasks = [
+      #userTask     { name='Init',        module = bpe_account },
+      #userTask     { name='Upload',      module = bpe_account },
+      #userTask     { name='Signatory',   module = bpe_account },
+      #serviceTask  { name='Payment',     module = bpe_account },
+      #serviceTask  { name='Process',     module = bpe_account }, 
+      #endEvent     { name='Final',       module = bpe_account } ],
+    beginEvent = 'Init',
+    endEvent = 'Final',
+    events = [ #messageEvent{name='PaymentReceived'} ] }.
 </pre></figure>
     </section>
      <section>
