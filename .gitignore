@@ -4,3 +4,4 @@ _build/
 .applist
 Mnesia*/
 deps
+.rebar3/
