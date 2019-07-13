@@ -23,7 +23,7 @@ process_event(Event,Proc) ->
     % so step position is not enough. For RocksDB you can use just writer.count.
 
     kvs:append(#hist{ id = {Writer#writer.count,ProcState#process.id},
-                    name = ProcState#process.name,
+                    name = [],
                     time = calendar:local_time(),
                     docs = ProcState#process.docs,
                     task = { event, element(#messageEvent.name,Event) }}, Key),
@@ -54,7 +54,7 @@ process_task(Stage,Proc,NoFlow) ->
     Key = "/bpe/hist/" ++ProcState#process.id,
     Writer = kvs:writer(Key),
     kvs:append(#hist{   id = {Writer#writer.count,ProcState#process.id},
-                      name = ProcState#process.name,
+                      name = [],
                       time = calendar:local_time(),
                       docs = ProcState#process.docs,
                       task = {task, Target} }, Key),
