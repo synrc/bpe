@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="1140px" height="449px" viewBox="0 0 1140 449" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.1.1 (8761) - http://www.bohemiancoding.com/sketch -->
+    <title>BPE</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="BPE" sketch:type="MSLayerGroup" transform="translate(0.000000, 1.000000)">
+            <rect id="Rectangle-12" fill-opacity="0.15" fill="#706DFF" sketch:type="MSShapeGroup" x="772" y="33" width="368" height="409"></rect>
+            <text id="Type-something" sketch:type="MSTextLayer" font-family="Helvetica" font-size="12" font-weight="normal" fill="#000000">
+                <tspan x="549" y="145">706DFF</tspan>
+            </text>
+            <rect id="Rectangle-1" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="0" y="34" width="694" height="414"></rect>
+            <rect id="Rectangle-2" fill="#F2F2F2" sketch:type="MSShapeGroup" x="201" y="39" width="294" height="403"></rect>
+            <rect id="Rectangle-3" stroke="#979797" fill="#F2F2F2" sketch:type="MSShapeGroup" x="5" y="39" width="190" height="403"></rect>
+            <path d="M140,264.5 L140,324" id="Line-2" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <path d="M140,326.5 L140,386" id="Line-7" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <path d="M382,159.5 L382,220.5" id="Line-6" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <path d="M339.5,264 L339.5,325" id="Line-5" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <path d="M341,68.5 L341,129.5" id="Line-11" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <path d="M268,318.5 L149,318.5" id="Line-3" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <path d="M137,386.5 L103,386.5" id="Line-8" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <rect id="Rectangle-4" fill="#F2F2F2" sketch:type="MSShapeGroup" x="504" y="39" width="184" height="403"></rect>
+            <path d="M547,143.5 L419,143.5" id="Line-4" stroke="#979797" stroke-width="10" stroke-linecap="square" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+            <g id="Rectangle-5-+-start" transform="translate(42.000000, 13.000000)">
+                <rect id="Rectangle-5" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="0" y="0" width="122" height="55"></rect>
+                <text id="begin" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="11.5" y="38.0449219">begin</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-6-+-phone" transform="translate(27.000000, 214.000000)">
+                <rect id="Rectangle-6" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="0" y="0" width="148" height="55"></rect>
+                <text id="login" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="28" y="38.0449219">login</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-8-+-deposit_app" transform="translate(230.500000, 295.000000)">
+                <rect id="Rectangle-8" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="0" y="0" width="234.773438" height="55"></rect>
+                <text id="application" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="21.7261402" y="39.0898438">application</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-9-+-confirm" transform="translate(267.500000, 215.000000)">
+                <rect id="Rectangle-9" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="-0.363070101" y="-0.5" width="159.72614" height="55"></rect>
+                <text id="confirm" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="11.3630701" y="38.5898438">confirm</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-10-+-payment" transform="translate(253.500000, 116.000000)">
+                <rect id="Rectangle-10" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="-0.363070101" y="-0.08984375" width="186.247335" height="55"></rect>
+                <text id="payment" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="14.2473347" y="34.9101562">payment</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-7-+-otp" transform="translate(105.000000, 289.000000)">
+                <rect id="Rectangle-7" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="0.276917614" y="0" width="67.4461648" height="55"></rect>
+                <text id="otp" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="33" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="7.11267756" y="36.0449219">otp</tspan>
+                </text>
+            </g>
+            <g id="Rectangle-7-+-end" transform="translate(547.000000, 12.000000)">
+                <rect id="Rectangle-7" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" x="0.276917614" y="0" width="91.7230824" height="55"></rect>
+                <text id="end" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="33" font-weight="normal" fill="#FFFFFF">
+                    <tspan x="19.1126776" y="36.2495117">end</tspan>
+                </text>
+            </g>
+            <g id="Group" transform="translate(814.000000, 74.000000)">
+                <g id="Message-+-Group-2">
+                    <text id="Message" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="bold" fill="#979797">
+                        <tspan x="94.1126776" y="45.6503906">Message</tspan>
+                    </text>
+                    <g id="Group-2" stroke="#979797" sketch:type="MSShapeGroup">
+                        <circle id="Oval-8" cx="35.5" cy="36.5" r="31.5"></circle>
+                        <path d="M35,40.5 L14,17" id="Line-9" stroke-width="10" stroke-linecap="square" fill="#D8D8D8"></path>
+                        <path d="M36,40.5 L58,23" id="Line-10" stroke-width="10" stroke-linecap="square" fill="#D8D8D8"></path>
+                        <path d="M36,72 C55.882251,72 72,55.882251 72,36 C72,16.117749 55.882251,0 36,0 C16.117749,0 0,16.117749 0,36 C0,55.882251 16.117749,72 36,72 Z M36.5,65 C52.2401154,65 65,52.2401154 65,36.5 C65,20.7598846 52.2401154,8 36.5,8 C20.7598846,8 8,20.7598846 8,36.5 C8,52.2401154 20.7598846,65 36.5,65 Z" id="Oval-2" fill="#979797"></path>
+                    </g>
+                </g>
+                <g id="Start-+-Oval-2" transform="translate(0.000000, 87.000000)" fill="#979797">
+                    <text id="Start" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="bold">
+                        <tspan x="94.1126776" y="41.6503906">Start</tspan>
+                    </text>
+                    <path d="M36,72 C55.882251,72 72,55.882251 72,36 C72,16.117749 55.882251,0 36,0 C16.117749,0 0,16.117749 0,36 C0,55.882251 16.117749,72 36,72 Z M36.5,65 C52.2401154,65 65,52.2401154 65,36.5 C65,20.7598846 52.2401154,8 36.5,8 C20.7598846,8 8,20.7598846 8,36.5 C8,52.2401154 20.7598846,65 36.5,65 Z" id="Oval-2" stroke="#979797" sketch:type="MSShapeGroup"></path>
+                </g>
+                <g id="Finish-+-Oval-7" transform="translate(0.000000, 174.000000)" fill="#979797">
+                    <text id="Finish" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="bold">
+                        <tspan x="94.1126776" y="46.6503906">Finish</tspan>
+                    </text>
+                    <circle id="Oval-7" stroke="#979797" sketch:type="MSShapeGroup" cx="36" cy="36" r="36"></circle>
+                </g>
+                <g id="Abort-+-Oval-4-+-Triangle-2" transform="translate(0.000000, 259.000000)" fill="#979797">
+                    <text id="Abort" sketch:type="MSTextLayer" font-family="Lucida Grande" font-size="36" font-weight="bold">
+                        <tspan x="95.1126776" y="44.6503906">Abort</tspan>
+                    </text>
+                    <g id="Oval-4-+-Triangle-2" stroke="#979797" sketch:type="MSShapeGroup">
+                        <path d="M36,72 C55.882251,72 72,55.882251 72,36 C72,16.117749 55.882251,0 36,0 C16.117749,0 0,16.117749 0,36 C0,55.882251 16.117749,72 36,72 Z M35.5,64 C51.2401154,64 64,51.2401154 64,35.5 C64,19.7598846 51.2401154,7 35.5,7 C19.7598846,7 7,19.7598846 7,35.5 C7,51.2401154 19.7598846,64 35.5,64 Z" id="Oval-4"></path>
+                        <polygon id="Triangle-1" points="36 9 58 49 14 49 "></polygon>
+                    </g>
+                </g>
+            </g>
+            <path d="M102,185 C121.882251,185 138,168.882251 138,149 C138,129.117749 121.882251,113 102,113 C82.117749,113 66,129.117749 66,149 C66,168.882251 82.117749,185 102,185 Z M102.5,178 C118.240115,178 131,165.240115 131,149.5 C131,133.759885 118.240115,121 102.5,121 C86.7598846,121 74,133.759885 74,149.5 C74,165.240115 86.7598846,178 102.5,178 Z" id="Oval-1" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup"></path>
+            <g id="Group" transform="translate(305.000000, 0.000000)" stroke="#979797" sketch:type="MSShapeGroup">
+                <circle id="Oval-8" fill="#F2F2F2" cx="35.5" cy="36.5" r="31.5"></circle>
+                <path d="M35,40.5 L14,17" id="Line-9" stroke-width="10" stroke-linecap="square" fill="#D8D8D8"></path>
+                <path d="M36,40.5 L58,23" id="Line-10" stroke-width="10" stroke-linecap="square" fill="#D8D8D8"></path>
+                <path d="M36,72 C55.882251,72 72,55.882251 72,36 C72,16.117749 55.882251,0 36,0 C16.117749,0 0,16.117749 0,36 C0,55.882251 16.117749,72 36,72 Z M36.5,65 C52.2401154,65 65,52.2401154 65,36.5 C65,20.7598846 52.2401154,8 36.5,8 C20.7598846,8 8,20.7598846 8,36.5 C8,52.2401154 20.7598846,65 36.5,65 Z" id="Oval-2" fill="#979797"></path>
+            </g>
+            <circle id="Oval-6" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup" cx="581.5" cy="140" r="36"></circle>
+            <g id="Oval-4-+-Triangle-1" transform="translate(30.000000, 350.000000)" stroke="#979797" fill="#979797" sketch:type="MSShapeGroup">
+                <path d="M36,72 C55.882251,72 72,55.882251 72,36 C72,16.117749 55.882251,0 36,0 C16.117749,0 0,16.117749 0,36 C0,55.882251 16.117749,72 36,72 Z M35.5,64 C51.2401154,64 64,51.2401154 64,35.5 C64,19.7598846 51.2401154,7 35.5,7 C19.7598846,7 7,19.7598846 7,35.5 C7,51.2401154 19.7598846,64 35.5,64 Z" id="Oval-4"></path>
+                <polygon id="Triangle-1" points="36 9 58 49 14 49 "></polygon>
+            </g>
+            <path d="M102,192 L102,219.5" id="Line" stroke="#979797" stroke-width="10" stroke-linecap="square" sketch:type="MSShapeGroup"></path>
+        </g>
+    </g>
+</svg>
