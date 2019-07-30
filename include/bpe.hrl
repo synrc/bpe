@@ -54,7 +54,7 @@
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
--type histId() :: [] | integer() | {atom()|string(),any()}.
+-type histId() :: [] | integer() | {term(),term()}.
 
 -record(hist,         { id = [] :: histId(),
                         container=feed :: [] | atom(),

@@ -2,22 +2,22 @@
 
 % service
 
--spec load(integer()) -> #process{}.
+-spec load(term()) -> #process{}.
 -spec start(#process{},list()) -> {ok,integer()} | {error,integer()}.
 
 % flow API
 
 -spec proc(integer()) -> #process{}.
--spec complete(integer()) -> {complete,any()}.
--spec complete(any(),integer()) -> {complete,any()}.
--spec amend(integer(),any()) -> {complete,any()}.
--spec event(integer(),any()) -> {complete,any()}.
--spec hist(integer()) -> list(#hist{}).
+-spec complete(term()) -> {complete,any()}.
+-spec complete(any(),term()) -> {complete,any()}.
+-spec amend(term(),any()) -> {complete,any()}.
+-spec event(term(),any()) -> {complete,any()}.
+-spec hist(term()) -> list(#hist{}).
 
 % find task or document in process
 
--spec step(Name::list(),#process{}) -> [tuple()] | tuple().
--spec doc(Record::tuple(),#process{}) -> [tuple()] | tuple().
+-spec step(term(),#process{}) -> [tuple()] | tuple().
+-spec doc(tuple(),#process{}) -> [tuple()] | tuple().
 
 % retrieve process field
 
