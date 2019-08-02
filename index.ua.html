@@ -21,11 +21,11 @@
 <aside>
     <article>
         <section>
-            <h3>SYNOPSIS</h3>
+            <h3>СИНОПИС</h3>
             <div>
-                Business Processing for Enterprises (BPE) provides infrastructure
-                for workflow definitions, process orchestration,
-                rule based production systems and distributed storage.
+                Бізнес-процеси підприємства, БПП (Business Processing for Enterprises, BPE) — забезпечує інфраструктуру
+                для визначення робочих процесів, оркестрування процесів,
+                виробничих систем на основі правил, та розподіленого зберігання даних.
             </div>
             <br>
             <div>
@@ -33,11 +33,11 @@
             </div>
         </section>
         <section>
-            <h3>MODULES</h3>
+            <h3>МОДУЛІ</h3>
             <div><ul>
-                 <li><a href="man/bpe.htm">BPE</a></li>
-                 <li><a href="man/task.htm">BPE_TASK</a></li>
-                 <li><a href="man/event.htm">BPE_EVENT</a></li>
+                 <li><a href="man/ua/bpe.htm">BPE</a></li>
+                 <li><a href="man/ua/task.htm">BPE_TASK</a></li>
+                 <li><a href="man/ua/event.htm">BPE_EVENT</a></li>
             </ul></div>
             <br>
             <div>
@@ -95,7 +95,7 @@ Target: 'Init' Status: reply Reason: unknown_task
 </pre></figure>
 
 <figure>
-    <figcaption>How the data is stored in KVS</figcaption>
+    <figcaption>Як дані зберігаються в KVS</figcaption>
 <pre>
 > kvs:all(writer).
 [{writer,"/bpe/proc",1,[],[],[]},
@@ -110,13 +110,13 @@ Target: 'Init' Status: reply Reason: unknown_task
 </pre></figure>
     </section>
      <section>
-<h3>BPMN SPEC</h3>
+<h3>Специфікація BPMN</h3>
 
-<p>This schema covers 80% of all workflows and provides only 20% of standard coverage.
-   We call it Lightweight BPMN or BPE.</p>
+<p>Ця схема охоплює 80% всіх робочих процесів та забезпечує лише 20% стандартного покриття.
+   Ми називаємо це Легким BPMN, або BPE.</p>
 
 <figure>
-    <figcaption>Lightweight BPMN</figcaption>
+    <figcaption>Легкий BPMN</figcaption>
 <pre>
 -type bst()    :: binary() | string() | atom().
 -type procId() :: [] | integer() | {atom(),any()}.
@@ -166,9 +166,9 @@ Target: 'Init' Status: reply Reason: unknown_task
     </section>
      <section>
 
-     <h3>SAMPLE</h3>
+     <h3>ПРИКЛАД</h3>
 <figure>
-    <figcaption>Sample Process Definition</figcaption>
+    <figcaption>Приклад визначення процесу</figcaption>
 <pre>
 -module(bpe_account).
 -compile(export_all).
@@ -195,7 +195,7 @@ def() ->
     </section>
      <section>
         <a name=plugin><h3>PRESENCE</h3></a>
-        <p>Companies that use BPE:</p>
+        <p>Компанії, які використовують BPE:</p>
         <div>
         <ul>
            <li><a href="https://pb.ua/depozit">pb.ua/depozit</a> &mdash; АТ КБ "ПриватБанк"</li>
