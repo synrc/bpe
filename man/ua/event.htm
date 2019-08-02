@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="author" content="Maxim Sokhatsky" />
+    <title>EVENT</title>
+    <link rel="stylesheet" href="https://synrc.space/synrc.css" />
+</head>
+
+<body>
+
+<nav>
+    <a href='https://n2o.dev'>DEV</a>
+    <a href='https://bpe.n2o.space'>BPE</a>
+    <a href='#' style="background:#ededed;">EVENT</a>
+    <a href='#' style="background:#ededed;">UA</a>
+    <a href='../event.htm'>EN</a>
+</nav>
+
+<header>
+    <a href="../../index.ua.html"><img src="https://n2o.space/img/Synrc Neo.svg"></a>
+    <h1>EVENT</h1>
+</header>
+
+<main>
+    <section>
+        <h3>ВСТУП</h3>
+        <p>Модуль <b>bpe_event</b> забезпечує функціональність обробки подій.</p>
+    </section>
+    <section>
+        <h3>API</h3>
+        <h4>handle_event(Event,CurrentTask,Target,Proc) ->
+            {reply,{complete,Target},State} |
+            {reply,{complete,Task},State} |
+            {reply,{unknown_event,Target},Proc} |
+            {stop,{normal,Target},Proc}</h4>
+    </section>
+    <section>
+        <p>Цей модуль може бути пов'язаним з:
+        <b><a href="bpe.htm">BPE</a></b>
+        </p>
+    </section>
+
+</main>
+
+<footer>
+    Made with <span class="heart">❤</span> to N2O
+</footer>
+
+</body>
+</html>
