@@ -1,26 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="" />
-    <meta name="author" content="Maxim Sokhatsky" />
-    <title>BPE</title>
-    <link rel="stylesheet" href="https://synrc.space/synrc.css?v=2" />
-</head>
-<body>
-<nav>
-    <a href='https://n2o.dev'>DEV</a>
-    <a href='https://bpe.n2o.space' style="background:#ededed;">BPE</a>
-    <a href='index.ua.html'>UA</a>
-    <a href='#' style="background:#ededed;">EN</a>
-</nav>
-<header>
-    <a href="https://github.com/synrc/bpe"><img src="https://synrc.space/images/Synrc Neo.svg?v=1"></a>
+<!DOCTYPE html><html><head><meta charset="utf-8" /><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="" /><meta name="author" content="Maxim Sokhatsky" /><title>BPE</title><link rel="stylesheet" href="https://synrc.space/synrc.css?v=2" /></head><body><nav>
+    <a href="https://n2o.dev">DEV</a>
+    <a href="https://bpe.n2o.space" style="background:#ededed;">BPE</a>
+    <a href="index.ua.html">UA</a>
+    <a href="#" style="background:#ededed;">EN</a>
+</nav><header>
+    <a href="https://github.com/synrc/bpe"><img src="https://synrc.space/images/Synrc Neo.svg?v=1" /></a>
     <h1>BPE</h1>
-</header>
-<aside>
+</header><aside>
     <article>
         <section>
             <h3>SYNOPSIS</h3>
@@ -29,28 +15,24 @@
                 for workflow definitions, process orchestration,
                 rule based production systems and distributed storage.
             </div>
-            <br>
+            <br />
             <div>
-                04 JUL 2019 &copy; <a href="https://github.com/5hT">5HT</a> <a href="https://5ht.co/license.htm">ISC</a>
+                04 JUL 2019 © <a href="https://github.com/5hT">5HT</a> <a href="https://5ht.co/license.htm">ISC</a>
             </div>
         </section>
         <section>
             <h3>MODULES</h3>
-            <div><ul>
-                 <li><a href="man/bpe.htm">BPE</a></li>
-                 <li><a href="man/task.htm">BPE_TASK</a></li>
-                 <li><a href="man/event.htm">BPE_EVENT</a></li>
-            </ul></div>
-            <br>
+            <div><ul><li><a href="man/bpe.htm">BPE</a></li><li><a href="man/task.htm">BPE_TASK</a></li><li><a href="man/event.htm">BPE_EVENT</a></li></ul></div>
+            <br />
             <div>
-                JUL 2019 &copy; <a href="https://github.com/5HT">5HT</a> ISC<br>
+                JUL 2019 © <a href="https://github.com/5HT">5HT</a> ISC<br />
                 VER 6.7 6.5 6.4
             </div>
         </section>
         <section>
         <figure>
         <code>
- $ mad get bpe && cd bpe
+ $ mad get bpe &#38;&#38; cd bpe
  $ mad com pla rep
  > bpe:start(bpe_account:def(),[]).
         </code>
@@ -65,7 +47,7 @@
 
 <figure><code>
 > bpe:start(bpe_account:def(),[]).
-Process "1562195753535380000" spawned as <0.139.0>.
+Process "1562195753535380000" spawned as &#60;0.139.0&#62;.
 {ok,"1562195753535380000"}
 
 > bpe:complete("1562195753535380000").
@@ -93,7 +75,7 @@ Target: 'Init' Status: reply Reason: unknown_task
       {{2019,7,4},{2,13,43}}}
 
 > supervisor:which_children(bpe_otp).
-[{"1562195753535380000",<0.139.0>,worker,[bpe_proc]}]
+[{"1562195753535380000",&#60;0.139.0&#62;,worker,[bpe_proc]}]
 </code></figure>
 
 <figure>
@@ -196,27 +178,18 @@ def() ->
 </code></figure>
     </section>
      <section>
-        <a name=plugin><h3>PRESENCE</h3></a>
+        <a name="plugin"></a><h3>PRESENCE</h3>
         <p>Companies that use BPE:</p>
         <div>
-        <ul>
-           <li><a href="https://pb.ua/depozit">pb.ua/depozit</a> &mdash; АТ КБ "ПриватБанк"</li>
-           <li><a href="https://nynja.io">nynja.io</a> &mdash; NYNJA, Inc.</li>
-           <li><a href="http://quanterall.com">quanterall.com</a> &mdash; Quanterall, OOD.</li>
-        </ul></div>
-        <br><br>
+        <ul><li><a href="https://pb.ua/depozit">pb.ua/depozit</a> — АТ КБ "ПриватБанк"</li><li><a href="https://nynja.io">nynja.io</a> — NYNJA, Inc.</li><li><a href="http://quanterall.com">quanterall.com</a> — Quanterall, OOD.</li></ul></div>
+        <br /><br />
     </section>
      <section>
-        <a name=plugin><h3>CONTRIBUTORS</h3></a>
+        <a name="plugin"></a><h3>CONTRIBUTORS</h3>
         <div>
-        <ul>
-           <li><a href="https://github.com/5HT">5HT</a> &mdash; Namdak Tonpa</li>
-        </ul></div>
-        <br><br>
+        <ul><li><a href="https://github.com/5HT">5HT</a> — Namdak Tonpa</li></ul></div>
+        <br /><br />
     </section>
-</main>
-<footer>
+</main><footer>
     Made with <span class="heart">❤</span> to N2O
-</footer>
-</body>
-</html>
+</footer></body></html>
