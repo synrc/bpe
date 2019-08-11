@@ -6,22 +6,30 @@
 
 % BPMN 2.0 API
 
+% TASKS
+
 -record(task,         { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary() }).
+                        roles=[] :: [] | binary(),
+                        etc=[] :: list({term(),term()}) }).
 -record(userTask,     { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary() }).
+                        roles=[] :: [] | binary(),
+                        etc=[] :: list({term(),term()})  }).
 -record(serviceTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary()}).
+                        roles=[] :: [] | binary(),
+                        etc=[] :: list({term(),term()}) }).
 -record(receiveTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary()}).
+                        roles=[] :: [] | binary(),
+                        etc=[] :: list({term(),term()}) }).
+
+% EVENTS
 
 -record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
                         module=[] :: [] | atom(),
@@ -51,8 +59,12 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple())}).
 
+% EDGES
+
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
+
+% TRACE
 
 -type histId() :: [] | integer() | {term(),term()}.
 
@@ -66,6 +78,8 @@
                         task=[] :: [] | atom() | {atom()|string(),any()},
                         docs=[] :: list(tuple()),
                         time=[] :: term() }).
+
+% PROCESS
 
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
