@@ -34,11 +34,13 @@
 -record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
-                        timeout=[] :: [] | {integer(),{integer(),integer(),integer()}} }).
+                        timeout=[] :: [] | {integer(),{integer(),integer(),integer() }}}).
 -record(boundaryEvent,{ name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}},
                         timeDate=[] :: [] | binary(),
@@ -47,6 +49,7 @@
 -record(timeoutEvent, { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | {integer(),{integer(),integer(),integer()}},
                         timeDate=[] :: [] | binary(),
@@ -54,10 +57,12 @@
                         timeCycle=[] :: [] | binary() }).
 -record(beginEvent ,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple())}).
+                        prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}) }).
 -record(endEvent,     { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple())}).
+                        prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}) }).
 
 % EDGES
 
