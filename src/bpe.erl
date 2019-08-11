@@ -29,7 +29,11 @@ start(Proc0, Options) ->
     Key  = "/bpe/hist/" ++ Id,
     {Hist,Task} = current_task(Id),
     Pid  = proplists:get_value(notification,Options,undefined),
-    Proc = Proc0#process{id=Id,task= element(2,Task), options = Options,notifications = Pid, started=calendar:local_time()},
+    Proc = Proc0#process{id=Id,
+           task= element(2,Task),
+           options = Options,
+           notifications = Pid,
+           started=calendar:local_time()},
 
     kvs:append(Proc, "/bpe/proc"),
     kvs:ensure(#writer{id=Key}),

@@ -12,7 +12,7 @@ defmodule BPE.Mixfile do
   end
 
   def application do
-    [mod: {:bpe_otp, []}, applications: [:rocksdb, :syn, :n2o, :kvs]]
+    [mod: {:bpe_otp, []}, applications: [:rocksdb, :syn, :kvs]]
   end
 
   def package do
@@ -29,7 +29,6 @@ defmodule BPE.Mixfile do
     [
       {:ex_doc, "~> 0.11", only: :dev},
       {:rocksdb, "~> 1.2.0"},
-      {:n2o, "~> 6.6"},
       {:syn, "~> 1.6.3"},
       {:kvs, "~> 6.7.2"}
     ]
