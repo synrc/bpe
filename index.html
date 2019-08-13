@@ -45,7 +45,7 @@
 
 <h3>SESSION</h3>
 
-<figure><code>
+    <figure><code>
 > bpe:start(bpe_account:def(),[]).
 Process "1562195753535380000" spawned as &#60;0.139.0&#62;.
 {ok,"1562195753535380000"}
@@ -76,11 +76,11 @@ Target: 'Init' Status: reply Reason: unknown_task
 
 > supervisor:which_children(bpe_otp).
 [{"1562195753535380000",&#60;0.139.0&#62;,worker,[bpe_proc]}]
-</code></figure>
+    </code></figure>
 
 <figure>
     <figcaption>How the data is stored in KVS</figcaption>
-<code>
+    <code>
 > kvs:all(writer).
 [{writer,"/bpe/proc",1,[],[],[]},
  {writer,"/bpe/hist/1562195753535380000",2,[],[],[]}]
@@ -91,7 +91,7 @@ Target: 'Init' Status: reply Reason: unknown_task
           {task,'Init'},
           [],
           {{2019,7,4},{2,16,7}}}}
-</code></figure>
+    </code></figure>
     </section>
      <section>
 <h3>BPMN SPEC</h3>
@@ -101,7 +101,7 @@ Target: 'Init' Status: reply Reason: unknown_task
 
 <figure>
     <figcaption>Lightweight BPMN</figcaption>
-<code>
+    <code>
 -type bst()    :: binary() | string() | atom().
 -type procId() :: [] | integer() | {atom(),any()}.
 -type histId() :: [] | integer() | {atom()|string(),any()}.
@@ -145,7 +145,7 @@ Target: 'Init' Status: reply Reason: unknown_task
                   started       = [] :: [] | calendat:datetime(),
                   beginEvent    = [] :: [] | atom(),
                   endEvent      = [] :: [] | atom()}).
-</code></figure>
+    </code></figure>
 
     </section>
      <section>
@@ -153,7 +153,7 @@ Target: 'Init' Status: reply Reason: unknown_task
      <h3>SAMPLE</h3>
 <figure>
     <figcaption>Sample Process Definition</figcaption>
-<code>
+    <code>
 -module(bpe_account).
 -compile(export_all).
 def() ->
@@ -175,7 +175,7 @@ def() ->
     beginEvent = 'Init',
     endEvent = 'Final',
     events = [ #messageEvent{name='PaymentReceived'} ] }.
-</code></figure>
+    </code></figure>
     </section>
      <section>
         <a name="plugin"></a><h3>PRESENCE</h3>
