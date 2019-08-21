@@ -141,8 +141,11 @@ cache(Key) ->
 ttl() -> application:get_env(bpe,ttl,60*15).
 
 till(Now,TTL) ->
-    calendar:gregorian_seconds_to_datetime(
-        calendar:datetime_to_gregorian_seconds(Now) + TTL).
+    case is_atom(TTL) of
+        true -> TTL;
+        false -> calendar:gregorian_seconds_to_datetime(
+                    calendar:datetime_to_gregorian_seconds(Now) + TTL)
+    end.
 
 send(Pool, Message) -> syn:publish(term_to_binary(Pool),Message).
 reg(Pool) -> reg(Pool,undefined).
