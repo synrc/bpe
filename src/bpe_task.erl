@@ -45,3 +45,12 @@ handle_task(#endEvent{},_CurrentTask,Target,Proc) ->
 
 handle_task(_,_,Target,Proc) ->
     {reply,{unknown_task,Target},Proc}.
+
+handle_starting_task(Curr, Proc) ->
+    Task = bpe:step(Curr, Proc),
+    Module = element(3, Task),
+    case is_atom(Module) of
+       true -> Module:action({starting, Curr}, Proc);
+       false -> skip
+    end
+.
