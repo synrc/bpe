@@ -5,63 +5,47 @@
 -include_lib("kvs/include/kvs.hrl").
 
 % BPMN 2.0 API
-
+-define(REQ, name=[] :: [] | atom(),
+             module=[] :: [] | atom(),
+             prompt=[] :: list(tuple())).
 % TASKS
 
--record(task,         { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(task,         { ?REQ,
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
--record(userTask,     { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(userTask,     { ?REQ,
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()})  }).
--record(serviceTask,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(serviceTask,  { ?REQ,
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
--record(receiveTask,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(receiveTask,  { ?REQ,
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 
 % EVENTS
 
--record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(messageEvent, { ?REQ,
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | {integer(),{integer(),integer(),integer() }}}).
--record(boundaryEvent,{ name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(boundaryEvent,{ ?REQ,
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: {integer(),{integer(),integer(),integer()}},
                         timeDate=[] :: [] | binary(),
                         timeDuration=[] :: [] | binary(),
                         timeCycle=[] :: [] | binary() }).
--record(timeoutEvent, { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(timeoutEvent, { ?REQ,
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | {integer(),{integer(),integer(),integer()}},
                         timeDate=[] :: [] | binary(),
                         timeDuration=[] :: [] | binary(),
                         timeCycle=[] :: [] | binary() }).
--record(beginEvent ,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(beginEvent ,  { ?REQ,
                         etc=[] :: list({term(),term()}) }).
--record(endEvent,     { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
+-record(endEvent,     { ?REQ,
                         etc=[] :: list({term(),term()}) }).
 
 % EDGES
