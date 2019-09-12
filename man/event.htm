@@ -9,8 +9,13 @@
     <a href="https://n2o.dev">DEV</a>
     <a href="https://bpe.n2o.space">BPE</a>
     <a href="#" style="background:#ededed;">EVENT</a>
-    <a href="https://n2o.dev/deps/bpe/man/ua/event.htm">UA</a>
-    <a href="#" style="background:#ededed;">EN</a>
+  <div class="dropdown">
+    <a onclick="drop()" class="dropbtn">EN</a>
+    <div id="dropdown" class="dropdown-content">
+      <a href="https://n2o.dev/deps/bpe/man/ua/event.htm">UA</a>
+      <a href="#">EN</a>
+    </div>
+  </div>
 </nav><header>
     <a href="../index.html"><img src="https://n2o.space/img/Synrc Neo.svg" /></a>
     <h1>EVENT</h1>
@@ -35,4 +40,6 @@
 
 </main><footer>
     Made with <span class="heart">❤</span> to N2O
-</footer></body></html>
+</footer>
+<script>function drop(){document.getElementById("dropdown").classList.toggle("show");}</script>
+</body></html>
