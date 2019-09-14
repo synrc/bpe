@@ -5,6 +5,11 @@
 <title>BPE</title>
 <link rel="stylesheet" href="https://n2o.dev/blank.css" />
 <link rel="stylesheet" href="https://n2o.dev/zima.css" />
+<link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png"/>
+<link rel="manifest" href="/img/site.webmanifest"/>
 </head><body><nav>
     <a href="https://n2o.dev">DEV</a>
     <a href="https://bpe.n2o.space" style="background:#ededed;">BPE</a>
@@ -16,7 +21,7 @@
     </div>
   </div>
 </nav><header>
-    <a href="https://github.com/synrc/bpe"><img src="https://synrc.space/images/Synrc Neo.svg?v=1" /></a>
+    <a href="https://github.com/synrc/bpe"><img src="https://synrc.space/images/Synrc Neo.svg" /></a>
     <h1>BPE</h1>
 </header><aside>
     <article>
@@ -31,7 +36,7 @@
         <figure>
         <code> $ mad get bpe &#38;&#38; cd bpe
  $ mad com pla rep
- > bpe:start(bpe_account:def(),[]).</code></figure>
+ &#62; bpe:start(bpe_account:def(),[]).</code></figure>
         </section>
         <section>
             <h3>MODULES</h3>
@@ -52,16 +57,16 @@
 <h3>SESSION</h3>
 
     <figure><code>
-> bpe:start(bpe_account:def(),[]).
+&#62; bpe:start(bpe_account:def(),[]).
 Process "1562195753535380000" spawned as &#60;0.139.0&#62;.
 {ok,"1562195753535380000"}
 
-> bpe:complete("1562195753535380000").
+&#62; bpe:complete("1562195753535380000").
 Process: "1562195753535380000" Task: 'Created' Targets: ['Init']
 Target: 'Init' Status: reply Reason: unknown_task
 {unknown_task,'Init'}
 
-> bpe:hist("1562195753535380000").
+&#62; bpe:hist("1562195753535380000").
 [{hist,{1,"1562195753535380000"},
        feed,[],[],[],[],'IBAN Account',
        {task,'Init'},
@@ -73,25 +78,25 @@ Target: 'Init' Status: reply Reason: unknown_task
        [],
        {{2019,7,4},{2,13,7}}}]
 
-> bpe:head("1562195753535380000").
+&#62; bpe:head("1562195753535380000").
 {hist,{1,"1562195753535380000"},
       feed,[],[],[],[],'IBAN Account',
       {task,'Init'},
       [],
       {{2019,7,4},{2,13,43}}}
 
-> supervisor:which_children(bpe_otp).
+&#62; supervisor:which_children(bpe_otp).
 [{"1562195753535380000",&#60;0.139.0&#62;,worker,[bpe_proc]}]
     </code></figure>
 
 <figure>
     <figcaption>How the data is stored in KVS</figcaption>
     <code>
-> kvs:all(writer).
+&#62; kvs:all(writer).
 [{writer,"/bpe/proc",1,[],[],[]},
  {writer,"/bpe/hist/1562195753535380000",2,[],[],[]}]
 
-> kvs:get("/bpe/hist/1562195753535380000",{1,"1562195753535380000"}).
+&#62; kvs:get("/bpe/hist/1562195753535380000",{1,"1562195753535380000"}).
 {ok,{hist,{1,"1562195753535380000"},
           feed,[],[],[],[],'IBAN Account',
           {task,'Init'},
@@ -162,7 +167,7 @@ Target: 'Init' Status: reply Reason: unknown_task
     <code>
 -module(bpe_account).
 -compile(export_all).
-def() ->
+def() -&#62;
   #process { name = 'IBAN Account',
     flows = [
       #sequenceFlow { source='Created',   target='Init'},
