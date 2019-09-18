@@ -51,6 +51,8 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
+    case (Status == stop) of true -> []; _ ->
+
     Key = "/bpe/hist/" ++ProcState#process.id,
     Writer = kvs:writer(Key),
     kvs:append(#hist{   id = {Writer#writer.count,ProcState#process.id},
@@ -60,7 +62,9 @@ process_task(Stage,Proc,NoFlow) ->
                       task = {task, Target} }, Key),
 
     io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
-    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]),
+    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason])
+
+    end,
 
     NewProcState = ProcState#process{task = Target},
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
@@ -69,7 +73,7 @@ fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
 handle_call({get},            _,Proc) -> { reply,Proc,Proc };
-handle_call({run},            _,Proc) ->   run('Finish',Proc);
+handle_call({run},            _,Proc) ->   run('Final',Proc);
 handle_call({until,Stage},    _,Proc) ->   run(Stage,Proc);
 handle_call({event,Event},    _,Proc) ->   process_event(Event,Proc);
 handle_call({start},          _,Proc) ->   process_task([],Proc);

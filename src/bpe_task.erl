@@ -26,7 +26,7 @@ task_action(Module,CurrentTask,Target,Proc) ->
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State}; % TODO: REFACTOR
-         {stop,{normal,Target},Proc}  -> {stop,{normal,Target},Proc};
+         {stop,Proc}                  -> {stop,{normal,Target},Proc};
          {reply,Task,State}           -> {reply,{complete,Task},State} end.
 
 handle_task(#beginEvent{module=Module},CurrentTask,Target,Proc) ->
