@@ -67,6 +67,7 @@ process_task(Stage,Proc,NoFlow) ->
     end,
 
     NewProcState = ProcState#process{task = Target},
+    kvs:append(NewProcState, "/bpe/proc"),
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
