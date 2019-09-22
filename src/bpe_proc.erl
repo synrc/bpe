@@ -9,13 +9,16 @@
 
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
+debug(Proc,Name,Targets,Target,Status,Reason) ->
+    io:format("Process: ~p Node: ~p Targets: ~p~n",[Proc#process.id,Name,Targets]),
+    io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]).
+
 process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),
     Targets = bpe_task:targets(EventName,Proc),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
     bpe:trace(ProcState,[],calendar:local_time(),{event,element(#messageEvent.name,Event)}),
-    io:format("Process: ~p Event: ~p Targets: ~p~n",[Proc#process.id,EventName,Targets]),
-    io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
+    debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
@@ -27,7 +30,8 @@ process_task(Stage,Proc,NoFlow) ->
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
 
-    {Status,{Reason,Target},ProcState} = case {Targets,Proc#process.task,Stage} of
+    {Status,{Reason,Target},ProcState} =
+       case {Targets,Proc#process.task,Stage} of
          {noflow,_,_} -> {reply,{complete,Curr},Proc};
          {[],Term,_}  -> bpe_task:already_finished(Proc);
          {[],Curr,_}  -> bpe_task:handle_task(Task,Curr,Curr,Proc);
@@ -35,10 +39,11 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
-    case (Status == stop) orelse (NoFlow == true) of true -> []; _ ->
-    bpe:trace(ProcState,[],calendar:local_time(),{task, Target}),
-    io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
-    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]) end,
+    case (Status == stop) orelse (NoFlow == true) of
+       true -> []; 
+       _ -> bpe:trace(ProcState,[],calendar:local_time(),{task, Target}),
+            debug(ProcState,Curr,Targets,Target,Status,Reason) end,
+
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
