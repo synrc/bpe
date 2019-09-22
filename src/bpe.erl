@@ -54,15 +54,15 @@ start(Proc0, Options) ->
          {ok,_,_}  -> {ok,Proc#process.id};
          {error,_} -> {error,Proc#process.id} end.
 
-find_pid(Id) -> bpe:cache({process,Id}).
+pid(Id) -> bpe:cache({process,Id}).
 
-proc(ProcId)              -> gen_server:call(find_pid(ProcId),{get},            ?TIMEOUT).
-complete(ProcId)          -> gen_server:call(find_pid(ProcId),{complete},       ?TIMEOUT).
-complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}, ?TIMEOUT).
-amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form},     ?TIMEOUT).
-discard(ProcId,Form)      -> gen_server:call(find_pid(ProcId),{discard,Form},   ?TIMEOUT).
-modify(ProcId,Form,Arg)   -> gen_server:call(find_pid(ProcId),{modify,Form,Arg},?TIMEOUT).
-event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
+proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
+complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
+complete(Stage,ProcId)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
+amend(ProcId,Form)        -> gen_server:call(pid(ProcId),{amend,Form},     ?TIMEOUT).
+discard(ProcId,Form)      -> gen_server:call(pid(ProcId),{discard,Form},   ?TIMEOUT).
+modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIMEOUT).
+event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIMEOUT).
 
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
