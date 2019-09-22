@@ -62,7 +62,7 @@ run(ProcId)               -> gen_server:call(find_pid(ProcId),{run},            
 until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task},     ?TIMEOUT).
 complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}, ?TIMEOUT).
 amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form},     ?TIMEOUT).
-modify(ProcId,Form)       -> gen_server:call(find_pid(ProcId),{modify,Form},    ?TIMEOUT).
+modify(ProcId,Form,Arg)   -> gen_server:call(find_pid(ProcId),{modify,Form,Arg},?TIMEOUT).
 event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
 
 delete_tasks(Proc, Tasks) ->
