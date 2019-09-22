@@ -12,25 +12,10 @@ start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),
     Targets = bpe_task:targets(EventName,Proc),
-
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
-
-    Key = "/bpe/hist/" ++ ProcState#process.id,
-    Writer = kvs:writer(Key),
-
-    % the reason we need compund keys here for id field
-    % is that in mnesia backend all hist entries are stored in one table
-    % so step position is not enough. For RocksDB you can use just writer.count.
-
-    kvs:append(#hist{ id = {Writer#writer.count,ProcState#process.id},
-                    name = [],
-                    time = calendar:local_time(),
-                    docs = ProcState#process.docs,
-                    task = { event, element(#messageEvent.name,Event) }}, Key),
-
+    bpe:history(ProcState,[],calendar:local_time(),{event,element(#messageEvent.name,Event)}),
     io:format("Process: ~p Event: ~p Targets: ~p~n",[Proc#process.id,EventName,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
-
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
@@ -51,20 +36,9 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
     case (Status == stop) orelse (NoFlow == true) of true -> []; _ ->
-
-    Key = "/bpe/hist/" ++ProcState#process.id,
-    Writer = kvs:writer(Key),
-    kvs:append(#hist{   id = {Writer#writer.count,ProcState#process.id},
-                      name = [],
-                      time = calendar:local_time(),
-                      docs = ProcState#process.docs,
-                      task = {task, Target} }, Key),
-
+    bpe:history(ProcState,[],calendar:local_time(),{task, Target}),
     io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
-    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason])
-
-    end,
-
+    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]) end,
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
@@ -145,15 +119,3 @@ terminate(Reason, #process{id=Id}) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-run(Task,Process) ->
-    CurrentTask = Process#process.task,
-    case bpe_proc:process_task([],Process,false) of
-         {reply,{complete,Reached},NewProc}
-           when Reached /= CurrentTask andalso Reached /= Task -> run(Task,NewProc);
-         Else -> Else end.
-
-transient(#process{docs=Docs}=Process) ->
-    Process#process{docs=lists:filter(
-        fun (X) -> not lists:member(element(1,X),
-            application:get_env(bpe,transient,[])) end,Docs)}.

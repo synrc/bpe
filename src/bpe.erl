@@ -24,6 +24,16 @@ current_task(Id) ->
          [] -> {0,{task, 'Created'}};
          #hist{id={H,_},task=T} -> {H,T} end.
 
+history(Proc,Name,Time,Task,Key) ->
+    Key = "/bpe/hist/" ++ Proc#process.id,
+    Writer = kvs:writer(Key),
+    kvs:append(Proc, "/bpe/proc"),
+    kvs:append(#hist{ id = {Writer#writer.count,Proc#process.id},
+                    name = Name,
+                    time = Time,
+                    docs = Proc#process.docs,
+                    task = Task}, Key).
+
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
     Key  = "/bpe/hist/" ++ Id,
@@ -35,13 +45,7 @@ start(Proc0, Options) ->
            notifications = Pid,
            started=calendar:local_time()},
 
-    kvs:append(Proc, "/bpe/proc"),
-    case Hist of 0 ->
-    kvs:append(#hist{ id = {Hist,Id},
-                    name = Proc#process.name,
-                    time = Proc#process.started,
-                    docs = Proc#process.docs,
-                    task = Task}, Key); _ -> skip end,
+    case Hist of 0 -> history(Proc,[],os:timestamp(),Task,Key); _ -> skip end,
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
@@ -58,7 +62,7 @@ pid(Id) -> bpe:cache({process,Id}).
 
 proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
-complete(Stage,ProcId)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
+complete(ProcId,Stage)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
 amend(ProcId,Form)        -> gen_server:call(pid(ProcId),{amend,Form},     ?TIMEOUT).
 discard(ProcId,Form)      -> gen_server:call(pid(ProcId),{discard,Form},   ?TIMEOUT).
 modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIMEOUT).
