@@ -1,7 +1,6 @@
 -module(bpe_env).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
--include_lib("kvs/include/cursors.hrl").
 -export([append/3,find/3,remove/3]).
 
 append(kvs,Feed,Rec) ->
