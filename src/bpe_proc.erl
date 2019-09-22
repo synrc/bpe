@@ -70,18 +70,18 @@ process_task(Stage,Proc,NoFlow) ->
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
-handle_call({get},            _,Proc) -> { reply,Proc,Proc };
-handle_call({run},            _,Proc) ->   run('Final',Proc);
-handle_call({until,Stage},    _,Proc) ->   run(Stage,Proc);
-handle_call({event,Event},    _,Proc) ->   process_event(Event,Proc);
-handle_call({start},          _,Proc) ->   process_task([],Proc);
-handle_call({complete},       _,Proc) ->   process_task([],Proc);
-handle_call({complete,Stage}, _,Proc) ->   process_task(Stage,Proc);
-handle_call({modify,Form},    _,Proc) ->   process_task([],Proc#process{docs=[Form]},true);
-handle_call({amend,Form},     _,Proc) ->   process_task([],Proc#process{docs=[Form]});
-handle_call({remove,Form},    _,Proc) ->   process_task([],Proc#process{docs=[
-                                         { remove,element(1,Form),element(2,Form)}]},true);
-handle_call(Command,_,Proc)           -> { reply,{unknown,Command},Proc }.
+handle_call({run},               _,Proc) ->   run('Final',Proc);
+handle_call({until,Stage},       _,Proc) ->   run(Stage,Proc);
+handle_call({event,Event},       _,Proc) ->   process_event(Event,Proc);
+handle_call({start},             _,Proc) ->   process_task([],Proc);
+handle_call({complete},          _,Proc) ->   process_task([],Proc);
+handle_call({complete,Stage},    _,Proc) ->   process_task(Stage,Proc);
+handle_call({modify,Form,append},_,Proc) ->   process_task([],bpe_env:append(env,Proc,Form),true);
+handle_call({modify,Form,remove},_,Proc) ->   process_task([],bpe_env:remove(env,Proc,Form),true);
+handle_call({amend,Form},        _,Proc) ->   process_task([],bpe_env:append(env,Proc,Form));
+handle_call({remove,Form},       _,Proc) ->   process_task([],bpe_env:remove(env,Proc,Form));
+handle_call({get},               _,Proc) -> { reply,Proc,Proc };
+handle_call(Command,_,Proc)              -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     Proc = bpe:load(Process#process.id,Process),
