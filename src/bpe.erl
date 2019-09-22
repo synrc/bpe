@@ -3,7 +3,7 @@
 -include("bpe.hrl").
 -include_lib("kvs/include/cursors.hrl").
 -include("api.hrl").
--export([head/1,history/4]).
+-export([head/1,trace/4]).
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
@@ -24,7 +24,7 @@ current_task(Id) ->
          [] -> {empty,{task, 'Created'}};
          #hist{id={H,_},task=T} -> {H,T} end.
 
-history(Proc,Name,Time,Task) ->
+trace(Proc,Name,Time,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     kvs:append(Proc, "/bpe/proc"),
@@ -45,7 +45,7 @@ start(Proc0, Options) ->
            notifications = Pid,
            started=calendar:local_time()},
 
-    case Hist of empty -> history(Proc,[],calendar:local_time(),Task); _ -> skip end,
+    case Hist of empty -> trace(Proc,[],calendar:local_time(),Task); _ -> skip end,
 
     Restart = transient,
     Shutdown = ?TIMEOUT,

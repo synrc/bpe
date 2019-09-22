@@ -13,7 +13,7 @@ process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),
     Targets = bpe_task:targets(EventName,Proc),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
-    bpe:history(ProcState,[],calendar:local_time(),{event,element(#messageEvent.name,Event)}),
+    bpe:trace(ProcState,[],calendar:local_time(),{event,element(#messageEvent.name,Event)}),
     io:format("Process: ~p Event: ~p Targets: ~p~n",[Proc#process.id,EventName,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
@@ -36,7 +36,7 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
     case (Status == stop) orelse (NoFlow == true) of true -> []; _ ->
-    bpe:history(ProcState,[],calendar:local_time(),{task, Target}),
+    bpe:trace(ProcState,[],calendar:local_time(),{task, Target}),
     io:format("Process: ~p Task: ~p Targets: ~p ~n",[Proc#process.id,Curr,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]) end,
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
