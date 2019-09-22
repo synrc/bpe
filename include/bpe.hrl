@@ -1,13 +1,6 @@
 -ifndef(BPE_HRL).
 -define(BPE_HRL, true).
 
--include_lib("kvs/include/kvs.hrl").
--include_lib("kvs/include/kvs.hrl").
-
-% BPMN 2.0 API
-
-% TASKS
-
 -record(task,         { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -28,9 +21,6 @@
                         prompt=[] :: list(tuple()),
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
-
-% EVENTS
-
 -record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -63,15 +53,13 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}) }).
-
-% EDGES
-
 -record(sequenceFlow, { source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
-% TRACE
-
 -type histId() :: [] | integer() | {term(),term()}.
+-type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
+-type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
+-type procId() :: [] | integer() | {atom(),any()}.
 
 -record(hist,         { id = [] :: histId(),
                         container=feed :: [] | atom(),
@@ -83,13 +71,6 @@
                         task=[] :: [] | atom() | {atom()|string(),any()},
                         docs=[] :: list(tuple()),
                         time=[] :: term() }).
-
-% PROCESS
-
--type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
--type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
--type procId() :: [] | integer() | {atom(),any()}.
-
 -record(process,      { id = [] :: procId(),
                         container=feed :: [] | atom(),
                         feed_id=[] :: [] | atom() | term(),
@@ -112,8 +93,6 @@
                         started    = [] :: [] | calendar:datetime(),
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
-
-% BPE API
 
 -record('Comp', { id=[]   :: [] | integer() }).
 -record('Proc', { id=[]   :: [] | integer() }).
