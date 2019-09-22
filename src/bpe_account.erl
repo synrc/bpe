@@ -24,7 +24,7 @@ def() ->
         beginEvent = 'Init',
         endEvent = 'Final',
         events = [ #messageEvent{name='PaymentReceived'},
-                   #boundaryEvent{name='*', timeout={0, {0, 0, 10}}} ] }.
+                   #boundaryEvent{name='*', timeout={0, {10, 0, 10}}} ] }.
 
 action({request,'Created'}, Proc) ->
     {reply,Proc};

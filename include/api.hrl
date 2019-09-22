@@ -11,6 +11,7 @@
 -spec complete(term()) -> {complete,any()}.
 -spec complete(any(),term()) -> {complete,any()}.
 -spec amend(term(),any()) -> {complete,any()}.
+-spec discard(term(),any()) -> {complete,any()}.
 -spec modify(term(),any(),append|remove) -> {complete,any()}.
 -spec event(term(),any()) -> {complete,any()}.
 -spec hist(term()) -> list(#hist{}).
