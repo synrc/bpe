@@ -45,7 +45,7 @@ start(Proc0, Options) ->
            notifications = Pid,
            started=calendar:local_time()},
 
-    case Hist of 0 -> history(Proc,[],os:timestamp(),Task,Key); _ -> skip end,
+    case Hist of 0 -> history(Proc,[],calendar:local_time(),Task,Key); _ -> skip end,
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
