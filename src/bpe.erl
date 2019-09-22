@@ -72,7 +72,6 @@ delete_tasks(Proc, Tasks) ->
 
 % BPE for now supports only MNESIA and ROCKS backends.
 
-
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
        {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{C - 1,ProcId}) of
@@ -99,32 +98,18 @@ step(Name, Proc) ->
          [] -> #task{};
          E -> E end.
 
-doc(Rec, Proc) ->
-    case [ Doc || Doc <- docs(Proc), element(1,Doc) == element(1,Rec)] of
-         [D] -> D;
-         [] -> [];
-         E -> E end.
-
 docs  (Proc) -> Proc#process.docs.
 tasks (Proc) -> Proc#process.tasks.
 events(Proc) -> Proc#process.events.
 
-% Process Schema
+% Emulate Event-Condition-Action Systems
 
-new_task(Proc,GivenTask) ->
-   Existed = [ Task || Task<- Proc#process.tasks, Task#task.name == GivenTask#task.name],
-   case Existed of
-        [] -> Proc#process{tasks=[GivenTask|Proc#process.tasks]};
-         _ -> {error,exist,Existed} end.
-
-delete(_Proc) -> ok.
-
-val(Document,Proc,Cond) -> val(Document,Proc,Cond,fun(_,_)-> ok end).
-val(Document,Proc,Cond,Action) ->
+'ECA'(Proc,Document,Cond) -> 'ECA'(Proc,Document,Cond,fun(_,_)-> ok end).
+'ECA'(Proc,Document,Cond,Action) ->
     case Cond(Document,Proc) of
          true -> Action(Document,Proc), {reply,Proc};
          {false,Message} -> {{reply,Message},Proc#process.task,Proc};
-         ErrorList -> io:format("BPE:val/4 failed: ~tp~n",[ErrorList]),
+         ErrorList -> io:format("ECA/4 failed: ~tp~n",[ErrorList]),
                       {{reply,ErrorList},Proc#process.task,Proc} end.
 
 cache(Key, undefined) -> ets:delete(processes,Key);
@@ -148,20 +133,6 @@ till(Now,TTL) ->
                     calendar:datetime_to_gregorian_seconds(Now) + TTL)
     end.
 
-send(Pool, Message) -> syn:publish(term_to_binary(Pool),Message).
-reg(Pool) -> reg(Pool,undefined).
-reg(Pool, Value) ->
-    case get({pool,Pool}) of
-         undefined -> syn:register(term_to_binary(Pool),self(),Value),
-                      syn:join(term_to_binary(Pool),self()),
-                      erlang:put({pool,Pool},Pool);
-          _Defined -> skip end.
-unreg(Pool) ->
-    case get({pool,Pool}) of
-         undefined -> skip;
-          _Defined -> syn:leave(Pool, self()),
-                      erlang:erase({pool,Pool}) end.
-
 reload(Module) ->
     {Module, Binary, Filename} = code:get_object_code(Module),
     case code:load_binary(Module, Filename, Binary) of
@@ -171,3 +142,17 @@ reload(Module) ->
             {load_error, Module, Reason}
     end.
 
+send(Pool, Message) -> syn:publish(term_to_binary(Pool),Message).
+reg(Pool) -> reg(Pool,undefined).
+reg(Pool, Value) ->
+  case get({pool,Pool}) of
+    undefined -> syn:register(term_to_binary(Pool),self(),Value),
+                 syn:join(term_to_binary(Pool),self()),
+                 erlang:put({pool,Pool},Pool);
+     _Defined -> skip end.
+
+unreg(Pool) ->
+  case get({pool,Pool}) of
+    undefined -> skip;
+     _Defined -> syn:leave(Pool, self()),
+                 erlang:erase({pool,Pool}) end.
