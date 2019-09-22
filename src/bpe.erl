@@ -37,14 +37,12 @@ start(Proc0, Options) ->
 
     kvs:append(Proc, "/bpe/proc"),
     Writer = kvs:writer(Key),
-    case bpe:head(Id) of
-         #hist{} -> skip;
-         [] ->
+    case Hist of 0 ->
     kvs:append(#hist{ id = {Hist,Id},
                     name = Proc#process.name,
                     time = Proc#process.started,
                     docs = Proc#process.docs,
-                    task = {task, 'Created'}}, Key) end,
+                    task = Task}, Key); _ -> skip end,
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
