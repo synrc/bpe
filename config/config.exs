@@ -8,8 +8,10 @@ config :kvs,
 config :bpe,
   logger_level: :debug,
   logger: [{:handler, :synrc, :logger_std_h,
-            %{formatter: {:logger_formatter, %{single_line: true, template: [:time,' ',:pid,' ',:msg,'\n']}},
-              level: :debug,
+            %{level: :debug,
               id: :synrc,
               module: :logger_std_h,
-              config: %{type: :file, file: 'bpe.log'}}} ]
+              config: %{type: :file, file: 'bpe.log'},
+              formatter: {:logger_formatter,
+                          %{template: [:time,' ',:pid,' ',:msg,'\n'],
+                            single_line: true,}}}}]
