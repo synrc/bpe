@@ -16,5 +16,6 @@
 -spec step(term(),#process{}) -> [tuple()] | tuple().
 -spec tasks(#process{}) -> list().
 -spec docs(#process{}) -> list().
+-spec doc(tuple(),#process{}) -> list().
 -spec events(#process{}) -> list().
 
