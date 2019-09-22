@@ -31,9 +31,7 @@ process_event(Event,Proc) ->
     io:format("Process: ~p Event: ~p Targets: ~p~n",[Proc#process.id,EventName,Targets]),
     io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
 
-    NewProcState = ProcState#process{task = Target},
-    kvs:append(NewProcState, "/bpe/proc"),
-    begin fix_reply({Status,{Reason,Target},NewProcState}) end.
+    fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
@@ -67,9 +65,7 @@ process_task(Stage,Proc,NoFlow) ->
 
     end,
 
-    NewProcState = ProcState#process{task = Target},
-    kvs:append(NewProcState, "/bpe/proc"),
-    begin fix_reply({Status,{Reason,Target},NewProcState}) end.
+    fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.

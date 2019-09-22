@@ -23,7 +23,8 @@ def() ->
             #endEvent    { name='Final',     module = bpe_account } ],
         beginEvent = 'Init',
         endEvent = 'Final',
-        events = [ #messageEvent{name='PaymentReceived'} ] }.
+        events = [ #messageEvent{name='PaymentReceived'},
+                   #boundaryEvent{name='*', timeout={0, {0, 0, 10}}} ] }.
 
 action({request,'Created'}, Proc) ->
     {reply,Proc};
