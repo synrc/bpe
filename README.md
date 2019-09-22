@@ -7,18 +7,13 @@ BPE: Business Process Engine
 Overview
 --------
 
-BPE is Business Process Managament Application that brings Erlang for Enterprises.
+BPE is a Business Processing Engine that brings BPMN to Erlang and Erlang to Enterprises.
 It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
-Workflow Engine
-===============
-
-Workflow Engine -- is an Erlang/OTP application which handles process definitions,
-process instances, and provides very clean API for Workplaces.
-
-Process Schema
---------------
+```
+>
+```
 
 Before using Process Engine you need to define the set of business process
 workflows of your enterprise. This could be done via Erlang terms or some DSL

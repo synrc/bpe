@@ -15,13 +15,14 @@ def() ->
             #sequenceFlow{source='Process',   target=['Process','Final']},
             #sequenceFlow{source='Signatory', target=['Process','Final']} ],
         tasks = [
+            #beginEvent  { name='Created',   module = bpe_account },
             #userTask    { name='Init',      module = bpe_account },
             #userTask    { name='Upload',    module = bpe_account },
             #userTask    { name='Signatory', module = bpe_account },
             #serviceTask { name='Payment',   module = bpe_account },
             #serviceTask { name='Process',   module = bpe_account },
             #endEvent    { name='Final',     module = bpe_account } ],
-        beginEvent = 'Init',
+        beginEvent = 'Created',
         endEvent = 'Final',
         events = [ #messageEvent{name='PaymentReceived'},
                    #boundaryEvent{name='*', timeout={0, {10, 0, 10}}} ] }.

@@ -10,8 +10,8 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 debug(Proc,Name,Targets,Target,Status,Reason) ->
-    logger:notice("BPE: ~p Node: ~p Targets: ~p Target: ~p Status: ~p Reason: ~p~n",
-       [Proc#process.id,Name,Targets,Target,Status,Reason]).
+    logger:notice("BPE: ~p [~w:~w] ~w/~w ~w~n",
+      [Proc#process.id,Name,Target,Status,Reason,Targets]).
 
 process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),
