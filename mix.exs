@@ -4,8 +4,8 @@ defmodule BPE.Mixfile do
   def project do
     [
       app: :bpe,
-      version: "4.9.8",
-      description: "BPE Process Engine",
+      version: "4.9.9",
+      description: "BPE Business Processing Engine",
       package: package(),
       deps: deps()
     ]
@@ -17,7 +17,7 @@ defmodule BPE.Mixfile do
 
   def package do
     [
-      files: ~w(doc include lib src mix.exs LICENSE rebar.config),
+      files: ~w(include lib src mix.exs rebar.config),
       licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
