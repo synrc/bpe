@@ -64,12 +64,6 @@ discard(ProcId,Form)      -> gen_server:call(find_pid(ProcId),{discard,Form},   
 modify(ProcId,Form,Arg)   -> gen_server:call(find_pid(ProcId),{modify,Form,Arg},?TIMEOUT).
 event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
 
-delete_tasks(Proc, Tasks) ->
-    Proc#process { tasks = [ Task || Task <- Proc#process.tasks,
-                   lists:member(Task#task.name,Tasks) ] }.
-
-% BPE for now supports only MNESIA and ROCKS backends.
-
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
        {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{C - 1,ProcId}) of
