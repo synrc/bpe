@@ -70,16 +70,13 @@ process_task(Stage,Proc,NoFlow) ->
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
-handle_call({run},               _,Proc) ->   run('Final',Proc);
-handle_call({until,Stage},       _,Proc) ->   run(Stage,Proc);
-handle_call({event,Event},       _,Proc) ->   process_event(Event,Proc);
-handle_call({start},             _,Proc) ->   process_task([],Proc);
-handle_call({complete},          _,Proc) ->   process_task([],Proc);
-handle_call({complete,Stage},    _,Proc) ->   process_task(Stage,Proc);
-handle_call({modify,Form,append},_,Proc) ->   process_task([],bpe_env:append(env,Proc,Form),true);
-handle_call({modify,Form,remove},_,Proc) ->   process_task([],bpe_env:remove(env,Proc,Form),true);
-handle_call({amend,Form},        _,Proc) ->   process_task([],bpe_env:append(env,Proc,Form));
-handle_call({discard,Form},      _,Proc) ->   process_task([],bpe_env:remove(env,Proc,Form));
+handle_call({event,Event},       _,Proc) -> process_event(Event,Proc);
+handle_call({complete},          _,Proc) -> process_task([],Proc);
+handle_call({complete,Stage},    _,Proc) -> process_task(Stage,Proc);
+handle_call({modify,Form,append},_,Proc) -> process_task([],bpe_env:append(env,Proc,Form),true);
+handle_call({modify,Form,remove},_,Proc) -> process_task([],bpe_env:remove(env,Proc,Form),true);
+handle_call({amend,Form},        _,Proc) -> process_task([],bpe_env:append(env,Proc,Form));
+handle_call({discard,Form},      _,Proc) -> process_task([],bpe_env:remove(env,Proc,Form));
 handle_call({get},               _,Proc) -> { reply,Proc,Proc };
 handle_call(Command,_,Proc)              -> { reply,{unknown,Command},Proc }.
 
