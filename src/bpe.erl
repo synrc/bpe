@@ -27,7 +27,7 @@ current_task(Id) ->
 trace(Proc,Name,Time,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
-    kvs:append(Proc, "/bpe/proc"),
+    kvs:append(Proc,"/bpe/proc"),
     kvs:append(#hist{ id = {Writer#writer.count,Proc#process.id},
                     name = Name,
                     time = Time,
