@@ -32,6 +32,7 @@ process_event(Event,Proc) ->
     io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]),
 
     NewProcState = ProcState#process{task = Target},
+    kvs:append(NewProcState, "/bpe/proc"),
     begin fix_reply({Status,{Reason,Target},NewProcState}) end.
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
