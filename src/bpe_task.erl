@@ -35,7 +35,10 @@ handle_task(#beginEvent{module=Module},CurrentTask,Target,Proc) ->
 handle_task(#userTask{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#receiveTask{module=Module},CurrentTask,Target,Proc) ->
+handle_task(#receiveTask{module=Module,reader=_Reader},CurrentTask,Target,Proc) ->
+    task_action(Module,CurrentTask,Target,Proc);
+
+handle_task(#sendTask{module=Module,writer=_Writer},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
 handle_task(#serviceTask{module=Module},CurrentTask,Target,Proc) ->

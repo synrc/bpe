@@ -1,6 +1,8 @@
 -ifndef(BPE_HRL).
 -define(BPE_HRL, true).
 
+-include_lib("kvs/include/cursors.hrl").
+
 -record(task,         { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -19,6 +21,13 @@
 -record(receiveTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
+                        reader=[] :: #reader{},
+                        roles=[] :: [] | binary(),
+                        etc=[] :: list({term(),term()}) }).
+-record(sendTask,     { name=[] :: [] | atom(),
+                        module=[] :: [] | atom(),
+                        prompt=[] :: list(tuple()),
+                        writer=[] :: #writer{},
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 -record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
