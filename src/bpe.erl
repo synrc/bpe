@@ -36,7 +36,6 @@ start(Proc0, Options) ->
            started=calendar:local_time()},
 
     kvs:append(Proc, "/bpe/proc"),
-    Writer = kvs:writer(Key),
     case Hist of 0 ->
     kvs:append(#hist{ id = {Hist,Id},
                     name = Proc#process.name,
@@ -63,7 +62,7 @@ run(ProcId)               -> gen_server:call(find_pid(ProcId),{run},            
 until(ProcId,Task)        -> gen_server:call(find_pid(ProcId),{until,Task},     ?TIMEOUT).
 complete(Stage,ProcId)    -> gen_server:call(find_pid(ProcId),{complete,Stage}, ?TIMEOUT).
 amend(ProcId,Form)        -> gen_server:call(find_pid(ProcId),{amend,Form},     ?TIMEOUT).
-amend(ProcId,Form,noflow) -> gen_server:call(find_pid(ProcId),{amend,Form,true},?TIMEOUT).
+modify(ProcId,Form)       -> gen_server:call(find_pid(ProcId),{modify,Form},    ?TIMEOUT).
 event(ProcId,Event)       -> gen_server:call(find_pid(ProcId),{event,Event},    ?TIMEOUT).
 
 delete_tasks(Proc, Tasks) ->

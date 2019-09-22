@@ -50,7 +50,7 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
-    case (Status == stop) of true -> []; _ ->
+    case (Status == stop) orelse (NoFlow == true) of true -> []; _ ->
 
     Key = "/bpe/hist/" ++ProcState#process.id,
     Writer = kvs:writer(Key),
@@ -77,7 +77,7 @@ handle_call({event,Event},    _,Proc) ->   process_event(Event,Proc);
 handle_call({start},          _,Proc) ->   process_task([],Proc);
 handle_call({complete},       _,Proc) ->   process_task([],Proc);
 handle_call({complete,Stage}, _,Proc) ->   process_task(Stage,Proc);
-handle_call({amend,Form,true},_,Proc) ->   process_task([],Proc#process{docs=[Form]},true);
+handle_call({modify,Form},    _,Proc) ->   process_task([],Proc#process{docs=[Form]},true);
 handle_call({amend,Form},     _,Proc) ->   process_task([],Proc#process{docs=[Form]});
 handle_call({remove,Form},    _,Proc) ->   process_task([],Proc#process{docs=[
                                          { remove,element(1,Form),element(2,Form)}]},true);
