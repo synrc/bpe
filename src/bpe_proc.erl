@@ -10,8 +10,8 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 debug(Proc,Name,Targets,Target,Status,Reason) ->
-    io:format("Process: ~p Node: ~p Targets: ~p~n",[Proc#process.id,Name,Targets]),
-    io:format("Target: ~p Status: ~p Reason: ~p",[Target,Status,Reason]).
+    io:format("BPE: ~p Node: ~p Targets: ~p ",[Proc#process.id,Name,Targets]),
+    io:format("Target: ~p Status: ~p Reason: ~p~n",[Target,Status,Reason]).
 
 process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),
@@ -61,7 +61,7 @@ handle_call(Command,_,Proc)              -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     Proc = bpe:load(Process#process.id,Process),
-    io:format("Process ~p spawned as ~p.~n",[Proc#process.id,self()]),
+    io:format("BPE: ~p spawned as ~p~n",[Proc#process.id,self()]),
     Till = bpe:till(calendar:local_time(), application:get_env(bpe,ttl,24*60*60)),
     bpe:cache({process,Proc#process.id},self(),Till),
     [ bpe:reg({messageEvent,element(1,EventRec),Proc#process.id}) || EventRec <- bpe:events(Proc) ],
@@ -96,11 +96,11 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
         {false,timeoutEvent} ->
-            io:format("BPE ~p: next step by timeout.~nDiff: ~p.~n",[Id,{DD,Diff}]),
+            io:format("BPE: ~p complete Timeout: ~p~n",[Id,{DD,Diff}]),
             case process_task([],State) of
                 {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
-        {false,_} -> io:format("BPE ~p: closing Timeout.~nDiff: ~p.~n",[Id,{DD,Diff}]),
+        {false,_} -> io:format("BPE: ~p close Timeout: ~p~n",[Id,{DD,Diff}]),
             case is_pid(Pid) of
                 true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                 false -> skip end,
@@ -113,11 +113,11 @@ handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process
     {stop, normal, State};
 
 handle_info(Info, State=#process{}) ->
-    io:format("Unrecognized info: ~p", [Info]),
+    io:format("Unrecognized info: ~p~n", [Info]),
     {noreply, State}.
 
 terminate(Reason, #process{id=Id}) ->
-    io:format("Terminating session Id cache: ~p~n Reason: ~p", [Id,Reason]),
+    io:format("BPE: ~p terminate Reason: ~p~n", [Id,Reason]),
     spawn(fun() -> supervisor:delete_child(bpe_otp,Id) end),
     bpe:cache({process,Id},undefined),
     ok.
