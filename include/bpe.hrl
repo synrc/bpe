@@ -62,13 +62,17 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}) }).
--record(sequenceFlow, { source=[] :: [] | atom(),
+-record(sequenceFlow, { name=[] :: term(),
+                        parent=[] :: term(),
+                        condition=[] :: term(),
+                        source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
 -type histId() :: [] | integer() | {term(),term()}.
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
 -type procId() :: [] | integer() | {atom(),any()}.
+-type gate()   :: none | exclusive | parallel | inclusive | complex | event.
 
 -record(hist,         { id = [] :: histId(),
                         container=feed :: [] | atom(),
@@ -102,6 +106,11 @@
                         started    = [] :: [] | calendar:datetime(),
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
+
+-record(gateway,      { name=[] :: [] | atom(),
+                        type= none :: gate(),
+                        inputs=[] :: list(#sequenceFlow{}),
+                        outputs=[] :: list(#sequenceFlow{}) }).
 
 -record('Comp', { id=[]   :: [] | integer() }).
 -record('Proc', { id=[]   :: [] | integer() }).
