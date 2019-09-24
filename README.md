@@ -33,8 +33,8 @@ diagram or graph where points represented by `task` and egdes by `sequenceFlow`.
 Tasks and Flows
 ---------------
 
-The step itself is represented as `task` (points). The transition between steps is
-represented as `sequenceFlow` (edges). 
+The step itself is represented as `task` (point). The transition between steps is
+represented as `sequenceFlow` (edge). 
 
 ```erlang
 -record(task, { name, id, roles, module }).
