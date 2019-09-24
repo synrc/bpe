@@ -119,8 +119,8 @@
 
 -record(gateway,      { name=[] :: [] | atom(),
                         type= none :: gate(),
-                        inputs=[] :: list(#sequenceFlow{}),
-                        outputs=[] :: list(#sequenceFlow{}) }).
+                        inputs=[] :: atom() | list(atom()),
+                        outputs=[] :: atom() | list(atom()) }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).
