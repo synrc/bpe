@@ -17,7 +17,8 @@ Processes
 Processes are main entities of BPE, they map one-to-one to Erlang processes.
 Basically, BPE process is an algorithm or function, that is executed entirely in the
 context of Erlang process. The arguments for such algorithms are:
-1) KVS feeds representing infinite streams 2) Erlang messages being sent to BPE process.
+values from infinite streams (KVS chains);
+values from Erlang messages being sent to BPE process.
 
 ```erlang
 -record(hist, { id, next, prev, name, task, docs, time }).
@@ -26,8 +27,8 @@ context of Erlang process. The arguments for such algorithms are:
 ```
 
 During execution of the process, all steps are being written to the persistent storage,
-by which execution logic is restorable and reproducable. The process definition is called
-diagram or graph where points are `tasks` and egdes are `sequenceFlows`.
+by which execution logic is restorable and reproducable. The process definition is actually
+diagram or graph where points represented by `task` and egdes by `sequenceFlow`.
 
 Tasks and Flows
 ---------------
@@ -75,6 +76,7 @@ Gateways represent multiplexors and demultiplexors which cause non-linear trace 
 current states as leaves of execution graph.
 
 ```erlang
+-record(gateway, { name, type, inputs, outputs }).
 ```
 
 Full set of BPMN 2.0 fields could be obtained
