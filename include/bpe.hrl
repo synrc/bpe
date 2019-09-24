@@ -73,7 +73,6 @@
                         etc=[] :: list({term(),term()}) }).
 
 -record(sequenceFlow, { name=[] :: term(),
-                        parent=[] :: term(),
                         condition=[] :: term(),
                         source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
@@ -89,7 +88,7 @@
                         feed_id=[] :: any(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
-                        feeds=[] :: list(),
+                        parent=[] :: histId(),
                         name=[] :: [] | binary(),
                         task=[] :: [] | atom() | {atom()|string(),any()},
                         docs=[] :: list(tuple()),
