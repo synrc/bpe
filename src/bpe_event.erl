@@ -5,8 +5,6 @@
 
 event_action(Module,_Name,Event,Target,Proc) ->
     case Module:action({event,Event#messageEvent.name,Event#messageEvent.payload},Proc) of
-         {run,State}        -> bpe_proc:run('Finish',State);
-         {until,Task,State} -> bpe_proc:run(Task,State);
          {reply,State}      -> {reply,{complete,Target},State};
          {reply,Task,State} -> {reply,{complete,Task},State} end.
 

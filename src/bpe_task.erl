@@ -21,13 +21,11 @@ already_finished(Proc) ->
 
 task_action(Module,CurrentTask,Target,Proc) ->
     case Module:action({request,CurrentTask},Proc) of
-         {run,State}                  -> bpe_proc:run('Final',State);
-         {until,Task,State}           -> bpe_proc:run(Task,State);
+         {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
+         {reply,Task,State}           -> {reply,{complete,Task},State};
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
-         {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State}; % TODO: REFACTOR
-         {stop,Proc}                  -> {stop,{normal,Target},Proc};
-         {reply,Task,State}           -> {reply,{complete,Task},State} end.
+         {stop,Proc}                  -> {stop,{normal,Target},Proc} end.
 
 handle_task(#beginEvent{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
