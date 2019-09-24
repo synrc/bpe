@@ -47,7 +47,7 @@ represented as `sequenceFlow` (edges).
 ```
 
 The history record of process execution is
-represented as `hist` record that captures the `sequenceFlow` information.
+represented as `hist` and captures the `sequenceFlow` information.
 
 ```erlang
 -record(sequenceFlow, { name, id, source, target }).
