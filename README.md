@@ -61,7 +61,7 @@ While Tasks are deterministic, where you're getting a new task from previous one
 the Events are non-deterministic, where you could get a new task by external
 event from the system to the process.
 
-```
+```erlang
 -record(beginEvent, { name, id }).
 -record(endEvent, { name, id }).
 -record(timeoutEvent, { name, id }).
