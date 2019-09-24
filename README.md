@@ -7,42 +7,78 @@ BPE: Business Process Engine
 Overview
 --------
 
-BPE is a Business Processing Engine that brings BPMN to Erlang and Erlang to Enterprises.
+BPE is a Business Process Engine that brings BPMN to Erlang and Erlang to Enterprises.
 It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
-```
->
-```
+Processes
+---------
 
-Before using Process Engine you need to define the set of business process
-workflows of your enterprise. This could be done via Erlang terms or some DSL
-that lately should be converted to Erlang terms. Internally BPE uses Erlang terms
-workflow definition:
-
-```erlang
-bpe:start(spawnproc:def(),[]).
-```
-
-The workflow definition uses following persistent workflow model which is stored in KVS:
+Processes are main entities of BPE, they map one-to-one to Erlang processes.
+Basically, BPE process is an algorithm or function, that is executed entirely in the
+context of Erlang process. The arguments for such algorithms are:
+1) KVS feeds representing infinite streams 2) Erlang messages being sent to BPE process.
 
 ```erlang
--record(task,         { name, id, roles, module }).
--record(userTask,     { name, id, roles, module }).
--record(serviceTask,  { name, id, roles, module }).
--record(messageEvent, { name, id, payload }).
--record(beginEvent ,   { name, id }).
--record(endEvent,      { name, id }).
+-record(hist, { id, next, prev, name, task, docs, time }).
+-record(process, { id, next, prev, roles, tasks, events, hist, flows, rules, docs,
+                   options, task, timer, notify, result, beginEvent, endEvent }).
+```
+
+During execution of the process, all steps are being written to the persistent storage,
+by which execution logic is restorable and reproducable. The process definition is called
+diagram or graph where points are `tasks` and egdes are `sequenceFlows`.
+
+Tasks and Flows
+---------------
+
+The step itself is represented as `task` (points). The transition between steps is
+represented as `sequenceFlow` (edges). 
+
+```erlang
+-record(task, { name, id, roles, module }).
+-record(userTask, { name, id, roles, module }).
+-record(manualTask, { name, id, roles, module }).
+-record(serviceTask, { name, id, roles, module }).
+-record(receiveTask, { name, id, roles, module }).
+-record(sendTask, { name, id, roles, module }).
+-record(subProcess,  { name, id, roles, module }).
+```
+
+The history record of process execution is
+represented as `hist` record that captures the `sequenceFlow` information.
+
+```erlang
 -record(sequenceFlow, { name, id, source, target }).
--record(history,      { ?ITERATOR(feed,true), name, task }).
--record(process,      { ?ITERATOR(feed,true), name,
-                        roles=[], tasks=[], events=[], history=[], flows=[],
-                        rules, docs=[],
-                        task,
-                        beginEvent, endEvent }).
+-record(messageFlow, { name, id, source, target }).
 ```
 
-Full set of BPMN 2.0 fields could be obtained at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0) page 3-7.
+Events
+------
+
+While Tasks are deterministic, where you're getting a new task from previous one,
+the Events are non-deterministic, where you could get a new task by external
+event from the system to the process.
+
+```
+-record(beginEvent, { name, id }).
+-record(endEvent, { name, id }).
+-record(timeoutEvent, { name, id }).
+-record(messageEvent, { name, id }).
+-record(boundaryEvent, { name, id }).
+```
+
+Gateways
+--------
+
+Gateways represent multiplexors and demultiplexors which cause non-linear trace and multiple
+current states as leaves of execution graph.
+
+```erlang
+```
+
+Full set of BPMN 2.0 fields could be obtained
+at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0), page 3-7.
 
 Sample Session
 --------------
