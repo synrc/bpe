@@ -9,9 +9,9 @@ find_flow(Stage,List) -> case lists:member(Stage,List) of
                               true -> Stage;
                               _ -> find_flow(List) end.
 
-targets(Curr,Proc) ->
+targets(Name,Proc) ->
     lists:flatten([ Target || #sequenceFlow{source=Source,target=Target}
-                           <- Proc#process.flows,  Source==Curr]).
+                           <- Proc#process.flows,  Source==Name]).
 
 denied_flow(Curr,Proc) ->
     {reply,{denied_flow,Curr},Proc}.
@@ -19,8 +19,8 @@ denied_flow(Curr,Proc) ->
 already_finished(Proc) ->
     {stop,{normal,[]},Proc}.
 
-task_action(Module,CurrentTask,Target,Proc) ->
-    case Module:action({request,CurrentTask},Proc) of
+task_action(Module,Source,Target,Proc) ->
+    case Module:action({request,Source,Target},Proc) of
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
          {reply,Task,State}           -> {reply,{complete,Task},State};
          {reply,State}                -> {reply,{complete,Target},State};
@@ -41,6 +41,9 @@ handle_task(#sendTask{module=Module,writer=_Writer},CurrentTask,Target,Proc) ->
 
 handle_task(#serviceTask{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
+
+handle_task(#gateway{type=parallel,module=Module},Src,Dst,Proc) ->
+    task_action(Module,Src,Dst,Proc);
 
 handle_task(#endEvent{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc),

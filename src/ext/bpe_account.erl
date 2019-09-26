@@ -27,28 +27,28 @@ def() ->
         events = [ #messageEvent{name='PaymentReceived'},
                    #boundaryEvent{name='*', timeout={0, {10, 0, 10}}} ] }.
 
-action({request,'Created'}, Proc) ->
+action({request,'Created',_}, Proc) ->
     {reply,Proc};
 
-action({request,'Init'}, Proc) ->
+action({request,'Init',_}, Proc) ->
     {reply,Proc};
 
-action({request,'Payment'}, Proc) ->
+action({request,'Payment',_}, Proc) ->
     Payment = bpe:doc({payment_notification},Proc),
     case Payment of
          [] -> {reply,'Process',Proc#process{docs=[#tx{}]}};
           _ -> {reply,'Signatory',Proc} end;
 
-action({request,'Signatory'}, Proc) ->
+action({request,'Signatory',_}, Proc) ->
     {reply,'Process',Proc};
 
-action({request,'Process'}, Proc) ->
+action({request,'Process',_}, Proc) ->
     case bpe:doc(#close_account{},Proc) of
          #close_account{} -> {reply,'Final',Proc};
                         _ -> {reply,Proc} end;
 
-action({request,'Upload'}, Proc) ->
+action({request,'Upload',_}, Proc) ->
     {reply,Proc};
 
-action({request,'Final'}, Proc) ->
+action({request,'Final',_}, Proc) ->
     {reply,Proc}.

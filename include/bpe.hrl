@@ -119,6 +119,7 @@
 
 -record(gateway,      { name=[] :: [] | atom(),
                         type= none :: gate(),
+                        module=[] :: [] | atom(),
                         inputs=[] :: atom() | list(atom()),
                         outputs=[] :: atom() | list(atom()) }).
 

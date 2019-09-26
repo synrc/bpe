@@ -21,19 +21,40 @@ process_event(Event,Proc) ->
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
+prepareNext(Target,Proc) ->
+    Flow = true,
+    case Target of
+         #task{name=Name} -> preTask(Name,Proc,Flow);
+         #userTask{name=Name} -> preTask(Name,Proc,Flow);
+         #serviceTask{name=Name} -> preTask(Name,Proc,Flow);
+         #receiveTask{name=Name} -> preTask(Name,Proc,Flow);
+         #sendTask{name=Name} -> preTask(Name,Proc,Flow);
+         #gateway{name=Name} -> preGate(Name,Proc,Flow)
+    end.
+
+preTask(Name,Proc,Flow) ->
+    Proc#process{task=Name}.
+
+preGate(#gateway{name=Name},Proc,Flow) ->
+    Flows = bpe_task:targets(Name,Proc),
+    [#sequenceFlow{name=X}|_] =
+      [ begin  kvs:append(F,"/bpe/flow/"++Proc#process.id),
+               F
+        end || F <- Flows ],
+    Proc#process{task=X}.
+
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
     Curr = Proc#process.task,
-    Term = [],
-    Task = bpe:step(Curr,Proc),
+    Task = bpe:step(Proc,Curr),
     Targets = case NoFlow of
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
 
     {Status,{Reason,Target},ProcState} =
-       case {Targets,Proc#process.task,Stage} of
+       case {Targets,Curr,Stage} of
          {noflow,_,_} -> {reply,{complete,Curr},Proc};
-         {[],Term,_}  -> bpe_task:already_finished(Proc);
+         {[],[],_}    -> bpe_task:already_finished(Proc);
          {[],Curr,_}  -> bpe_task:handle_task(Task,Curr,Curr,Proc);
          {[],_,_}     -> bpe_task:denied_flow(Curr,Proc);
          {List,_,[]}  -> bpe_task:handle_task(Task,Curr,bpe_task:find_flow(Stage,List),Proc);

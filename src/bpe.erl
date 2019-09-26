@@ -36,14 +36,16 @@ trace(Proc,Name,Time,Task) ->
 
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
-    Key  = "/bpe/hist/" ++ Id,
     {Hist,Task} = current_task(Id),
+    Node = element(2,Task),
     Pid  = proplists:get_value(notification,Options,undefined),
     Proc = Proc0#process{id=Id,
-           task= element(2,Task),
+           task= Node,
            options = Options,
            notifications = Pid,
            started=calendar:local_time()},
+
+    kvs:append({flow,Node,bpe:step(Proc,'Create')}, "/bpe/flow/" ++ Id),
 
     case Hist of empty -> trace(Proc,[],calendar:local_time(),Task); _ -> skip end,
 
@@ -82,13 +84,7 @@ hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
                                           {ok,Res} -> Res;
                                           {error,_Reason} -> [] end end .
 
-source(Name, Proc) ->
-    case [ Task || Task <- events(Proc), element(#task.name,Task) == Name] of
-         [T] -> T;
-         [] -> #beginEvent{};
-         E -> E end.
-
-step(Name, Proc) -> 
+step(Proc,Name) ->
     case [ Task || Task <- tasks(Proc), element(#task.name,Task) == Name] of
          [T] -> T;
          [] -> #task{};
@@ -97,7 +93,7 @@ step(Name, Proc) ->
 docs  (Proc) -> Proc#process.docs.
 tasks (Proc) -> Proc#process.tasks.
 events(Proc) -> Proc#process.events.
-doc (R,Proc) -> {X,Y} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
+doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
 
 % Emulate Event-Condition-Action Systems
 
@@ -153,3 +149,22 @@ unreg(Pool) ->
     undefined -> skip;
      _Defined -> syn:leave(Pool, self()),
                  erlang:erase({pool,Pool}) end.
+
+%%%%
+
+selectFlow(Proc,Name) ->
+    case kvs:get("/bpe/flow/"++Proc#process.id,Name) of
+         {ok,#sequenceFlow{name=Name}=Flow} -> Flow;
+         {error,_} -> #sequenceFlow{name=Name} end.
+
+completeFlow(Proc) ->
+    Next = Proc#process.task,
+    #sequenceFlow{name=Next,source=Src,target=Dst} = Flow = selectFlow(Proc,Next),
+    Source = step(Proc,Src),
+    Target = step(Proc,Dst),
+    Resp = {Status,Reason,Reply,State} = bpe_task:task_action(Source,Src,Dst,Proc),
+    bpe_proc:prepareNext(Target,State),
+    bpe:trace(State,[],calendar:local_time(),Flow),
+    kvs:append(Flow,"/bpe/flow/"++Proc#process.id),
+    bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
+    Resp.
