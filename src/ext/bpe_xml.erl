@@ -12,11 +12,7 @@ load() ->
   {ok,Bin} = file:read_file("priv/diagram_1.bpmn"),
   {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
-  Proc = reduce(Elements,#process{}),
-  io:format("BPMN ~p~n",[Elements]),
-  io:format("BPE ~p~n",[Proc]),
-  ok.
-
+  Proc = reduce(Elements,#process{}).
 reduce([],Acc) ->
   Acc;
 
@@ -42,7 +38,18 @@ reduce([{'bpmn:parallelGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) 
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=parallel}|Tasks]});
 
+reduce([{'bpmn:exclusiveGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#gateway{name=Name,type=exclusive}|Tasks]});
+
+reduce([{'bpmn:inclusiveGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#gateway{name=Name,type=inclusive}|Tasks]});
+
+reduce([{'bpmn:complexGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#gateway{name=Name,type=complex}|Tasks]});
+
 reduce([{'bpmn:gateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=none}|Tasks]}).
-
