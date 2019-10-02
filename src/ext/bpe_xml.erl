@@ -11,6 +11,38 @@ find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,cont
 load() ->
   {ok,Bin} = file:read_file("priv/diagram_1.bpmn"),
   {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
-  E = {N,find(C,'bpmn:process'),attr(C)},
-  io:format("Compact Form ~p~n",[E]),
+  E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
+  Proc = reduce(Elements,#process{}),
+  io:format("BPMN ~p~n",[Elements]),
+  io:format("BPE ~p~n",[Proc]),
   ok.
+
+reduce([],Acc) ->
+  Acc;
+
+reduce([{'bpmn:task',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#task{name=Name}|Tasks]});
+
+reduce([{'bpmn:startEvent',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#beginEvent{name=Name}|Tasks],beginEvent=Name});
+
+reduce([{'bpmn:endEvent',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#endEvent{name=Name}|Tasks],endEvent=Name});
+
+reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process) ->
+  Name   = proplists:get_value(id,Attrs),
+  Source = proplists:get_value(sourceRef,Attrs),
+  Target = proplists:get_value(targetRef,Attrs),
+  reduce(T,Process#process{flows=[#sequenceFlow{name=Name,source=Source,target=Target}|Flows]});
+
+reduce([{'bpmn:parallelGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#gateway{name=Name,type=parallel}|Tasks]});
+
+reduce([{'bpmn:gateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+  Name = proplists:get_value(id,Attrs),
+  reduce(T,Process#process{tasks=[#gateway{name=Name,type=none}|Tasks]}).
+
