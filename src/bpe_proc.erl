@@ -108,7 +108,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                    false -> Terminal end,
 %   calculate diff from past event
     {DD,Diff} = case bpe:head(Id) of
-        #hist{time=Time1} -> calendar:time_difference(Time1,calendar:local_time());
+        #hist{time=#ts{time=Time1}} -> calendar:time_difference(Time1,calendar:local_time());
                         _ -> {immediate,timeout} end,
 %   io:format("Ping: ~p, Task: ~p Hist: ~p~n", [Id,Task,Hist]),
     case {{DD,Diff} < {Days,Pattern}, Record} of
