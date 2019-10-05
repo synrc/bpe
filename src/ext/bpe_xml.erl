@@ -10,8 +10,9 @@ find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,cont
 
 load() ->
   {ok,Bin} = file:read_file("priv/diagram_1.bpmn"),
-  {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
+  Y = {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
+  io:format("DEBUG: ~p~n",[E]),
   Proc = reduce(Elements,#process{}).
 reduce([],Acc) ->
   Acc;

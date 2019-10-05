@@ -28,9 +28,9 @@ trace(Proc,Name,Time,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     kvs:append(Proc,"/bpe/proc"),
-    kvs:append(#hist{ id = {Writer#writer.count,Proc#process.id},
+    kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
                     name = Name,
-                    time = Time,
+                    time = #ts{ time = Time},
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
@@ -43,9 +43,7 @@ start(Proc0, Options) ->
            task= Node,
            options = Options,
            notifications = Pid,
-           started=calendar:local_time()},
-
-    kvs:append({flow,Node,bpe:step(Proc,'Create')}, "/bpe/flow/" ++ Id),
+           started= #ts{ time = calendar:local_time() } },
 
     case Hist of empty -> trace(Proc,[],calendar:local_time(),Task); _ -> skip end,
 

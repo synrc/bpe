@@ -83,6 +83,8 @@
 -type procId() :: [] | integer() | {atom(),any()}.
 -type gate()   :: none | exclusive | parallel | inclusive | complex | event.
 
+-record(ts,    { time=[] :: term() }).
+
 -record(hist,         { id = [] :: histId(),
                         container=feed :: [] | atom(),
                         feed_id=[] :: any(),
@@ -92,7 +94,7 @@
                         name=[] :: [] | binary(),
                         task=[] :: [] | atom() | {atom()|string(),any()},
                         docs=[] :: list(tuple()),
-                        time=[] :: term() }).
+                        time=[] :: [] | #ts{} }).
 
 -record(process,      { id = [] :: procId(),
                         container=feed :: [] | atom(),
@@ -113,7 +115,7 @@
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
-                        started    = [] :: [] | calendar:datetime(),
+                        started    = [] :: [] | #ts{},
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
 
