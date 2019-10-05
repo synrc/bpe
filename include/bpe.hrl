@@ -3,6 +3,8 @@
 
 -include_lib("kvs/include/cursors.hrl").
 
+-record(timeout,      { spec= [] :: term() }).
+
 -record(task,         { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
@@ -40,14 +42,14 @@
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
-                        timeout=[] :: [] | {integer(),{integer(),integer(),integer() }}}).
+                        timeout=[] :: [] | #timeout{}}).
 
 -record(boundaryEvent,{ name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
-                        timeout=[] :: {integer(),{integer(),integer(),integer()}},
+                        timeout=[] :: [] | #timeout{},
                         timeDate=[] :: [] | binary(),
                         timeDuration=[] :: [] | binary(),
                         timeCycle=[] :: [] | binary() }).
@@ -57,7 +59,7 @@
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
-                        timeout=[] :: [] | {integer(),{integer(),integer(),integer()}},
+                        timeout=[] :: [] | #timeout{},
                         timeDate=[] :: [] | binary(),
                         timeDuration=[] :: [] | binary(),
                         timeCycle=[] :: [] | binary() }).
