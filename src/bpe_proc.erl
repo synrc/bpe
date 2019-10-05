@@ -17,7 +17,7 @@ process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),
     Targets = bpe_task:targets(EventName,Proc),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
-    bpe:trace(ProcState,[],calendar:local_time(),{event,element(#messageEvent.name,Event)}),
+    bpe:trace(ProcState,[],calendar:local_time(),element(#messageEvent.name,Event)),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
@@ -62,7 +62,7 @@ process_task(Stage,Proc,NoFlow) ->
 
     case (Status == stop) orelse (NoFlow == true) of
        true -> []; 
-       _ -> bpe:trace(ProcState,[],calendar:local_time(),{task, Target}),
+       _ -> bpe:trace(ProcState,[],calendar:local_time(),Target),
             debug(ProcState,Curr,Targets,Target,Status,Reason) end,
 
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
@@ -109,8 +109,8 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
 %   calculate diff from past event
     {DD,Diff} = case bpe:head(Id) of
         #hist{time=#ts{time=Time1}} -> calendar:time_difference(Time1,calendar:local_time());
-                        _ -> {immediate,timeout} end,
-%   io:format("Ping: ~p, Task: ~p Hist: ~p~n", [Id,Task,Hist]),
+                        _ -> io:format("T~n"), {immediate,timeout} end,
+%   io:format("Ping: ~p, Task: ~p Hist: ~p~n", [Id,Task,bpe:head(Id)]),
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {_,none} -> {noreply,State#process{timer=timer_restart(ping())}};
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
@@ -119,7 +119,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
             case process_task([],State) of
                 {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
-        {false,_} -> logger:notice("BPE: ~p close Timeout: ~p~n",[Id,{DD,Diff}]),
+        {false,Record} -> logger:notice("BPE: ~p close ~p Timeout: ~p~n",[Id,Record,{DD,Diff}]),
             case is_pid(Pid) of
                 true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                 false -> skip end,

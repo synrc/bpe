@@ -77,22 +77,20 @@
                         source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
--type histId() :: [] | integer() | {term(),term()}.
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
 -type procId() :: [] | integer() | {atom(),any()}.
 -type gate()   :: none | exclusive | parallel | inclusive | complex | event.
 
--record(ts,    { time=[] :: term() }).
-
--record(hist,         { id = [] :: histId(),
+-record(ts,           { time= [] :: term() }).
+-record(step,         { id = 0 :: integer(), proc = [] :: list() }).
+-record(hist,         { id = [] :: [] | #step{},
                         container=feed :: [] | atom(),
                         feed_id=[] :: any(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
-                        parent=[] :: histId(),
                         name=[] :: [] | binary(),
-                        task=[] :: [] | atom() | {atom()|string(),any()},
+                        task=[] :: [] | atom(),
                         docs=[] :: list(tuple()),
                         time=[] :: [] | #ts{} }).
 

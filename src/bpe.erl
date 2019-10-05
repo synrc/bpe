@@ -11,7 +11,7 @@ load(Id) -> load(Id, []).
 load(Id, Def) ->
     case kvs:get("/bpe/proc",Id) of
          {error,_} -> Def;
-         {ok,Proc} -> {_,{_,T}} = current_task(Id),
+         {ok,Proc} -> {_,T} = current_task(Id),
                       Proc#process{task=T} end.
 
 cleanup(P) ->
@@ -21,8 +21,8 @@ cleanup(P) ->
 
 current_task(Id) ->
     case bpe:head(Id) of
-         [] -> {empty,{task, 'Created'}};
-         #hist{id={H,_},task=T} -> {H,T} end.
+         [] -> {empty,'Created'};
+         #hist{id={step,H,_},task=T} -> {H,T} end.
 
 trace(Proc,Name,Time,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
@@ -37,10 +37,9 @@ trace(Proc,Name,Time,Task) ->
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
     {Hist,Task} = current_task(Id),
-    Node = element(2,Task),
     Pid  = proplists:get_value(notification,Options,undefined),
     Proc = Proc0#process{id=Id,
-           task= Node,
+           task= Task,
            options = Options,
            notifications = Pid,
            started= #ts{ time = calendar:local_time() } },
@@ -70,7 +69,7 @@ event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIME
 
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{C - 1,ProcId}) of
+       {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{step,C - 1,ProcId}) of
        {ok, X} -> X; _ -> [] end; _ -> [] end.
 
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
@@ -78,7 +77,7 @@ hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
                        kvs_mnesia -> case kvs:get(hist,{N,ProcId}) of
                                           {ok,Res} -> Res;
                                           {error,_Reason} -> [] end;
-                       kvs_rocks  -> case kvs:get("/bpe/hist/" ++ ProcId,{N,ProcId}) of
+                       kvs_rocks  -> case kvs:get("/bpe/hist/" ++ ProcId,{step,N,ProcId}) of
                                           {ok,Res} -> Res;
                                           {error,_Reason} -> [] end end .
 

@@ -18,7 +18,7 @@ init([])     -> [ ets:new(T,opt()) || T <- [ processes ] ],
 
 worker(#process{id=Id}=P) ->
    case bpe:head(Id) of
-        #hist{time = Time} -> worker_do(calendar:time_difference(Time,calendar:local_time()),P);
+        #hist{time = #ts{time=Time}} -> worker_do(calendar:time_difference(Time,calendar:local_time()),P);
         _ -> broken end;
 worker(P) -> logger:notice("Unknown: ~p~n",[P]).
 
