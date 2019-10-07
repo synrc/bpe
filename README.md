@@ -95,7 +95,7 @@ bpe_proc:Process 39 spawned <0.12399.0>
 (bpe@127.0.0.1)3> bpe:complete(39).
 (bpe@127.0.0.1)4> bpe:complete(39).
 (bpe@127.0.0.1)5> bpe:complete(39).
-(bpe@127.0.0.1)5> bpe:history(39).
+(bpe@127.0.0.1)5> bpe:hist(39).
 [#history{id = 28,version = undefined,container = feed,
           feed_id = {history,39},
           prev = 27,next = undefined,feeds = [],guard = true,

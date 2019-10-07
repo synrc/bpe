@@ -82,7 +82,7 @@
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
 -type procId() :: [] | integer() | {atom(),any()}.
--type gate()   :: none | exclusive | parallel | inclusive | complex | event.
+-type gate()   :: exclusive | parallel | inclusive | complex | event.
 
 -record(ts,           { time= [] :: term() }).
 -record(step,         { id = 0 :: integer(), proc = [] :: list() }).
@@ -120,7 +120,7 @@
                         endEvent   = [] :: [] | atom()}).
 
 -record(gateway,      { name=[] :: [] | atom(),
-                        type= none :: gate(),
+                        type= parallel :: gate(),
                         module=[] :: [] | atom(),
                         inputs=[] :: atom() | list(atom()),
                         outputs=[] :: atom() | list(atom()) }).
