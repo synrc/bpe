@@ -2,6 +2,7 @@
 -include_lib("bpe/include/bpe.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 -compile(export_all).
+-import(lists,[keyfind/3, keyreplace/4]).
 
 attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 
@@ -14,8 +15,8 @@ load() ->
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   io:format("DEBUG: ~p~n",[E]),
   Proc = reduce(Elements,#process{}),
-  % TODO: postprocess for in,out in tasks
-  Proc.
+  Proc#process{tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
+
 reduce([],Acc) ->
   Acc;
 
@@ -56,3 +57,15 @@ reduce([{'bpmn:complexGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) -
 reduce([{'bpmn:gateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=none}|Tasks]}).
+
+fillInOut(Tasks, []) -> Tasks;
+fillInOut(Tasks, [#sequenceFlow{name=Name,source=Source,target=Target}|Flows]) ->
+  Tasks1 = case keyfind(Source, #gateway.name, Tasks) of
+             false -> [#gateway{name=Source,type=parallel,outputs=[Name]}];%%should be error
+             T = #gateway{outpus=L} -> keyreplace(Source,#gateway.name,Tasks,T#gateway{outputs=[Name|L]})
+           end,
+  Tasks2 = case keyfind(Target, #gateway.name, Tasks) of
+             false -> [#gateway{name=Target,type=parallel,inputs=[Name]}];%%should be error
+             T1 = #gateway{inputs=L1} -> keyreplace(Target,#gateway.name,Tasks1,T1#gateway{inputs=[Name|L1]})
+           end,
+  fillInOut(Tasks2, Flows). 
