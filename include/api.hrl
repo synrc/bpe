@@ -4,6 +4,7 @@
 -spec start(#process{},list()) -> {ok,integer()} | {error,integer()}.
 -spec proc(integer()) -> #process{}.
 -spec complete(term()) -> {complete,any()}.
+-spec next(term()) -> {complete,any()}.
 -spec complete(any(),term()) -> {complete,any()}.
 -spec amend(term(),any()) -> {complete,any()}.
 -spec discard(term(),any()) -> {complete,any()}.

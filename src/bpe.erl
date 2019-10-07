@@ -68,6 +68,7 @@ pid(Id) -> bpe:cache({process,Id}).
 
 proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
+next(ProcId)              -> gen_server:call(pid(ProcId),{next},           ?TIMEOUT).
 complete(ProcId,Stage)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
 amend(ProcId,Form)        -> gen_server:call(pid(ProcId),{amend,Form},     ?TIMEOUT).
 discard(ProcId,Form)      -> gen_server:call(pid(ProcId),{discard,Form},   ?TIMEOUT).
