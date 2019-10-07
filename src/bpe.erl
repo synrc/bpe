@@ -34,6 +34,13 @@ trace(Proc,Name,Time,Task) ->
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
+sched(Proc,Pointer,Sched) ->
+    Key = "/bpe/flow/" ++ Proc#process.id,
+    Writer = kvs:writer(Key),
+    kvs:append(#sched{ id = {step,Writer#writer.count,Proc#process.id},
+                       pointer = Pointer,
+                       state = Sched}, Key).
+
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
     {Hist,Task} = current_task(Id),

@@ -5,28 +5,41 @@
 
 -record(timeout,      { spec= [] :: term() }).
 
+-record(sequenceFlow, { name=[] :: term(),
+                        condition=[] :: term(),
+                        source=[] :: [] | atom(),
+                        target=[] :: [] | atom() | list(atom()) }).
+
 -record(task,         { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         roles=[] :: [] | binary(),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         etc=[] :: list({term(),term()}) }).
 
 -record(userTask,     { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         roles=[] :: [] | binary(),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         etc=[] :: list({term(),term()})  }).
 
 -record(serviceTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         roles=[] :: [] | binary(),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         etc=[] :: list({term(),term()}) }).
 
 -record(receiveTask,  { name=[] :: [] | atom(),
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         reader=[] :: #reader{},
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 
@@ -34,6 +47,8 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         writer=[] :: #writer{},
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 
@@ -41,6 +56,8 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | #timeout{}}).
 
@@ -74,10 +91,9 @@
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}) }).
 
--record(sequenceFlow, { name=[] :: term(),
-                        condition=[] :: term(),
-                        source=[] :: [] | atom(),
-                        target=[] :: [] | atom() | list(atom()) }).
+
+
+
 
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
@@ -85,7 +101,12 @@
 -type gate()   :: exclusive | parallel | inclusive | complex | event.
 
 -record(ts,           { time= [] :: term() }).
--record(step,         { id = 0 :: integer(), proc = [] :: list() }).
+-record(step,         { id = 0 :: integer(), proc = "" :: list() }).
+
+-record(sched, { id = [] :: [] | #step{},
+                 pointer = -1 :: integer(),
+                 state = [] :: list(#sequenceFlow{})  }).
+
 -record(hist,         { id = [] :: [] | #step{},
                         container=feed :: [] | atom(),
                         feed_id=[] :: any(),
