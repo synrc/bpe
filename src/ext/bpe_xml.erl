@@ -13,7 +13,9 @@ load() ->
   Y = {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   io:format("DEBUG: ~p~n",[E]),
-  Proc = reduce(Elements,#process{}).
+  Proc = reduce(Elements,#process{}),
+  % TODO: postprocess for in,out in tasks
+  Proc.
 reduce([],Acc) ->
   Acc;
 
