@@ -60,12 +60,17 @@ reduce([{'bpmn:gateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
 
 fillInOut(Tasks, []) -> Tasks;
 fillInOut(Tasks, [#sequenceFlow{name=Name,source=Source,target=Target}|Flows]) ->
-  Tasks1 = case keyfind(Source, #gateway.name, Tasks) of
-             false -> [#gateway{name=Source,type=parallel,outputs=[Name]}];%%should be error
-             T = #gateway{outpus=L} -> keyreplace(Source,#gateway.name,Tasks,T#gateway{outputs=[Name|L]})
-           end,
-  Tasks2 = case keyfind(Target, #gateway.name, Tasks) of
-             false -> [#gateway{name=Target,type=parallel,inputs=[Name]}];%%should be error
-             T1 = #gateway{inputs=L1} -> keyreplace(Target,#gateway.name,Tasks1,T1#gateway{inputs=[Name|L1]})
-           end,
+  Tasks1 = key_push_value(Name, #gateway.outputs, Source, #gateway.name, Tasks),
+  Tasks2 = key_push_value(Name, #gateway.inputs,  Target, #gateway.name, Tasks1),
   fillInOut(Tasks2, Flows). 
+
+key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
+  Elem = keyfind(ElemId, ElemIdKey, List),
+  RecName = hd(tuple_to_list(Elem)),
+  if 
+    RecName == beginEvent -> List;
+    RecName == endEvent -> List;
+    true ->
+      NewElem = setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)]),
+      keyreplace(ElemId, ElemIdKey, List, NewElem)
+  end.
