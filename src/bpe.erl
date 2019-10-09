@@ -17,12 +17,14 @@ load(Id, Def) ->
 cleanup(P) ->
   [ kvs:delete("/bpe/hist",Id) || #hist{id=Id} <- bpe:hist(P) ],
     kvs:delete(writer,"/bpe/hist/" ++ P),
+  [ kvs:delete("/bpe/flow",Id) || #sched{id=Id} <- sched(P) ],
+    kvs:delete(writer, "/bpe/flow/" ++ P),
     kvs:delete("/bpe/proc",P).
 
 current_task(Id) ->
     case bpe:head(Id) of
          [] -> {empty,'Created'};
-         #hist{id={step,H,_},task=T} -> {H,T} end.
+         #hist{id={step,H,_},task=T} -> {H,T} end. %% H - ProcId
 
 trace(Proc,Name,Time,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
@@ -34,12 +36,12 @@ trace(Proc,Name,Time,Task) ->
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
-sched(Proc,Pointer,Sched) ->
+add_sched(Proc,Pointer,State) ->
     Key = "/bpe/flow/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     kvs:append(#sched{ id = {step,Writer#writer.count,Proc#process.id},
-                       pointer = Pointer,
-                       state = Sched}, Key).
+                  pointer = Pointer,
+                    state = State}, Key).
 
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
@@ -51,7 +53,9 @@ start(Proc0, Options) ->
            notifications = Pid,
            started= #ts{ time = calendar:local_time() } },
 
-    case Hist of empty -> trace(Proc,[],calendar:local_time(),Task); _ -> skip end,
+    case Hist of empty -> trace(Proc,[],calendar:local_time(),Task),
+                          add_sched(Proc,1,bpe_task:targets(Proc#process.beginEvent,Proc));
+                 _ -> skip end,
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
@@ -78,6 +82,16 @@ event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIME
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
        {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{step,C - 1,ProcId}) of
+       {ok, X} -> X; _ -> [] end; _ -> [] end.
+
+sched(#step{proc = ProcId}=Step) ->
+  case kvs:get("/bpe/flow/" ++ ProcId,Step) of {ok, X} -> X; _ -> [] end;
+
+sched(ProcId) -> kvs:feed("/bpe/flow/" ++ ProcId).
+
+sched_head(ProcId) ->
+  case kvs:get(writer,"/bpe/flow/" ++ ProcId) of
+       {ok, #writer{count = C}} -> case kvs:get("/bpe/flow/" ++ ProcId,{step,C - 1,ProcId}) of
        {ok, X} -> X; _ -> [] end; _ -> [] end.
 
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
@@ -157,6 +171,52 @@ unreg(Pool) ->
 
 %%%%
 
+%% bpe_env:find doc 
+%% bpe:head(Proc#process.id) - last hist
+processFlow(Proc) ->
+    #sched{id=ScedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
+    Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
+    Vertex = lists:keyfind(Flow#sequenceFlow.target, #gateway.name, tasks(Proc)),
+    %io:write("Vertex=~w\n",[Vertex]),
+    Required = element(#gateway.inputs, Vertex) -- [Flow], %Current sequenceFlow is not stored yet
+    io:format("Required=~w\nVertex=~w\n",[Required,Vertex]),
+    Check = check_required2(ScedId, map_required_fun(Vertex),Required),
+    Inserted = case Check of true -> element(#gateway.outputs, Vertex); false -> [] end,
+    NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
+    NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
+    add_sched(Proc, NewPointer, NewThreads),
+    %% \/adapters to old code\/
+    #sequenceFlow{name=Next, source=Src,target=Dst} = Flow,
+    %% \/Old code \/
+    %%This will work only if there are some behavior((Source=Module):action) defined for events
+    Source = step(Proc,Src),%vertex From
+    Target = step(Proc,Dst),%vertex To is the Vertex
+    %Resp = {Status,Reason,Reply,State} = bpe_task:task_action(Source,Src,Dst,Proc),
+    %bpe_proc:prepareNext(Target,State),
+    %trace(State,[],calendar:local_time(),Flow),
+    %bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
+    Resp={reply, {complete, task}, someState}.
+
+
+%TODO: get_Inserted(Vertex,Flow) -> Inserted
+
+map_required_fun(#task{}) -> fun(_,_) -> [] end;
+map_required_fun(#gateway{type=parallel})->
+    fun(Required, Flow) -> Required -- [Flow] end;
+map_required_fun(#gateway{type=inclusive})-> %%all
+    fun(Required, Flow) -> Required -- [Flow] end;
+map_required_fun(#gateway{type=exclusive}) -> %%any
+    fun(Required, Flow) -> case lists:member(Flow, Required) of true->[];false->Required end end.
+
+check_required2(_,_,[]) -> true;
+check_required2(#step{id=-1},_,_) -> false;
+check_required2(#step{id=Id}=SchedId,MapFun,Required) ->
+  io:format("check_required2:~w\n",[{SchedId,MapFun,Required}]),
+    NewRequired = MapFun(Required, flow(sched(SchedId))),
+    check_required2(SchedId#step{id=Id-1}, MapFun, NewRequired).
+
+flow(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).
+%%%%
 selectFlow(Proc,Name) ->
     case kvs:get("/bpe/flow/"++Proc#process.id,Name) of
          {ok,#sequenceFlow{name=Name}=Flow} -> Flow;
@@ -168,8 +228,8 @@ completeFlow(Proc) ->
     Source = step(Proc,Src),
     Target = step(Proc,Dst),
     Resp = {Status,Reason,Reply,State} = bpe_task:task_action(Source,Src,Dst,Proc),
+    %%
     bpe_proc:prepareNext(Target,State),
     bpe:trace(State,[],calendar:local_time(),Flow),
-    kvs:append(Flow,"/bpe/flow/"++Proc#process.id),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
