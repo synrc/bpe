@@ -8,15 +8,13 @@
 def() ->
     #process { name = 'IBAN Account',
         flows = [
-            #sequenceFlow{source='Created',   target='Init'},
-            #sequenceFlow{source='Init',      target='Upload'},
-            #sequenceFlow{source='Upload',    target='Payment'},
-            #sequenceFlow{source='Payment',   target='Signatory'},
-            #sequenceFlow{source='Payment',   target='Process'},
-            #sequenceFlow{source='Process',   target='Process'},
-            #sequenceFlow{source='Process',   target='Final'},
-            #sequenceFlow{source='Signatory', target='Process'},
-            #sequenceFlow{source='Signatory', target='Final'} ],
+            #sequenceFlow{name='Init', source='Created',   target='Init'},
+            #sequenceFlow{name='Upload', source='Init',      target='Upload'},
+            #sequenceFlow{name='Payment', source='Upload',    target='Payment'},
+            #sequenceFlow{name='Signatory', source='Payment',   target='Signatory'},
+            #sequenceFlow{name='Process', source='Payment',   target='Process'},
+            #sequenceFlow{name='Process', source='Signatory', target='Process'},
+            #sequenceFlow{name='Final', source='Signatory', target='Final'} ],
         tasks = [
             #beginEvent  { name='Created',   module = bpe_account },
             #userTask    { name='Init',      module = bpe_account },
