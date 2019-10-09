@@ -56,8 +56,6 @@
                         module=[] :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | #timeout{}}).
 
