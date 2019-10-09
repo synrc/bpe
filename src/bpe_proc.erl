@@ -101,7 +101,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
 %   search for '*' wildcard terminal event in process definition
     Terminal = case lists:keytake('*',#messageEvent.name,Events) of
         {value,Event,_} -> {'*',element(1,Event),element(#messageEvent.timeout,Event)};
-                  false -> {'*',none,[]} end, % forever if none is set
+                  false -> {'*',none,{none,none}} end, % forever if none is set
 %   search the events with the same name as current task, save event type and timeout
 %   if no event found then use timeout information from terminal event
     {Name,Record,{Days,Pattern}} = case lists:keytake(Task,#messageEvent.name,Events) of
