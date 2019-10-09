@@ -14,50 +14,52 @@ load() ->
   Y = {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   io:format("DEBUG: ~p~n",[E]),
-  Proc = reduce(Elements,#process{}),
+  Name = proplists:get_value(id,Attrs),
+  Proc = reduce(Elements,#process{id=Name}),
   Proc#process{tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
 
 reduce([],Acc) ->
   Acc;
 
-reduce([{'bpmn:task',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#task{name=Name}|Tasks]});
 
-reduce([{'bpmn:startEvent',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:startEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#beginEvent{name=Name}|Tasks],beginEvent=Name});
 
-reduce([{'bpmn:endEvent',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#endEvent{name=Name}|Tasks],endEvent=Name});
 
-reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process) ->
+reduce([{'bpmn:sequenceFlow',_Body,Attrs}|T],#process{flows=Flows} = Process) ->
   Name   = proplists:get_value(id,Attrs),
   Source = proplists:get_value(sourceRef,Attrs),
   Target = proplists:get_value(targetRef,Attrs),
   reduce(T,Process#process{flows=[#sequenceFlow{name=Name,source=Source,target=Target}|Flows]});
 
-reduce([{'bpmn:parallelGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=parallel}|Tasks]});
 
-reduce([{'bpmn:exclusiveGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=exclusive}|Tasks]});
 
-reduce([{'bpmn:inclusiveGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=inclusive}|Tasks]});
 
-reduce([{'bpmn:complexGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=complex}|Tasks]});
 
-reduce([{'bpmn:gateway',Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{name=Name,type=none}|Tasks]}).
 
+%%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
 fillInOut(Tasks, [#sequenceFlow{name=Name,source=Source,target=Target}|Flows]) ->
   Tasks1 = key_push_value(Name, #gateway.outputs, Source, #gateway.name, Tasks),
