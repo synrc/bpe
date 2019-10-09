@@ -175,7 +175,9 @@ unreg(Pool) ->
 %% bpe:head(Proc#process.id) - last hist
 processFlow(Proc) ->
     #sched{id=ScedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
+    X = lists:nth(Pointer, Threads),
     Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
+    io:format("flow: ~p~n",[Flow]),
     Vertex = lists:keyfind(Flow#sequenceFlow.target, #gateway.name, tasks(Proc)),
     %io:write("Vertex=~w\n",[Vertex]),
     Required = element(#gateway.inputs, Vertex) -- [Flow], %Current sequenceFlow is not stored yet
