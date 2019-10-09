@@ -104,7 +104,7 @@ handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Even
                   false -> {'*',none,[]} end, % forever if none is set
 %   search the events with the same name as current task, save event type and timeout
 %   if no event found then use timeout information from terminal event
-    {Name,Record,{Days,Pattern}} = case lists:keytake(Task,#messageEvent.name,Events) of
+    {Name,Record,#timeout{spec={Days,Pattern}}} = case lists:keytake(Task,#messageEvent.name,Events) of
         {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
                    false -> Terminal end,
 %   calculate diff from past event
