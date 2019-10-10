@@ -9,9 +9,11 @@ attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 find(E,[]) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
 find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E, X == I].
 
-load() ->
-  {ok,Bin} = file:read_file("priv/diagram_1.bpmn"),
-  Y = {#xmlElement{name=N,content=C}=X,_} = xmerl_scan:string(binary_to_list(Bin)),
+def() -> load("priv/diagram_1.bpmn").
+
+load(File) ->
+  {ok,Bin} = file:read_file(File),
+  _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   io:format("DEBUG: ~p~n",[E]),
   Name = proplists:get_value(id,Attrs),
