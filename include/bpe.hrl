@@ -139,8 +139,9 @@
                         endEvent   = [] :: [] | atom()}).
 
 -record(gateway,      { name=[] :: [] | atom(),
-                        type= parallel :: gate(),
                         module=[] :: [] | atom(),
+                        type= parallel :: gate(),
+                        filler=[] :: [],
                         inputs=[] :: atom() | list(atom()),
                         outputs=[] :: atom() | list(atom()) }).
 
