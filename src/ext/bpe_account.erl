@@ -8,21 +8,23 @@
 def() ->
     #process { name = 'IBAN Account',
         flows = [
-            #sequenceFlow{name='Init', source='Created',   target='Init'},
-            #sequenceFlow{name='Upload', source='Init',      target='Upload'},
-            #sequenceFlow{name='Payment', source='Upload',    target='Payment'},
-            #sequenceFlow{name='Signatory', source='Payment',   target='Signatory'},
-            #sequenceFlow{name='Process', source='Payment',   target='Process'},
-            #sequenceFlow{name='Process', source='Signatory', target='Process'},
-            #sequenceFlow{name='Final', source='Signatory', target='Final'} ],
+            #sequenceFlow{name='->Init', source='Created',   target='Init'},
+            #sequenceFlow{name='->Upload', source='Init',      target='Upload'},
+            #sequenceFlow{name='->Payment', source='Upload',    target='Payment'},
+            #sequenceFlow{name='Payment->Signatory', source='Payment',   target='Signatory'},
+            #sequenceFlow{name='Payment->Process', source='Payment',   target='Process'},
+            #sequenceFlow{name='Process-loop', source='Process',   target='Process'},
+            #sequenceFlow{name='Process->Final', source='Process',   target='Final'},
+            #sequenceFlow{name='Signatory->Process', source='Signatory', target='Process'},
+            #sequenceFlow{name='Signatory->Final', source='Signatory', target='Final'} ],
         tasks = [
             #beginEvent  { name='Created',   module = bpe_account },
             #userTask    { name='Init',      module = bpe_account },
             #userTask    { name='Upload',    module = bpe_account },
-            #userTask    { name='Signatory', module = bpe_account },
-            #serviceTask { name='Payment',   module = bpe_account },
-            #serviceTask { name='Process',   module = bpe_account },
-            #endEvent    { name='Final',     module = bpe_account } ],
+            #userTask    { name='Signatory', module = bpe_account }, %%Looks like gateway
+            #serviceTask { name='Payment',   module = bpe_account }, %%Looks like gateway
+            #serviceTask { name='Process',   module = bpe_account }, %%Looks like gateway
+            #endEvent    { name='Final',     module = bpe_account } ], %%Looks like gateway
         beginEvent = 'Created',
         endEvent = 'Final',
         events = [ #messageEvent{name='PaymentReceived'},
