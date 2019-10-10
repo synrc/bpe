@@ -179,15 +179,18 @@ unreg(Pool) ->
 %% bpe:head(Proc#process.id) - last hist
 processFlow(#process{}=Proc) ->
     #sched{id=ScedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
+    %%TODO -> exit if length(Threads) == 0
     X = lists:nth(Pointer, Threads),
     Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
     io:format("flow: ~p~nX: ~p~nFlows: ~p~n",[Flow, X, Proc#process.flows]),
     Vertex = lists:keyfind(Flow#sequenceFlow.target, #gateway.name, tasks(Proc)),
     %io:write("Vertex=~w\n",[Vertex]),
+    %%%%%%%%%
     Required = element(#gateway.inputs, Vertex) -- [Flow], %Current sequenceFlow is not stored yet
     io:format("Required=~w\nVertex=~w\n",[Required,Vertex]),
     Check = check_required2(ScedId, map_required_fun(Vertex),Required),
     Inserted = case Check of true -> element(#gateway.outputs, Vertex); false -> [] end,
+    %%%%%%%%%
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
@@ -198,7 +201,6 @@ processFlow(#process{}=Proc) ->
     Source = step(Proc,Src), %vertex From
     Target = step(Proc,Dst), %vertex To is the Vertex
     Resp = {Status,{Reason,_Reply},State} = bpe_task:task_action(element(#task.module, Vertex),Src,Dst,Proc),
-    %#bpe_proc:prepareNext(Target,State), %replaced with add_sched
     trace(State,[],calendar:local_time(),Flow),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
@@ -212,8 +214,6 @@ map_required_fun(#gateway{type=inclusive})-> %%all
 map_required_fun(#gateway{type=exclusive}) -> %%any
     fun(Required, Flow) -> case lists:member(Flow, Required) of true->[];false->Required end end;
 map_required_fun(_) -> fun(_,_) -> [] end.
-
-
 
 check_required2(_,_,[]) -> true;
 check_required2(#step{id=-1},_,_) -> false;
