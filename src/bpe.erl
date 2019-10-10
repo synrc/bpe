@@ -54,7 +54,7 @@ start(Proc0, Options) ->
            started= #ts{ time = calendar:local_time() } },
 
     case Hist of empty -> trace(Proc,[],calendar:local_time(),Task),
-                          add_sched(Proc,1,bpe_task:targets(Proc#process.beginEvent,Proc));
+                          add_sched(Proc,1,[first_flow(Proc)]);
                  _ -> skip end,
 
     Restart = transient,
@@ -78,6 +78,10 @@ amend(ProcId,Form)        -> gen_server:call(pid(ProcId),{amend,Form},     ?TIME
 discard(ProcId,Form)      -> gen_server:call(pid(ProcId),{discard,Form},   ?TIMEOUT).
 modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIMEOUT).
 event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIMEOUT).
+
+first_flow(#process{beginEvent = BeginEvent, flows = Flows}) ->
+  io:format("Flows=~p~nBegin=~p~n", [Flows, BeginEvent]),
+  (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.name.
 
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
@@ -173,11 +177,11 @@ unreg(Pool) ->
 
 %% bpe_env:find doc 
 %% bpe:head(Proc#process.id) - last hist
-processFlow(Proc) ->
+processFlow(#process{}=Proc) ->
     #sched{id=ScedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
     X = lists:nth(Pointer, Threads),
     Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
-    io:format("flow: ~p~n",[Flow]),
+    io:format("flow: ~p~nX: ~p~nFlows: ~p~n",[Flow, X, Proc#process.flows]),
     Vertex = lists:keyfind(Flow#sequenceFlow.target, #gateway.name, tasks(Proc)),
     %io:write("Vertex=~w\n",[Vertex]),
     Required = element(#gateway.inputs, Vertex) -- [Flow], %Current sequenceFlow is not stored yet
@@ -191,24 +195,25 @@ processFlow(Proc) ->
     #sequenceFlow{name=Next, source=Src,target=Dst} = Flow,
     %% \/Old code \/
     %%This will work only if there are some behavior((Source=Module):action) defined for events
-    Source = step(Proc,Src),%vertex From
-    Target = step(Proc,Dst),%vertex To is the Vertex
-    %Resp = {Status,Reason,Reply,State} = bpe_task:task_action(Source,Src,Dst,Proc),
-    %bpe_proc:prepareNext(Target,State),
-    %trace(State,[],calendar:local_time(),Flow),
-    %bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
-    Resp={reply, {complete, task}, someState}.
-
+    Source = step(Proc,Src), %vertex From
+    Target = step(Proc,Dst), %vertex To is the Vertex
+    Resp = {Status,{Reason,_Reply},State} = bpe_task:task_action(element(#task.module, Vertex),Src,Dst,Proc),
+    %#bpe_proc:prepareNext(Target,State), %replaced with add_sched
+    trace(State,[],calendar:local_time(),Flow),
+    bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
+    Resp.
 
 %TODO: get_Inserted(Vertex,Flow) -> Inserted
 
-map_required_fun(#task{}) -> fun(_,_) -> [] end;
 map_required_fun(#gateway{type=parallel})->
     fun(Required, Flow) -> Required -- [Flow] end;
 map_required_fun(#gateway{type=inclusive})-> %%all
     fun(Required, Flow) -> Required -- [Flow] end;
 map_required_fun(#gateway{type=exclusive}) -> %%any
-    fun(Required, Flow) -> case lists:member(Flow, Required) of true->[];false->Required end end.
+    fun(Required, Flow) -> case lists:member(Flow, Required) of true->[];false->Required end end;
+map_required_fun(_) -> fun(_,_) -> [] end.
+
+
 
 check_required2(_,_,[]) -> true;
 check_required2(#step{id=-1},_,_) -> false;
@@ -229,7 +234,7 @@ completeFlow(Proc) ->
     #sequenceFlow{name=Next,source=Src,target=Dst} = Flow = selectFlow(Proc,Next),
     Source = step(Proc,Src),
     Target = step(Proc,Dst),
-    Resp = {Status,Reason,Reply,State} = bpe_task:task_action(Source,Src,Dst,Proc),
+    Resp = {Status,{Reason,_Reply},State} = bpe_task:task_action(Source,Src,Dst,Proc),
     %%
     bpe_proc:prepareNext(Target,State),
     bpe:trace(State,[],calendar:local_time(),Flow),
