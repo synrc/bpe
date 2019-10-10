@@ -173,5 +173,7 @@ Credits
 -------
 
 * Maxim Sokhatsky
+* Oleksandr Palchikovsky
+* Oleksandr Naumov
 
 OM A HUM
