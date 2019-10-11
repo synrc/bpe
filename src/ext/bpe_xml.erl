@@ -64,8 +64,8 @@ reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
 %%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
 fillInOut(Tasks, [#sequenceFlow{name=Name,source=Source,target=Target}|Flows]) ->
-  Tasks1 = key_push_value(Name, #gateway.outputs, Source, #gateway.name, Tasks),
-  Tasks2 = key_push_value(Name, #gateway.inputs,  Target, #gateway.name, Tasks1),
+  Tasks1 = key_push_value(Name, #gateway.out, Source, #gateway.name, Tasks),
+  Tasks2 = key_push_value(Name, #gateway.in,  Target, #gateway.name, Tasks1),
   fillInOut(Tasks2, Flows). 
 
 key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->

@@ -146,8 +146,8 @@
                         module=bpe_xml :: [] | atom(),
                         type= parallel :: gate(),
                         filler=[] :: [],
-                        inputs=[] :: atom() | list(atom()),
-                        outputs=[] :: atom() | list(atom()) }).
+                        in=[] :: atom() | list(atom()),
+                        out=[] :: atom() | list(atom()) }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).

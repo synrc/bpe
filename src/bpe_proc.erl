@@ -10,7 +10,7 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 debug(Proc,Name,Targets,Target,Status,Reason) ->
-    logger:notice("BPE: ~p [~w:~w] ~w/~w ~w~n",
+    logger:notice("BPE: ~p [~s:~s] ~p/~p ~p~n",
       [Proc#process.id,Name,Target,Status,Reason,Targets]).
 
 process_event(Event,Proc) ->

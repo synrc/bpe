@@ -182,9 +182,9 @@ processSched(#sched{id=ScedId, pointer=Pointer, state=Threads},Proc) ->
     X = lists:nth(Pointer, Threads),
     Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
     Vertex = lists:keyfind(Flow#sequenceFlow.target, #gateway.name, tasks(Proc)),
-    Required = element(#gateway.inputs, Vertex) -- [Flow],
+    Required = element(#gateway.in, Vertex) -- [Flow],
     Check = check_required2(ScedId, map_required_fun(Vertex),Required),
-    Inserted = case Check of true -> element(#gateway.outputs, Vertex); false -> [] end,
+    Inserted = case Check of true -> element(#gateway.out, Vertex); false -> [] end,
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
@@ -210,7 +210,7 @@ map_required_fun(_) -> fun(_,_) -> [] end.
 check_required2(_,_,[]) -> true;
 check_required2(#step{id=-1},_,_) -> false;
 check_required2(#step{id=Id}=SchedId,MapFun,Required) ->
-  io:format("check_required2:~w\n",[{SchedId,MapFun,Required}]),
+%  io:format("check_required2:~w\n",[{SchedId,MapFun,Required}]),
     NewRequired = MapFun(Required, flow(sched(SchedId))),
     check_required2(SchedId#step{id=Id-1}, MapFun, NewRequired).
 

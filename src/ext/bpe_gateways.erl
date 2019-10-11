@@ -68,7 +68,7 @@ fixBeginEndEvents (Proc) ->
 fixGateways(#process{tasks=Tasks}=Proc) -> %%Tasks should contain correct in/out
   Proc#process{ tasks = [convertIfNeeded(T) || T <- Tasks ] }.
 
-convertIfNeeded(#task{name=Name, in=In, out=Out, module=Module}) when length(In)>1; length(Out)>1 -> #gateway{name=Name, type=parallel, inputs=In, outputs=Out, module=Module};
+convertIfNeeded(#task{name=Name, in=In, out=Out, module=Module}) when length(In)>1; length(Out)>1 -> #gateway{name=Name, type=parallel, in=In, out=Out, module=Module};
 convertIfNeeded(Task) -> Task.
 
 action({request,_,_}, Proc) ->
