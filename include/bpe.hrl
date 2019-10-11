@@ -3,6 +3,27 @@
 
 -include_lib("kvs/include/cursors.hrl").
 
+-define(DEFAULT_MODULE, application:get_env(bpe,default_module,bpe_xml)).
+
+-define(TASK,           name=[] :: [] | atom(),
+                        module=?DEFAULT_MODULE :: [] | atom(),
+                        in=[] :: list(#sequenceFlow{}) | atom() | list(atom()),
+                        out=[] :: list(#sequenceFlow{}) | atom() | list(atom()),
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: [] | binary(),
+                        etc=[] :: list({term(),term()}) ).
+
+-define(EVENT,          name=[] :: [] | atom(),
+                        module=?DEFAULT_MODULE :: [] | atom(),
+                        prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}),
+                        payload=[] :: [] | binary(),
+                        timeout=[] :: [] | #timeout{} ).
+
+-define(CYCLIC,         timeDate=[] :: [] | binary(),
+                        timeDuration=[] :: [] | binary(),
+                        timeCycle=[] :: [] | binary() ).
+
 -record(timeout,      { spec= [] :: term() }).
 
 -record(sequenceFlow, { name=[] :: term(),
@@ -10,92 +31,17 @@
                         source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
--record(task,         { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary(),
-                        etc=[] :: list({term(),term()}) }).
-
--record(userTask,     { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary(),
-                        etc=[] :: list({term(),term()})  }).
-
--record(serviceTask,  { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        etc=[] :: list({term(),term()}) }).
-
--record(receiveTask,  { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        prompt=[] :: list(tuple()),
-                        reader=[] :: #reader{},
-                        roles=[] :: [] | binary(),
-                        etc=[] :: list({term(),term()}) }).
-
--record(sendTask,     { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        prompt=[] :: list(tuple()),
-                        writer=[] :: #writer{},
-                        roles=[] :: [] | binary(),
-                        etc=[] :: list({term(),term()}) }).
-
--record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
-                        module=bpe_xml :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        etc=[] :: list({term(),term()}),
-                        payload=[] :: [] | binary(),
-                        timeout=[] :: [] | #timeout{}}).
-
--record(boundaryEvent,{ name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        etc=[] :: list({term(),term()}),
-                        payload=[] :: [] | binary(),
-                        timeout=[] :: [] | #timeout{},
-                        timeDate=[] :: [] | binary(),
-                        timeDuration=[] :: [] | binary(),
-                        timeCycle=[] :: [] | binary() }).
-
--record(timeoutEvent, { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        etc=[] :: list({term(),term()}),
-                        payload=[] :: [] | binary(),
-                        timeout=[] :: [] | #timeout{},
-                        timeDate=[] :: [] | binary(),
-                        timeDuration=[] :: [] | binary(),
-                        timeCycle=[] :: [] | binary() }).
-
--record(beginEvent ,  { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        prompt=[] :: list(tuple()),
-                        etc=[] :: list({term(),term()}) }).
-
--record(endEvent,     { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
-                        prompt=[] :: list(tuple()),
-                        etc=[] :: list({term(),term()}) }).
-
-
-
-
+-record(beginEvent ,  { ?TASK }).
+-record(endEvent,     { ?TASK }).
+-record(task,         { ?TASK }).
+-record(userTask,     { ?TASK }).
+-record(serviceTask,  { ?TASK }).
+-record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
+-record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
+-record(gateway,      { ?TASK, type= parallel :: gate(), filler=[] :: [] }).
+-record(messageEvent, { ?EVENT }).
+-record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
+-record(timeoutEvent, { ?EVENT, ?CYCLIC }).
 
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
@@ -141,13 +87,6 @@
                         started    = [] :: [] | #ts{},
                         beginEvent = [] :: [] | atom(),
                         endEvent   = [] :: [] | atom()}).
-
--record(gateway,      { name=[] :: [] | atom(),
-                        module=bpe_xml :: [] | atom(),
-                        type= parallel :: gate(),
-                        filler=[] :: [],
-                        in=[] :: atom() | list(atom()),
-                        out=[] :: atom() | list(atom()) }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).
