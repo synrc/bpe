@@ -174,49 +174,44 @@
                  | #receiveTask{} | #beginEvent{} | #endEvent{}.
     </code></figure>
     </section>
-     <section>
-<h3>BPE API</h3>
-     
-<figure>
+    <section>
+    <h3>BPE API</h3>
+    <figure>
     <figcaption>BPE API</figcaption>
     <code>
--type bst()    :: binary() | string() | atom().
--type procId() :: [] | integer() | {atom(),any()}.
--type histId() :: [] | integer() | {atom()|string(),any()}.
+ -record(ts,    { time= [] :: term() }).
+ -record(step,  { id = 0 :: integer(), proc = "" :: list() }).
+ -record(sched, { id = [] :: [] | #step{},
+                  pointer = -1 :: integer(),
+                  state = [] :: list(#sequenceFlow{})  }).
 
--record(hist,   { id = [] :: histId(),
-                  container=feed :: [] | atom(),
-                  feed_id=[] :: any(),
-                  prev=[] :: [] | integer(),
-                  next=[] :: [] | integer(),
-                  feeds=[] :: list(),
+ -record(hist,  { id = [] :: [] | #step{},
                   name=[] :: [] | binary(),
-                  task=[] :: [] | {atom()|string(),any()},
+                  task=[] :: [] | atom(),
                   docs=[] :: list(tuple()),
-                  time=[] :: term() }).
+                  time=[] :: [] | #ts{} }).
 
--record(process,{ id            = [] :: procId(),
-                  container   = feed :: [] | atom(),
-                  feed_id       = [] :: [] | term(),
-                  prev          = [] :: [] | integer(),
-                  next          = [] :: [] | integer(),
-                  name          = [] :: [] | bst(),
-                  feeds         = [] :: list(),
-                  roles         = [] :: list(),
-                  tasks         = [] :: list(tasks()),
-                  events        = [] :: list(events()),
-                  hist          = [] :: [] | term(),
-                  flows         = [] :: list(#sequenceFlow{}),
-                  rules         = [] :: [] | term(),
-                  docs          = [] :: list(tuple()),
-                  options       = [] :: term(),
-                  task          = 'Created' :: [] | atom(),
-                  timer         = [] :: [] | reference(),
-                  notifications = [] :: [] | term(),
-                  result        = [] :: [] | binary(),
-                  started       = [] :: [] | calendat:datetime(),
-                  beginEvent    = [] :: [] | atom(),
-                  endEvent      = [] :: [] | atom()}).
+ -record(process, { id = []   :: procId(),
+                    name=[]   :: [] | binary() | string() | atom(),
+                    feeds=[]  :: list(),
+                    roles=[]  :: list(),
+                    tasks=[]  :: list(tasks()),
+                    events=[] :: list(events()),
+                    hist=[]   :: [] | term(),
+                    flows      = [] :: list(#sequenceFlow{}),
+                    rules      = [] :: [] | term(),
+                    docs       = [] :: list(tuple()),
+                    options    = [] :: term(),
+                    task       = 'Created' :: [] | atom(),
+                    timer      = [] :: [] | reference(),
+                    notifications=[] :: [] | term(),
+                    result     = [] :: [] | binary(),
+                    started    = [] :: [] | #ts{},
+                    beginEvent = [] :: [] | atom(),
+                    endEvent   = [] :: [] | atom()}).
+
+ -record(subProcess, { name=[] :: [] | atom(),
+                       diagram= #process{} :: #process{} }).
     </code></figure>
 
     </section>
