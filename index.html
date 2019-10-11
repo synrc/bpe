@@ -251,8 +251,9 @@
             #endEvent    { name='Final',     module = bpe_account } ],
         beginEvent = 'Created',
         endEvent = 'Final',
-        events = [ #messageEvent{name='PaymentReceived'},
-                   #boundaryEvent{name='*', timeout=#timeout{spec={0, {10, 0, 10}}}} ] }.
+        events = [#messageEvent { name='PaymentReceived'},
+                  #boundaryEvent{ name='*',
+                                  timeout=#timeout{spec={0,{10,0,10}}}}]}.
     </code></figure>
     </section>
      <section>
