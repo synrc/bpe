@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1hq5yf7" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.3.4">
   <bpmn:process id="Process_1xl3j18" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1">
+    <bpmn:startEvent id="start">
       <bpmn:outgoing>SequenceFlow_0chsooi</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0chsooi" sourceRef="StartEvent_1" targetRef="ExclusiveGateway_0tm17gv" />
-    <bpmn:parallelGateway id="ExclusiveGateway_0tm17gv">
+    <bpmn:sequenceFlow id="SequenceFlow_0chsooi" sourceRef="start" targetRef="either" />
+    <bpmn:parallelGateway id="either">
       <bpmn:incoming>SequenceFlow_0chsooi</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_16htkhi</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1ueuit9</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:task id="Task_0c1d3yp">
+    <bpmn:task id="left">
       <bpmn:incoming>SequenceFlow_16htkhi</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0rfb6as</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="SequenceFlow_16htkhi" sourceRef="ExclusiveGateway_0tm17gv" targetRef="Task_0c1d3yp" />
-    <bpmn:task id="Task_0lxnwvt">
+    <bpmn:sequenceFlow id="SequenceFlow_16htkhi" sourceRef="either" targetRef="left" />
+    <bpmn:task id="right">
       <bpmn:incoming>SequenceFlow_1ueuit9</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ftup1r</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="SequenceFlow_1ueuit9" sourceRef="ExclusiveGateway_0tm17gv" targetRef="Task_0lxnwvt" />
-    <bpmn:sequenceFlow id="SequenceFlow_1ftup1r" sourceRef="Task_0lxnwvt" targetRef="ExclusiveGateway_04ojgpx" />
-    <bpmn:sequenceFlow id="SequenceFlow_0rfb6as" sourceRef="Task_0c1d3yp" targetRef="ExclusiveGateway_04ojgpx" />
-    <bpmn:task id="Task_1db8471">
+    <bpmn:sequenceFlow id="SequenceFlow_1ueuit9" sourceRef="either" targetRef="right" />
+    <bpmn:sequenceFlow id="SequenceFlow_1ftup1r" sourceRef="right" targetRef="join" />
+    <bpmn:sequenceFlow id="SequenceFlow_0rfb6as" sourceRef="left" targetRef="join" />
+    <bpmn:task id="epilog">
       <bpmn:incoming>SequenceFlow_12qexlj</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_11tmycv</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="SequenceFlow_12qexlj" sourceRef="ExclusiveGateway_04ojgpx" targetRef="Task_1db8471" />
-    <bpmn:endEvent id="EndEvent_1uql16h">
+    <bpmn:sequenceFlow id="SequenceFlow_12qexlj" sourceRef="join" targetRef="epilog" />
+    <bpmn:endEvent id="finish">
       <bpmn:incoming>SequenceFlow_11tmycv</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_11tmycv" sourceRef="Task_1db8471" targetRef="EndEvent_1uql16h" />
-    <bpmn:parallelGateway id="ExclusiveGateway_04ojgpx">
+    <bpmn:sequenceFlow id="SequenceFlow_11tmycv" sourceRef="epilog" targetRef="finish" />
+    <bpmn:parallelGateway id="join">
       <bpmn:incoming>SequenceFlow_1ftup1r</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_0rfb6as</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_12qexlj</bpmn:outgoing>
@@ -39,24 +39,24 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1xl3j18">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="start">
         <dc:Bounds x="179" y="99" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0chsooi_di" bpmnElement="SequenceFlow_0chsooi">
         <di:waypoint x="215" y="117" />
         <di:waypoint x="265" y="117" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ParallelGateway_1yy19lg_di" bpmnElement="ExclusiveGateway_0tm17gv">
+      <bpmndi:BPMNShape id="ParallelGateway_1yy19lg_di" bpmnElement="either">
         <dc:Bounds x="265" y="92" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_0c1d3yp_di" bpmnElement="Task_0c1d3yp">
+      <bpmndi:BPMNShape id="Task_0c1d3yp_di" bpmnElement="left">
         <dc:Bounds x="370" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_16htkhi_di" bpmnElement="SequenceFlow_16htkhi">
         <di:waypoint x="315" y="117" />
         <di:waypoint x="370" y="117" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Task_0lxnwvt_di" bpmnElement="Task_0lxnwvt">
+      <bpmndi:BPMNShape id="Task_0lxnwvt_di" bpmnElement="right">
         <dc:Bounds x="370" y="190" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1ueuit9_di" bpmnElement="SequenceFlow_1ueuit9">
@@ -73,21 +73,21 @@
         <di:waypoint x="550" y="117" />
         <di:waypoint x="550" y="205" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Task_1db8471_di" bpmnElement="Task_1db8471">
+      <bpmndi:BPMNShape id="Task_1db8471_di" bpmnElement="epilog">
         <dc:Bounds x="630" y="190" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_12qexlj_di" bpmnElement="SequenceFlow_12qexlj">
         <di:waypoint x="575" y="230" />
         <di:waypoint x="630" y="230" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_1uql16h_di" bpmnElement="EndEvent_1uql16h">
+      <bpmndi:BPMNShape id="EndEvent_1uql16h_di" bpmnElement="finish">
         <dc:Bounds x="792" y="212" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_11tmycv_di" bpmnElement="SequenceFlow_11tmycv">
         <di:waypoint x="730" y="230" />
         <di:waypoint x="792" y="230" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="ParallelGateway_057rbbm_di" bpmnElement="ExclusiveGateway_04ojgpx">
+      <bpmndi:BPMNShape id="ParallelGateway_057rbbm_di" bpmnElement="join">
         <dc:Bounds x="525" y="205" width="50" height="50" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
