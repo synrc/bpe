@@ -18,22 +18,22 @@ load(File) ->
   io:format("DEBUG: ~p~n",[E]),
   Name = proplists:get_value(id,Attrs),
   Proc = reduce(Elements,#process{id=Name}),
-  Proc#process{tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
+  Proc#process{id=kvs:seq([],[]),tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
 
 reduce([],Acc) ->
   Acc;
 
 reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#task{name=Name}|Tasks]});
+  reduce(T,Process#process{tasks=[#task{module=?MODULE,name=Name}|Tasks]});
 
 reduce([{'bpmn:startEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#beginEvent{name=Name}|Tasks],beginEvent=Name});
+  reduce(T,Process#process{tasks=[#beginEvent{module=?MODULE,name=Name}|Tasks],beginEvent=Name});
 
 reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#endEvent{name=Name}|Tasks],endEvent=Name});
+  reduce(T,Process#process{tasks=[#endEvent{module=?MODULE,name=Name}|Tasks],endEvent=Name});
 
 reduce([{'bpmn:sequenceFlow',_Body,Attrs}|T],#process{flows=Flows} = Process) ->
   Name   = proplists:get_value(id,Attrs),
@@ -43,23 +43,23 @@ reduce([{'bpmn:sequenceFlow',_Body,Attrs}|T],#process{flows=Flows} = Process) ->
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{name=Name,type=parallel}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=parallel}|Tasks]});
 
 reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{name=Name,type=exclusive}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=exclusive}|Tasks]});
 
 reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{name=Name,type=inclusive}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=inclusive}|Tasks]});
 
 reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{name=Name,type=complex}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=complex}|Tasks]});
 
 reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{name=Name,type=none}|Tasks]}).
+  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=none}|Tasks]}).
 
 %%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
@@ -78,3 +78,5 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
       NewElem = setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)]),
       keyreplace(ElemId, ElemIdKey, List, NewElem)
   end.
+
+action({request,_,_},P) -> {reply,P}.

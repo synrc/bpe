@@ -11,23 +11,23 @@
                         target=[] :: [] | atom() | list(atom()) }).
 
 -record(task,         { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary(),
+                        module=bpe_xml :: [] | atom(),
                         in=[] :: list(#sequenceFlow{}),
                         out=[] :: list(#sequenceFlow{}),
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 
 -record(userTask,     { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary(),
+                        module=bpe_xml :: [] | atom(),
                         in=[] :: list(#sequenceFlow{}),
                         out=[] :: list(#sequenceFlow{}),
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()})  }).
 
 -record(serviceTask,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         roles=[] :: [] | binary(),
                         in=[] :: list(#sequenceFlow{}),
@@ -35,32 +35,32 @@
                         etc=[] :: list({term(),term()}) }).
 
 -record(receiveTask,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        reader=[] :: #reader{},
+                        module=bpe_xml :: [] | atom(),
                         in=[] :: list(#sequenceFlow{}),
                         out=[] :: list(#sequenceFlow{}),
+                        prompt=[] :: list(tuple()),
+                        reader=[] :: #reader{},
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 
 -record(sendTask,     { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
-                        prompt=[] :: list(tuple()),
-                        writer=[] :: #writer{},
+                        module=bpe_xml :: [] | atom(),
                         in=[] :: list(#sequenceFlow{}),
                         out=[] :: list(#sequenceFlow{}),
+                        prompt=[] :: list(tuple()),
+                        writer=[] :: #writer{},
                         roles=[] :: [] | binary(),
                         etc=[] :: list({term(),term()}) }).
 
 -record(messageEvent, { name=[] :: [] | atom() | string() | binary(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
                         timeout=[] :: [] | #timeout{}}).
 
 -record(boundaryEvent,{ name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
@@ -70,7 +70,7 @@
                         timeCycle=[] :: [] | binary() }).
 
 -record(timeoutEvent, { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
@@ -80,12 +80,16 @@
                         timeCycle=[] :: [] | binary() }).
 
 -record(beginEvent ,  { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}) }).
 
 -record(endEvent,     { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}) }).
 
@@ -139,7 +143,7 @@
                         endEvent   = [] :: [] | atom()}).
 
 -record(gateway,      { name=[] :: [] | atom(),
-                        module=[] :: [] | atom(),
+                        module=bpe_xml :: [] | atom(),
                         type= parallel :: gate(),
                         filler=[] :: [],
                         inputs=[] :: atom() | list(atom()),
