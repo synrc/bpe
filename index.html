@@ -36,7 +36,7 @@
         <figure>
         <code> $ mad get bpe &#38;&#38; cd bpe
  $ mad com pla rep
- > bpe:start(bpe_account:def(),[]).</code></figure>
+ > bpe:start(bpe_xml:def(),[]).</code></figure>
         </section>
         <section>
             <h3>MODULES</h3>
@@ -44,7 +44,7 @@
             <br />
             <div>
                 JUL 2019 © <a href="https://github.com/5HT">5HT</a> ISC<br />
-                VER 6.7 6.5 6.4
+                VER 4.10 4.5 4.4
             </div>
         </section>
         <section>
@@ -53,55 +53,91 @@
 </aside>
 <main>
     <section>
-
-<h3>SESSION</h3>
-
+    <h3>MODEL</h3>
+    <p>You can use Camunda Modeler of <a href="https://bpmn.io">bpmn.io</a> with BPE:</p>
+    <figure><img src="man/img/camunda.png"/></figure>
+    </section>
+    <section>
+    <h3>SESSION</h3>
+    <p>Transactional persistent (rocksdb) business processing with milti-threading executioin,
+       hierarchical traces and BPMN 2.0 XML support out of the box.</p>
     <figure><code>
-> bpe:start(bpe_account:def(),[]).
-Process "1562195753535380000" spawned as &#60;0.139.0&#62;.
-{ok,"1562195753535380000"}
-
-> bpe:complete("1562195753535380000").
-Process: "1562195753535380000" Task: 'Created' Targets: ['Init']
-Target: 'Init' Status: reply Reason: unknown_task
-{unknown_task,'Init'}
-
-> bpe:hist("1562195753535380000").
-[{hist,{1,"1562195753535380000"},
-       feed,[],[],[],[],'IBAN Account',
-       {task,'Init'},
-       [],
-       {{2019,7,4},{2,13,43}}},
- {hist,{0,"1562195753535380000"},
-       feed,[],[],[],[],'IBAN Account',
-       {task,'Created'},
-       [],
-       {{2019,7,4},{2,13,7}}}]
-
-> bpe:head("1562195753535380000").
-{hist,{1,"1562195753535380000"},
-      feed,[],[],[],[],'IBAN Account',
-      {task,'Init'},
-      [],
-      {{2019,7,4},{2,13,43}}}
-
-> supervisor:which_children(bpe_otp).
-[{"1562195753535380000",&#60;0.139.0&#62;,worker,[bpe_proc]}]
+ iex(1)> {_,p} = :bpe.start :bpe_xml.def, []
+ {:ok, '76900759556000'}
+ iex(2)> :bpe.next p
+ {:complete, 'either'}
+ iex(3)> :bpe.next p
+ {:complete, 'left'}
+ iex(4)> :bpe.next p
+ {:complete, 'right'}
+ iex(5)> :bpe.next p
+ {:complete, 'join'}
+ iex(6)> :bpe.next p
+ {:complete, 'join'}
+ iex(7)> :bpe.next p
+ {:complete, 'epilog'}
+ iex(8)> :bpe.next p
+ {:complete, 'finish'}
+ iex(9)> :bpe.next p
+ :Final
     </code></figure>
 
 <figure>
-    <figcaption>How the data is stored in KVS</figcaption>
+    <figcaption>How the process is stored in KVS</figcaption>
     <code>
-> kvs:all(writer).
-[{writer,"/bpe/proc",1,[],[],[]},
- {writer,"/bpe/hist/1562195753535380000",2,[],[],[]}]
+ iex(10)> :kvs.all :writer
+ [
+   {:writer, '/bpe/proc', 1, [], [], []},
+   {:writer, '/bpe/flow/77012724426000', 1, [], [], []},
+   {:writer, '/bpe/hist/77012724426000', 1, [], [], []}
+ ]
+    </code></figure>
 
-> kvs:get("/bpe/hist/1562195753535380000",{1,"1562195753535380000"}).
-{ok,{hist,{1,"1562195753535380000"},
-          feed,[],[],[],[],'IBAN Account',
-          {task,'Init'},
-          [],
-          {{2019,7,4},{2,16,7}}}}
+<figure>
+    <figcaption>The hierarchical process trace of flows but not tasks:</figcaption>
+    <code>
+ iex(11)> :bpe.hist p
+ [
+   {:hist, {:step, 7, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x7', [], 'epilog', 'finish'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 7}}}},
+   {:hist, {:step, 6, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x6', [], 'join', 'epilog'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 6}}}},
+   {:hist, {:step, 5, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x5', [], 'right', 'join'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 6}}}},
+   {:hist, {:step, 4, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x4', [], 'left', 'join'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 6}}}},
+   {:hist, {:step, 3, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x3', [], 'either', 'right'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 5}}}},
+   {:hist, {:step, 2, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x2', [], 'either', 'left'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 5}}}},
+   {:hist, {:step, 1, '77012724426000'}, :feed, [], [], [], [],
+    {:sequenceFlow, 'x1', [], 'start', 'either'}, [],
+    {:ts, {{2019, 10, 11}, {4, 3, 4}}}},
+   {:hist, {:step, 0, '77012724426000'}, :feed, [], [], [], [], :Created, [],
+    {:ts, {{2019, 10, 11}, {4, 2, 25}}}}
+ ]
+     </code></figure>
+
+<figure>
+    <figcaption>The history of scheduler state of execution:</figcaption>
+    <code>
+ > :kvs.all '/bpe/flow/77012724426000'
+ [
+   {:sched, {:step, 0, '77012724426000'}, 1, ['x1']},
+   {:sched, {:step, 1, '77012724426000'}, 1, ['x2', 'x3']},
+   {:sched, {:step, 2, '77012724426000'}, 2, ['x4', 'x3']},
+   {:sched, {:step, 3, '77012724426000'}, 1, ['x4', 'x5']},
+   {:sched, {:step, 4, '77012724426000'}, 1, ['x5']},
+   {:sched, {:step, 5, '77012724426000'}, 1, ['x6']},
+   {:sched, {:step, 6, '77012724426000'}, 1, ['x7']},
+   {:sched, {:step, 7, '77012724426000'}, 1, []}
+ ]
     </code></figure>
     </section>
      <section>
@@ -112,6 +148,33 @@ Target: 'Init' Status: reply Reason: unknown_task
 
 <figure>
     <figcaption>Lightweight BPMN</figcaption>
+    <code>
+ -record(beginEvent ,   { ?TASK }).
+ -record(endEvent,      { ?TASK }).
+ -record(task,          { ?TASK }).
+ -record(userTask,      { ?TASK }).
+ -record(serviceTask,   { ?TASK }).
+ -record(receiveTask,   { ?TASK, reader=[] :: #reader{} }).
+ -record(sendTask,      { ?TASK, writer=[] :: #writer{} }).
+ -record(gateway,       { ?TASK, type= parallel :: gate(), filler=[] :: [] }).
+ -record(messageEvent,  { ?EVENT }).
+ -record(boundaryEvent, { ?EVENT, ?CYCLIC }).
+ -record(timeoutEvent,  { ?EVENT, ?CYCLIC }).
+ -record(timeout,       { spec= [] :: term() }).
+ -record(sequenceFlow,  { name=[] :: term(),
+                          condition=[] :: term(),
+                          source=[] :: [] | atom(),
+                          target=[] :: [] | atom() | list(atom()) }).
+
+ -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
+ -type procId() :: [] | integer() | {atom(),any()}.
+ -type gate()   :: exclusive | parallel | inclusive | complex | event.
+ -type tasks()  :: #task{} | #serviceTask{} | #userTask{}
+                 | #receiveTask{} | #beginEvent{} | #endEvent{}.
+    </code></figure>
+
+<figure>
+    <figcaption>BPE API</figcaption>
     <code>
 -type bst()    :: binary() | string() | atom().
 -type procId() :: [] | integer() | {atom(),any()}.
@@ -127,12 +190,6 @@ Target: 'Init' Status: reply Reason: unknown_task
                   task=[] :: [] | {atom()|string(),any()},
                   docs=[] :: list(tuple()),
                   time=[] :: term() }).
-
--type tasks()  :: #task{} | #serviceTask{} | #userTask{}
-                | #receiveTask{} | #beginEvent{} | #endEvent{}.
-
--type events() :: #messageEvent{} | #boundaryEvent{}
-                | #timeoutEvent{}.
 
 -record(process,{ id            = [] :: procId(),
                   container   = feed :: [] | atom(),
@@ -165,34 +222,48 @@ Target: 'Init' Status: reply Reason: unknown_task
 <figure>
     <figcaption>Sample Process Definition</figcaption>
     <code>
--module(bpe_account).
--compile(export_all).
-def() ->
-  #process { name = 'IBAN Account',
-    flows = [
-      #sequenceFlow { source='Created',   target='Init'},
-      #sequenceFlow { source='Init',      target='Upload'},
-      #sequenceFlow { source='Upload',    target='Payment'},
-      #sequenceFlow { source='Payment',   target=['Signatory','Process']},
-      #sequenceFlow { source='Process',   target=['Process','Final']},
-      #sequenceFlow { source='Signatory', target=['Process','Final']} ],
-    tasks = [
-      #userTask     { name='Init',        module = bpe_account },
-      #userTask     { name='Upload',      module = bpe_account },
-      #userTask     { name='Signatory',   module = bpe_account },
-      #serviceTask  { name='Payment',     module = bpe_account },
-      #serviceTask  { name='Process',     module = bpe_account }, 
-      #endEvent     { name='Final',       module = bpe_account } ],
-    beginEvent = 'Init',
-    endEvent = 'Final',
-    events = [ #messageEvent{name='PaymentReceived'} ] }.
+ -module(sample).
+ -include("bpe.hrl").
+ -compile(export_all).
+
+ action(_,P) ->
+    {reply,P}.
+
+ def() ->
+    #process { name = 'IBAN Account',
+        flows = [
+            #sequenceFlow{name='1', source='Created',   target='Init'},
+            #sequenceFlow{name='2', source='Init',      target='Upload'},
+            #sequenceFlow{name='3', source='Upload',    target='Payment'},
+            #sequenceFlow{name='4', source='Payment',   target='Signatory'},
+            #sequenceFlow{name='5', source='Payment',   target='Process'},
+            #sequenceFlow{name='6', source='Process',   target='Process'},
+            #sequenceFlow{name='7', source='Process',   target='Final'},
+            #sequenceFlow{name='8', source='Signatory', target='Process'},
+            #sequenceFlow{name='9', source='Signatory', target='Final'} ],
+        tasks = [
+            #beginEvent  { name='Created',   module = bpe_account },
+            #userTask    { name='Init',      module = bpe_account },
+            #userTask    { name='Upload',    module = bpe_account },
+            #userTask    { name='Signatory', module = bpe_account },
+            #serviceTask { name='Payment',   module = bpe_account },
+            #serviceTask { name='Process',   module = bpe_account },
+            #endEvent    { name='Final',     module = bpe_account } ],
+        beginEvent = 'Created',
+        endEvent = 'Final',
+        events = [ #messageEvent{name='PaymentReceived'},
+                   #boundaryEvent{name='*', timeout=#timeout{spec={0, {10, 0, 10}}}} ] }.
     </code></figure>
     </section>
      <section>
         <a name="plugin"></a><h3>PRESENCE</h3>
         <p>Companies that use BPE:</p>
         <div>
-        <ul><li><a href="https://pb.ua/depozit">pb.ua/depozit</a> — АТ КБ "ПриватБанк"</li><li><a href="https://nynja.io">nynja.io</a> — NYNJA, Inc.</li><li><a href="http://quanterall.com">quanterall.com</a> — Quanterall, OOD.</li></ul></div>
+        <ul><li><a href="https://pb.ua/depozit">pb.ua/depozit</a> — АТ КБ "ПриватБанк"</li>
+            <li><a href="https://nynja.io">nynja.io</a> — NYNJA, Inc.</li>
+            <li><a href="https://quanterall.systems">quanterall.systems</a> — Quanterall, OOD.</li>
+            <li><a href="https://infotech.gov.ua">infotech.gov.ua</a> — ДП "Інфотех".</li>
+            </ul></div>
         <br /><br />
     </section>
      <section>

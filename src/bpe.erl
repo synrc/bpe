@@ -79,7 +79,6 @@ modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIME
 event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIMEOUT).
 
 first_flow(#process{beginEvent = BeginEvent, flows = Flows}) ->
-%  io:format("Flows=~p~nBegin=~p~n", [Flows, BeginEvent]),
   (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.name.
 
 head(ProcId) ->
@@ -209,7 +208,6 @@ map_required_fun(_) -> fun(_,_) -> [] end.
 check_required2(_,_,[]) -> true;
 check_required2(#step{id=-1},_,_) -> false;
 check_required2(#step{id=Id}=SchedId,MapFun,Required) ->
-%  io:format("check_required2:~w\n",[{SchedId,MapFun,Required}]),
     NewRequired = MapFun(Required, flow(sched(SchedId))),
     check_required2(SchedId#step{id=Id-1}, MapFun, NewRequired).
 
