@@ -10,8 +10,10 @@
 start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 debug(Proc,Name,Targets,Target,Status,Reason) ->
-    logger:notice("BPE: ~p [~s:~s] ~p/~p ~p~n",
-      [Proc#process.id,Name,Target,Status,Reason,Targets]).
+    case application:get_env(bpe,debug,true) of
+         true -> logger:notice("BPE: ~p [~s:~s] ~p/~p ~p~n",
+                               [Proc#process.id,Name,Target,Status,Reason,Targets]);
+         false -> skip end.
 
 process_event(Event,Proc) ->
     EventName = element(#messageEvent.name,Event),

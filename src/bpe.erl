@@ -1,9 +1,8 @@
 -module(bpe).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
--include_lib("kvs/include/cursors.hrl").
 -include("api.hrl").
--export([head/1,trace/4]).
+-include_lib("kvs/include/cursors.hrl").
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
 
@@ -26,7 +25,7 @@ current_task(Id) ->
          [] -> {empty,'Created'};
          #hist{id={step,H,_},task=T} -> {H,T} end. %% H - ProcId
 
-trace(Proc,Name,Time,Task) ->
+add_trace(Proc,Name,Time,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     kvs:append(Proc,"/bpe/proc"),
@@ -53,7 +52,7 @@ start(Proc0, Options) ->
            notifications = Pid,
            started= #ts{ time = calendar:local_time() } },
 
-    case Hist of empty -> trace(Proc,[],calendar:local_time(),Task),
+    case Hist of empty -> add_trace(Proc,[],calendar:local_time(),Task),
                           add_sched(Proc,1,[first_flow(Proc)]);
                  _ -> skip end,
 
@@ -80,7 +79,7 @@ modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIME
 event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIMEOUT).
 
 first_flow(#process{beginEvent = BeginEvent, flows = Flows}) ->
-  io:format("Flows=~p~nBegin=~p~n", [Flows, BeginEvent]),
+%  io:format("Flows=~p~nBegin=~p~n", [Flows, BeginEvent]),
   (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.name.
 
 head(ProcId) ->
@@ -193,7 +192,7 @@ processSched(#sched{id=ScedId, pointer=Pointer, state=Threads},Proc) ->
     Target = step(Proc,Dst),
     Resp   = {Status,{Reason,_Reply},State}
            = bpe_task:task_action(element(#task.module, Vertex),Src,Dst,Proc),
-    trace(State,[],calendar:local_time(),Flow),
+    add_trace(State,[],calendar:local_time(),Flow),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 

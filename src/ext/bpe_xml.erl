@@ -15,7 +15,6 @@ load(File) ->
   {ok,Bin} = file:read_file(File),
   _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
   E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
-  io:format("DEBUG: ~p~n",[E]),
   Name = proplists:get_value(id,Attrs),
   Proc = reduce(Elements,#process{id=Name}),
   Proc#process{id=kvs:seq([],[]),tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
