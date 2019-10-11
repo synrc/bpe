@@ -9,7 +9,7 @@ attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 find(E,[]) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
 find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E, X == I].
 
-def() -> load("priv/diagram_1.bpmn").
+def() -> load("priv/sample.bpmn").
 
 load(File) ->
   {ok,Bin} = file:read_file(File),
