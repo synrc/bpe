@@ -172,43 +172,39 @@ unreg(Pool) ->
                  erlang:erase({pool,Pool}) end.
 
 processFlow(#process{}=Proc) ->
-    X = #sched{id=ScedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
+    X = #sched{id=SchedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
     processSched(X,Proc).
 
-processSched(#sched{id=ScedId, pointer=Pointer, state=[]},Proc) -> {stop,normal,'Final',Proc};
-processSched(#sched{id=ScedId, pointer=Pointer, state=Threads},Proc) ->
-    X = lists:nth(Pointer, Threads),
-    Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
-    Vertex = lists:keyfind(Flow#sequenceFlow.target, #gateway.name, tasks(Proc)),
-    Required = element(#gateway.in, Vertex) -- [Flow],
-    Check = check_required2(ScedId, map_required_fun(Vertex),Required),
-    Inserted = case Check of true -> element(#gateway.out, Vertex); false -> [] end,
+processSched(#sched{id=SchedId, pointer=Pointer, state=[]},Proc) -> {stop,normal,'Final',Proc};
+processSched(#sched{id=SchedId, pointer=Pointer, state=Threads}=Sched,Proc) ->
+    Flow = lists:keyfind(flowId(Sched), #sequenceFlow.name, Proc#process.flows),
+    Task = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
+    Inserted = get_inserted(Task, Flow, SchedId),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
     #sequenceFlow{name=Next, source=Src,target=Dst} = Flow,
-    Source = step(Proc,Src),
-    Target = step(Proc,Dst),
-    Resp   = {Status,{Reason,_Reply},State}
-           = bpe_task:task_action(element(#task.module, Vertex),Src,Dst,Proc),
+    Resp = {Status,{Reason,_Reply},State}
+         = bpe_task:task_action(element(#task.module, Task),Src,Dst,Proc),
     add_trace(State,[],calendar:local_time(),Flow),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 
-%TODO: get_Inserted(Vertex,Flow) -> Inserted
+get_inserted(#gateway{type=Type, in=In, out=Out}, Flow, ScedId) when Type == inclusive;
+                                                                     Type == parallel ->
+    case check_all_flows(In -- [Flow], ScedId) of true -> Out; false -> [] end;
+get_inserted(#gateway{type=exclusive, out=Out},_,_) -> first_matched_flow(Out);
+get_inserted(T,_,_) -> element(#task.out, T).
 
-map_required_fun(#gateway{type=parallel})->
-    fun(Required, Flow) -> Required -- [Flow] end;
-map_required_fun(#gateway{type=inclusive})-> %%all
-    fun(Required, Flow) -> Required -- [Flow] end;
-map_required_fun(#gateway{type=exclusive}) -> %%any
-    fun(Required, Flow) -> case lists:member(Flow, Required) of true->[];false->Required end end;
-map_required_fun(_) -> fun(_,_) -> [] end.
+check_all_flows([], _) -> true;
+check_all_flows(_, #step{id = -1}) -> false;
+check_all_flows(Needed, ScedId=#step{id=Id}) ->
+  check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
 
-check_required2(_,_,[]) -> true;
-check_required2(#step{id=-1},_,_) -> false;
-check_required2(#step{id=Id}=SchedId,MapFun,Required) ->
-    NewRequired = MapFun(Required, flow(sched(SchedId))),
-    check_required2(SchedId#step{id=Id-1}, MapFun, NewRequired).
+first_matched_flow([]) -> [];
+first_matched_flow([H | Flows]) -> 
+    case check_flow_condition(H) of true -> [H]; false -> first_matched_flow(Flows) end.
 
-flow(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).
+check_flow_condition(_Flow) -> true. %%TODO: implement check of Flow#sequenceFlow.condition
+
+flowId(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).

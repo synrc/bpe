@@ -38,12 +38,12 @@
 -record(serviceTask,  { ?TASK }).
 -record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
 -record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
--record(gateway,      { ?TASK, type= parallel :: gate(), filler=[] :: [] }).
+-record(gateway,      { ?TASK, type= parallel :: gate() }).
 -record(messageEvent, { ?EVENT }).
 -record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
 -record(timeoutEvent, { ?EVENT, ?CYCLIC }).
 
--type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #beginEvent{} | #endEvent{}.
+-type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #sendTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
 -type procId() :: [] | integer() | {atom(),any()}.
 -type gate()   :: exclusive | parallel | inclusive | complex | event.
