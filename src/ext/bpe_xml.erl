@@ -14,7 +14,7 @@ def() -> load("priv/sample.bpmn").
 load(File) ->
   {ok,Bin} = file:read_file(File),
   _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
-  E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
+  _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   Name = proplists:get_value(id,Attrs),
   Proc = reduce(Elements,#process{id=Name}),
   Proc#process{id=kvs:seq([],[]),tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
@@ -22,6 +22,7 @@ load(File) ->
 reduce([],Acc) ->
   Acc;
 
+%%TODO?: Maybe replace ?MODULE with actual parameter for different processes
 reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#task{module=?MODULE,name=Name}|Tasks]});
@@ -58,7 +59,18 @@ reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) 
 
 reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=none}|Tasks]}).
+  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=none}|Tasks]});
+
+%%TODO? Maybe add support for those intries and remove them from this guard
+reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
+  when SkipType == 'bpmn:dataObjectReference';
+       SkipType == 'bpmn:dataObject';
+       SkipType == 'bpmn:association';
+       SkipType == 'bpmn:textAnnotation';
+%%TODO: Add some place to store info from lanes - maybe add actor field for tasks
+       SkipType == 'bpmn:laneSet' ->
+  skip,
+  reduce(T,Process).
 
 %%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
