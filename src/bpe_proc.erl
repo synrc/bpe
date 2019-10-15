@@ -63,8 +63,8 @@ process_task(Stage,Proc,NoFlow) ->
          {List,_,_}   -> {reply,{complete,bpe_task:find_flow(Stage,List)},Proc} end,
 
     case (Status == stop) orelse (NoFlow == true) of
-       true -> []; 
-       _ -> bpe:trace(ProcState,[],calendar:local_time(),Target),
+       true -> [];
+       _ -> bpe:add_trace(ProcState,[],calendar:local_time(),Target),
             debug(ProcState,Curr,Targets,Target,Status,Reason) end,
 
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
