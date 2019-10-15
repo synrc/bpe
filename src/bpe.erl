@@ -172,14 +172,14 @@ unreg(Pool) ->
                  erlang:erase({pool,Pool}) end.
 
 processFlow(#process{}=Proc) ->
-    X = #sched{id=ScedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
+    X = #sched{id=SchedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
     processSched(X,Proc).
 
-processSched(#sched{id=ScedId, pointer=Pointer, state=[]},Proc) -> {stop,normal,'Final',Proc};
-processSched(#sched{id=ScedId, pointer=Pointer, state=Threads},Proc) ->
-    Flow = lists:keyfind(lists:nth(Pointer, Threads), #sequenceFlow.name, Proc#process.flows),
+processSched(#sched{id=SchedId, pointer=Pointer, state=[]},Proc) -> {stop,normal,'Final',Proc};
+processSched(#sched{id=SchedId, pointer=Pointer, state=Threads}=Sched,Proc) ->
+    Flow = lists:keyfind(flowId(Sched), #sequenceFlow.name, Proc#process.flows),
     Task = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
-    Inserted = get_inserted(Task, Flow, ScedId),
+    Inserted = get_inserted(Task, Flow, SchedId),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
@@ -190,17 +190,16 @@ processSched(#sched{id=ScedId, pointer=Pointer, state=Threads},Proc) ->
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 
-get_inserted(#gateway{type=Type, in=In, out=Out},Flow,ScedId) when Type == inclusive;
-                                                                   Type == parallel ->
+get_inserted(#gateway{type=Type, in=In, out=Out}, Flow, ScedId) when Type == inclusive;
+                                                                     Type == parallel ->
     case check_all_flows(In -- [Flow], ScedId) of true -> Out; false -> [] end;
 get_inserted(#gateway{type=exclusive, out=Out},_,_) -> first_matched_flow(Out);
 get_inserted(T,_,_) -> element(#task.out, T).
 
-check_all_flows([],_) -> true;
-check_all_flows(_ ,#step{id = -1}) -> false;
-check_all_flows(Needed,ScedId) -> check_all_flows(Needed--[flow(sched(ScedId))],prev_step(ScedId)).
-
-prev_step(Step=#step{id=Id}) -> Step#step{id=Id-1}.
+check_all_flows([], _) -> true;
+check_all_flows(_, #step{id = -1}) -> false;
+check_all_flows(Needed, ScedId=#step{id=Id}) ->
+  check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
 
 first_matched_flow([]) -> [];
 first_matched_flow([H | Flows]) -> 
@@ -208,4 +207,4 @@ first_matched_flow([H | Flows]) ->
 
 check_flow_condition(_Flow) -> true. %%TODO: implement check of Flow#sequenceFlow.condition
 
-flow(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).
+flowId(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).
