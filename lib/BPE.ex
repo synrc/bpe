@@ -3,9 +3,10 @@ defmodule BPE do
 
   defmacro xml(source) do
     mod = __CALLER__.module
+    file = File.cwd!() <> source
+    proc = Macro.escape(:bpe_xml.load(to_charlist(file), mod))
     quote do
-      file = File.cwd!() <> unquote(source)
-      :bpe_xml.load(to_charlist(file), unquote(mod))
+      unquote(proc)
     end
   end
 
