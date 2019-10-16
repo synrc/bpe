@@ -1,6 +1,14 @@
 defmodule BPE do
   require Record
 
+  defmacro xml(source) do
+    mod = __CALLER__.module
+    quote do
+      file = File.cwd!() <> unquote(source)
+      :bpe_xml.load(to_charlist(file), unquote(mod))
+    end
+  end
+
   Enum.each(Record.extract_all(from_lib: "bpe/include/bpe.hrl"), fn {name, definition} ->
     Record.defrecord(name, definition)
   end)
