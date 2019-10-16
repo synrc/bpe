@@ -10,7 +10,7 @@
                         in=[] :: list(#sequenceFlow{}) | atom() | list(atom()),
                         out=[] :: list(#sequenceFlow{}) | atom() | list(atom()),
                         prompt=[] :: list(tuple()),
-                        roles=[] :: [] | binary(),
+                        roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
 
 -define(EVENT,          name=[] :: [] | atom(),
