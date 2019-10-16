@@ -11,58 +11,60 @@ find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,cont
 
 def() -> load("priv/sample.bpmn").
 
-load(File) ->
+load(File) -> load(File, ?MODULE).
+
+load(File,Module) ->
   {ok,Bin} = file:read_file(File),
   _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
   _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   Name = proplists:get_value(id,Attrs),
-  Proc = reduce(Elements,#process{id=Name}),
+  Proc = reduce(Elements,#process{id=Name},Module),
   Proc#process{id=kvs:seq([],[]),tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
 
-reduce([],Acc) ->
+reduce([], Acc, Module) ->
   Acc;
 
 %%TODO?: Maybe replace ?MODULE with actual parameter for different processes
-reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#task{module=?MODULE,name=Name}|Tasks]});
+  reduce(T,Process#process{tasks=[#task{module=Module,name=Name}|Tasks]}, Module);
 
-reduce([{'bpmn:startEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:startEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#beginEvent{module=?MODULE,name=Name}|Tasks],beginEvent=Name});
+  reduce(T,Process#process{tasks=[#beginEvent{module=Module,name=Name}|Tasks],beginEvent=Name}, Module);
 
-reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#endEvent{module=?MODULE,name=Name}|Tasks],endEvent=Name});
+  reduce(T,Process#process{tasks=[#endEvent{module=Module,name=Name}|Tasks],endEvent=Name}, Module);
 
-reduce([{'bpmn:sequenceFlow',_Body,Attrs}|T],#process{flows=Flows} = Process) ->
+reduce([{'bpmn:sequenceFlow',_Body,Attrs}|T],#process{flows=Flows} = Process, Module) ->
   Name   = proplists:get_value(id,Attrs),
   Source = proplists:get_value(sourceRef,Attrs),
   Target = proplists:get_value(targetRef,Attrs),
-  reduce(T,Process#process{flows=[#sequenceFlow{name=Name,source=Source,target=Target}|Flows]});
+  reduce(T,Process#process{flows=[#sequenceFlow{name=Name,source=Source,target=Target}|Flows]}, Module);
 
-reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=parallel}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=parallel}|Tasks]}, Module);
 
-reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=exclusive}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=exclusive}|Tasks]}, Module);
 
-reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=inclusive}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=inclusive}|Tasks]}, Module);
 
-reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=complex}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=complex}|Tasks]}, Module);
 
-reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
+reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=?MODULE,name=Name,type=none}|Tasks]});
+  reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=none}|Tasks]}, Module);
 
 %%TODO? Maybe add support for those intries and remove them from this guard
-reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
+reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process, Module)
   when SkipType == 'bpmn:dataObjectReference';
        SkipType == 'bpmn:dataObject';
        SkipType == 'bpmn:association';
@@ -70,7 +72,7 @@ reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
 %%TODO: Add some place to store info from lanes - maybe add actor field for tasks
        SkipType == 'bpmn:laneSet' ->
   skip,
-  reduce(T,Process).
+  reduce(T,Process, Module).
 
 %%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
