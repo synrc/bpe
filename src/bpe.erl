@@ -194,7 +194,8 @@ get_inserted(#gateway{type=Type, in=In, out=Out}, Flow, ScedId) when Type == inc
                                                                      Type == parallel ->
     case check_all_flows(In -- [Flow], ScedId) of true -> Out; false -> [] end;
 get_inserted(#gateway{type=exclusive, out=Out},_,_) -> first_matched_flow(Out);
-get_inserted(T,_,_) -> element(#task.out, T).
+%%By default we will handle any unmatched task the same way as an exlusive gateway
+get_inserted(T,_,_) -> first_matched_flow(element(#task.out, T)).
 
 check_all_flows([], _) -> true;
 check_all_flows(_, #step{id = -1}) -> false;
@@ -202,6 +203,7 @@ check_all_flows(Needed, ScedId=#step{id=Id}) ->
   check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
 
 first_matched_flow([]) -> [];
+first_matched_flow([H, H2 | Flows]) -> [H2];
 first_matched_flow([H | Flows]) -> 
     case check_flow_condition(H) of true -> [H]; false -> first_matched_flow(Flows) end.
 
