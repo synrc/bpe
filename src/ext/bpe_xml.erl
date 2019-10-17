@@ -21,10 +21,10 @@ load(File,Module) ->
   _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
   _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   Name = proplists:get_value(id,Attrs),
-  Proc = reduce(Elements,#process{id=Name},Module),
+  Proc = reduce(Elements,#process{name=Name},Module),
   Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
   Tasks1 = fixRoles(Tasks, Proc#process.roles),
-  Proc#process{ id=kvs:seq([],[]),
+  Proc#process{ id=[],
                 tasks = Tasks1,
                 roles=[],
                 events = [ #boundaryEvent{name='*', timeout=#timeout{spec={0,{0,30,0}}}}

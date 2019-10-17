@@ -65,7 +65,7 @@ start(Proc0, Options) ->
     case supervisor:start_child(bpe_otp,ChildSpec) of
          {ok,_}    -> {ok,Proc#process.id};
          {ok,_,_}  -> {ok,Proc#process.id};
-         {error,_} -> {error,Proc#process.id} end.
+         {error,Reason} -> {error,Reason} end.
 
 pid(Id) -> bpe:cache({process,Id}).
 
