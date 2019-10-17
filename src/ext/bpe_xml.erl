@@ -19,7 +19,10 @@ load(File,Module) ->
   _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   Name = proplists:get_value(id,Attrs),
   Proc = reduce(Elements,#process{id=Name},Module),
-  Proc#process{id=kvs:seq([],[]),tasks = fillInOut(Proc#process.tasks, Proc#process.flows)}.
+  Proc#process{ id=kvs:seq([],[]),
+                tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
+                events = [ #boundaryEvent{name='*', timeout=#timeout{spec={0,{0,30,0}}}}
+                         | Proc#process.events ] }.
 
 reduce([], Acc, Module) ->
   Acc;
