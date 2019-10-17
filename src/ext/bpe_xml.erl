@@ -6,6 +6,9 @@
 
 attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 
+%%It is expected that bpmn:flowNodeRef are present only in bpmn:lane and only #xmlText{} and #xmlElement{name='bpmn:flowNodeRef'} are present there 
+find(E=[#xmlText{}, #xmlElement{name='bpmn:flowNodeRef'} | _],[]) ->
+  [ {X,[],{value,V}} || #xmlElement{name=X,content=[#xmlText{value=V}]} <- E];
 find(E,[]) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
 find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E, X == I].
 
@@ -19,15 +22,17 @@ load(File,Module) ->
   _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
   Name = proplists:get_value(id,Attrs),
   Proc = reduce(Elements,#process{id=Name},Module),
+  Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
+  Tasks1 = fixRoles(Tasks, Proc#process.roles),
   Proc#process{ id=kvs:seq([],[]),
-                tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
+                tasks = Tasks1,
+                roles=[],
                 events = [ #boundaryEvent{name='*', timeout=#timeout{spec={0,{0,30,0}}}}
                          | Proc#process.events ] }.
 
-reduce([], Acc, Module) ->
+reduce([], Acc, _Module) ->
   Acc;
 
-%%TODO?: Maybe replace ?MODULE with actual parameter for different processes
 reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#task{module=Module,name=Name}|Tasks]}, Module);
@@ -66,14 +71,15 @@ reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module)
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=none}|Tasks]}, Module);
 
+reduce([{'bpmn:laneSet',Lanes,_Attrs}|T], Process, Module) ->
+  reduce(T,Process#process{roles = Lanes}, Module);
+
 %%TODO? Maybe add support for those intries and remove them from this guard
 reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process, Module)
   when SkipType == 'bpmn:dataObjectReference';
        SkipType == 'bpmn:dataObject';
        SkipType == 'bpmn:association';
-       SkipType == 'bpmn:textAnnotation';
-%%TODO: Add some place to store info from lanes - maybe add actor field for tasks
-       SkipType == 'bpmn:laneSet' ->
+       SkipType == 'bpmn:textAnnotation' ->
   skip,
   reduce(T,Process, Module).
 
@@ -94,5 +100,17 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
       NewElem = setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)]),
       keyreplace(ElemId, ElemIdKey, List, NewElem)
   end.
+
+fixRoles(Tasks, []) -> Tasks;
+fixRoles(Tasks, [Lane|Lanes]) ->
+  LaneAttributes = element(3,Lane),
+  RoleName = proplists:get_value(name,LaneAttributes),
+  Role = list_to_atom(RoleName),
+  TaskIdsToUpdateRoles = [T || {'bpmn:flowNodeRef',[],{value,T}} <- element(2,Lane)],
+  fixRoles(update_roles(TaskIdsToUpdateRoles, Tasks, Role), Lanes).
+
+update_roles([], AllTasks, _Role) -> AllTasks;
+update_roles([TaskId|Rest], AllTasks, Role) ->
+  update_roles(Rest,key_push_value(Role, #task.roles, TaskId, #task.name, AllTasks),Role).
 
 action({request,_,_},P) -> {reply,P}.
