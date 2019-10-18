@@ -221,10 +221,9 @@ get_inserted(T,_,_) -> first_matched_flow(element(#task.out, T)).
 check_all_flows([], _) -> true;
 check_all_flows(_, #step{id = -1}) -> false;
 check_all_flows(Needed, ScedId=#step{id=Id}) ->
-  check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
+    check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
 
 first_matched_flow([]) -> [];
-first_matched_flow([H, H2 | Flows]) -> [H2];
 first_matched_flow([H | Flows]) -> 
     case check_flow_condition(H) of true -> [H]; false -> first_matched_flow(Flows) end.
 
