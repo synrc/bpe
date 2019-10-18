@@ -183,23 +183,21 @@ unreg(Pool) ->
      _Defined -> syn:leave(Pool, self()),
                  erlang:erase({pool,Pool}) end.
 
-processFlow(#process{}=Proc) ->
-    X = #sched{id=SchedId, pointer=Pointer, state=Threads} = sched_head(Proc#process.id),
-    processSched(X,Proc).
+processFlow(#process{}=Proc) -> processSched(sched_head(Proc#process.id),Proc).
 
-processSched(#sched{id=SchedId, pointer=Pointer, state=[]},Proc) -> {stop,normal,'Final',Proc};
-processSched(#sched{id=SchedId, pointer=Pointer, state=Threads}=Sched,Proc) ->
+processSched(#sched{state=[]},Proc) -> {stop,normal,'Final',Proc};
+processSched(#sched{} = Sched,Proc) ->
     Flow = lists:keyfind(flowId(Sched), #sequenceFlow.name, Proc#process.flows),
-    Task = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
-    Module = element(#task.module, Task),
-    Autorized = Module:auth(element(#task.roles, Task)),
-    processAuthorized(Autorized,Flow,Task,Sched,Proc).
+    SourceTask = lists:keyfind(Flow#sequenceFlow.source, #task.name, tasks(Proc)),
+    TargetTask = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
+    Module = element(#task.module, SourceTask),
+    Autorized = Module:auth(element(#task.roles, SourceTask)),
+    processAuthorized(Autorized,SourceTask,TargetTask,Flow,Sched,Proc).
 
-processAuthorized(false,Flow,Task,_Sched,Proc) ->
-    Resp = {reply, {error, "Access denied", Task}, Proc},
+processAuthorized(false,SourceTask,_TargetTask,Flow,_Sched,Proc) ->
     add_error(Proc,"Access denied",calendar:local_time(),Flow),
-    Resp;
-processAuthorized(true,Flow,Task,#sched{id=SchedId, pointer=Pointer, state=Threads}=Sched,Proc) ->
+    {reply, {error, "Access denied", SourceTask}, Proc};
+processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Threads},Proc) ->
     Inserted = get_inserted(Task, Flow, SchedId),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
