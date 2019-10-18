@@ -106,6 +106,8 @@ sched_head(ProcId) ->
        {ok, #writer{count = C}} -> case kvs:get("/bpe/flow/" ++ ProcId,{step,C - 1,ProcId}) of
        {ok, X} -> X; _ -> [] end; _ -> [] end.
 
+errors(ProcId) -> kvs:feed("/bpe/error-hist/" ++ ProcId).
+
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
 hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
                        kvs_mnesia -> case kvs:get(hist,{N,ProcId}) of
