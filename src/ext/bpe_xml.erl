@@ -114,3 +114,5 @@ update_roles([TaskId|Rest], AllTasks, Role) ->
   update_roles(Rest,key_push_value(Role, #task.roles, TaskId, #task.name, AllTasks),Role).
 
 action({request,_,_},P) -> {reply,P}.
+
+auth(_) -> true.

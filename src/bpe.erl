@@ -35,6 +35,16 @@ add_trace(Proc,Name,Time,Task) ->
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
+add_error(Proc,Name,Time,Task) ->
+    Key = "/bpe/error-hist/" ++ Proc#process.id,
+    Writer = kvs:writer(Key),
+    %%kvs:append(Proc,"/bpe/proc"),
+    kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
+                    name = Name,
+                    time = #ts{ time = Time},
+                    docs = Proc#process.docs,
+                    task = Task}, Key).
+
 add_sched(Proc,Pointer,State) ->
     Key = "/bpe/flow/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
@@ -179,6 +189,15 @@ processSched(#sched{id=SchedId, pointer=Pointer, state=[]},Proc) -> {stop,normal
 processSched(#sched{id=SchedId, pointer=Pointer, state=Threads}=Sched,Proc) ->
     Flow = lists:keyfind(flowId(Sched), #sequenceFlow.name, Proc#process.flows),
     Task = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
+    Module = element(#task.module, Task),
+    Autorized = Module:auth(element(#task.roles, Task)),
+    processAuthorized(Autorized,Flow,Task,Sched,Proc).
+
+processAuthorized(false,Flow,Task,_Sched,Proc) ->
+    Resp = {reply, {error, "Access denied", Task}, Proc},
+    add_error(Proc,"Access denied",calendar:local_time(),Flow),
+    Resp;
+processAuthorized(true,Flow,Task,#sched{id=SchedId, pointer=Pointer, state=Threads}=Sched,Proc) ->
     Inserted = get_inserted(Task, Flow, SchedId),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
