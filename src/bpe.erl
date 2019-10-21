@@ -211,7 +211,7 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
 
 get_inserted(#gateway{type=Type, in=In, out=Out}, Flow, ScedId) when Type == inclusive;
                                                                      Type == parallel ->
-    case check_all_flows(In -- [Flow], ScedId) of true -> Out; false -> [] end;
+    case check_all_flows(In -- [Flow#sequenceFlow.name], ScedId) of true -> Out; false -> [] end;
 get_inserted(#gateway{type=exclusive, out=Out},_,_) -> first_matched_flow(Out);
 %%By default we will handle any unmatched task the same way as an exlusive gateway
 get_inserted(T,_,_) -> first_matched_flow(element(#task.out, T)).
