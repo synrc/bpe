@@ -198,7 +198,7 @@ processAuthorized(false,SourceTask,_TargetTask,Flow,_Sched,Proc) ->
     add_error(Proc,"Access denied",calendar:local_time(),Flow),
     {reply, {error, "Access denied", SourceTask}, Proc};
 processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Threads},Proc) ->
-    Inserted = get_inserted(Task, Flow, SchedId),
+    Inserted = get_inserted(Task, Flow, SchedId, Proc),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
@@ -209,21 +209,22 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 
-get_inserted(#gateway{type=Type, in=In, out=Out}, Flow, ScedId) when Type == inclusive;
-                                                                     Type == parallel ->
+get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc) when Type == inclusive;
+                                                                       Type == parallel ->
     case check_all_flows(In -- [Flow#sequenceFlow.name], ScedId) of true -> Out; false -> [] end;
-get_inserted(#gateway{type=exclusive, out=Out},_,_) -> first_matched_flow(Out);
+get_inserted(#gateway{type=exclusive, out=Out},_,_,Proc) -> first_matched_flow(Out,Proc);
 %%By default we will handle any unmatched task the same way as an exlusive gateway
-get_inserted(T,_,_) -> first_matched_flow(element(#task.out, T)).
+get_inserted(T,_,_,Proc) -> first_matched_flow(element(#task.out, T),Proc).
 
 check_all_flows([], _) -> true;
 check_all_flows(_, #step{id = -1}) -> false;
 check_all_flows(Needed, ScedId=#step{id=Id}) ->
     check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
 
-first_matched_flow([]) -> [];
-first_matched_flow([H | Flows]) -> 
-    case check_flow_condition(H) of true -> [H]; false -> first_matched_flow(Flows) end.
+first_matched_flow([], _Proc) -> [];
+first_matched_flow([H | Flows], Proc) ->
+    Flow = lists:keyfind(H, #sequenceFlow.name, Proc#process.flows),
+    case check_flow_condition(Flow) of true -> [H]; false -> first_matched_flow(Flows, Proc) end.
 
 check_flow_condition(_Flow) -> true. %%TODO: implement check of Flow#sequenceFlow.condition
 
