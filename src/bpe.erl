@@ -58,7 +58,7 @@ start(Proc0, Options) ->
     Pid  = proplists:get_value(notification,Options,undefined),
     Proc = Proc0#process{id=Id,
            task= Task,
-           options = Options,
+           docs = Options,
            notifications = Pid,
            started= #ts{ time = calendar:local_time() } },
 
