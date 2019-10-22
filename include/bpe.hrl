@@ -7,8 +7,8 @@
 
 -define(TASK,           name=[] :: [] | atom(),
                         module=?DEFAULT_MODULE :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}) | atom() | list(atom()),
-                        out=[] :: list(#sequenceFlow{}) | atom() | list(atom()),
+                        in=[] :: list(atom()),
+                        out=[] :: list(atom()),
                         prompt=[] :: list(tuple()),
                         roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
