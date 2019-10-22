@@ -6,11 +6,13 @@
 
 attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 
+find(E=[#xmlText{}, #xmlElement{name='bpmn:conditionExpression'} | _],[]) ->
+  [{X,[V],attr(A)} || #xmlElement{name=X,attributes=A,content=[#xmlText{value=V}]} <- E];
 %%It is expected that bpmn:flowNodeRef are present only in bpmn:lane and only #xmlText{} and #xmlElement{name='bpmn:flowNodeRef'} are present there 
 find(E=[#xmlText{}, #xmlElement{name='bpmn:flowNodeRef'} | _],[]) ->
-  [ {X,[],{value,V}} || #xmlElement{name=X,content=[#xmlText{value=V}]} <- E];
-find(E,[]) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
-find(E, I) -> [ {X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E, X == I].
+  [{X,[],{value,V}} || #xmlElement{name=X,content=[#xmlText{value=V}]} <- E];
+find(E,[]) -> [{X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
+find(E, I) -> [{X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E, X == I].
 
 def() -> load("priv/sample.bpmn").
 
@@ -45,11 +47,17 @@ reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#endEvent{module=Module,name=Name}|Tasks],endEvent=Name}, Module);
 
-reduce([{'bpmn:sequenceFlow',_Body,Attrs}|T],#process{flows=Flows} = Process, Module) ->
+reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process, Module) ->
   Name   = proplists:get_value(id,Attrs),
   Source = proplists:get_value(sourceRef,Attrs),
   Target = proplists:get_value(targetRef,Attrs),
-  reduce(T,Process#process{flows=[#sequenceFlow{name=Name,source=Source,target=Target}|Flows]}, Module);
+  F = #sequenceFlow{name=Name,source=Source,target=Target},
+  io:format("Flow = ~p~n", [ Flow = reduce(Body,F,Module)]),
+  reduce(T,Process#process{flows=[Flow|Flows]}, Module);
+
+reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow, Module) ->
+  Cond = list_to_atom(hd(Body)),
+  reduce(T,Flow#sequenceFlow{condition=Cond},Module);
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
