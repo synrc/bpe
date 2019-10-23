@@ -37,7 +37,7 @@ add_trace(Proc,Name,Time,Task) ->
                     task = Task}, Key).
 
 add_error(Proc,Name,Time,Task) ->
-    Key = "/bpe/error-hist/" ++ Proc#process.id,
+    Key = "/bpe/error/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     %%kvs:append(Proc,"/bpe/proc"),
     kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
@@ -108,7 +108,7 @@ sched_head(ProcId) ->
        {ok, #writer{count = C}} -> case kvs:get("/bpe/flow/" ++ ProcId,{step,C - 1,ProcId}) of
        {ok, X} -> X; _ -> [] end; _ -> [] end.
 
-errors(ProcId) -> kvs:feed("/bpe/error-hist/" ++ ProcId).
+errors(ProcId) -> kvs:feed("/bpe/error/" ++ ProcId).
 
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
 hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
