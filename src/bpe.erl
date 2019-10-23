@@ -84,6 +84,7 @@ proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIME
 complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
 next(ProcId)              -> gen_server:call(pid(ProcId),{next},           ?TIMEOUT).
 complete(ProcId,Stage)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
+next(ProcId,Stage)        -> gen_server:call(pid(ProcId),{next,Stage},     ?TIMEOUT).
 amend(ProcId,Form)        -> gen_server:call(pid(ProcId),{amend,Form},     ?TIMEOUT).
 discard(ProcId,Form)      -> gen_server:call(pid(ProcId),{discard,Form},   ?TIMEOUT).
 modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIMEOUT).
@@ -128,6 +129,8 @@ docs  (Proc) -> Proc#process.docs.
 tasks (Proc) -> Proc#process.tasks.
 events(Proc) -> Proc#process.events.
 doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
+flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.name,Flows).
+flowId(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).
 
 % Emulate Event-Condition-Action Systems
 
@@ -184,11 +187,28 @@ unreg(Pool) ->
      _Defined -> syn:leave(Pool, self()),
                  erlang:erase({pool,Pool}) end.
 
+index_of(Item, List) -> index_of(Item, List, 1).
+index_of(_, [], _)  -> not_found;
+index_of(Item, [Item|_], Index) -> Index;
+index_of(Item, [_|Tl], Index) -> index_of(Item, Tl, Index+1).
+
+processFlow(ForcedFlow, #process{}=Proc) ->
+  Threads = (sched_head(Proc#process.id))#sched.state,
+  case index_of(ForcedFlow, Threads) of
+    not_found -> 
+      add_error(Proc,"Unavailable flow",calendar:local_time(),ForcedFlow),
+      {reply,{error,"Unavailable flow",ForcedFlow},Proc};
+    NewPointer -> 
+      add_sched(Proc,NewPointer,Threads),
+      add_trace(Proc,"Forced Flow", calendar:local_time(),flow(ForcedFlow, Proc)),
+      processFlow(Proc)
+  end.
+
 processFlow(#process{}=Proc) -> processSched(sched_head(Proc#process.id),Proc).
 
 processSched(#sched{state=[]},Proc) -> {stop,normal,'Final',Proc};
 processSched(#sched{} = Sched,Proc) ->
-    Flow = lists:keyfind(flowId(Sched), #sequenceFlow.name, Proc#process.flows),
+    Flow = flow(flowId(Sched), Proc),
     SourceTask = lists:keyfind(Flow#sequenceFlow.source, #task.name, tasks(Proc)),
     TargetTask = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
     Module = element(#task.module, SourceTask),
@@ -230,12 +250,10 @@ check_all_flows(Needed, ScedId=#step{id=Id}) ->
 
 first_matched_flow([], _Proc) -> [];
 first_matched_flow([H | Flows], Proc) ->
-    Flow = lists:keyfind(H, #sequenceFlow.name, Proc#process.flows),
+    Flow = flow(H,Proc),
     case check_flow_condition(Flow,Proc) of true -> [H]; false -> first_matched_flow(Flows, Proc) end.
 
 check_flow_condition(#sequenceFlow{condition=[]},_) -> true;
 check_flow_condition(#sequenceFlow{condition=C}, Proc) ->
   Module = element(#task.module, hd(tasks(Proc))),
   Module:C(Proc).
-
-flowId(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).

@@ -76,6 +76,7 @@ handle_call({event,Event},       _,Proc) -> process_event(Event,Proc);
 handle_call({complete},          _,Proc) -> process_task([],Proc);
 handle_call({next},              _,Proc) -> bpe:processFlow(Proc);
 handle_call({complete,Stage},    _,Proc) -> process_task(Stage,Proc);
+handle_call({next,Stage},        _,Proc) -> bpe:processFlow(Stage,Proc);
 handle_call({modify,Form,append},_,Proc) -> process_task([],bpe_env:append(env,Proc,Form),true);
 handle_call({modify,Form,remove},_,Proc) -> process_task([],bpe_env:remove(env,Proc,Form),true);
 handle_call({amend,Form},        _,Proc) -> bpe:processFlow(bpe_env:append(env,Proc,Form));
