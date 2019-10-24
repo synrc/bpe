@@ -52,6 +52,7 @@ reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process, Mod
   Source = proplists:get_value(sourceRef,Attrs),
   Target = proplists:get_value(targetRef,Attrs),
   F = #sequenceFlow{name=Name,source=Source,target=Target},
+  io:format("Flow = ~p~n", [ Flow = reduce(Body,F,Module)]),
   reduce(T,Process#process{flows=[Flow|Flows]}, Module);
 
 reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow, Module) ->
