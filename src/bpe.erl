@@ -185,12 +185,12 @@ unreg(Pool) ->
                  erlang:erase({pool,Pool}) end.
 
 processFlow(ForcedFlowId, #process{}=Proc) ->
-  Threads = (sched_head(Proc#process.id))#sched.state,
   case flow(ForcedFlowId, Proc) of
     false->
       add_error(Proc, "No such sequenceFlow", ForcedFlowId),
       {reply,{error,"No such sequenceFlow",ForcedFlowId},Proc};
     ForcedFlow ->
+      Threads = (sched_head(Proc#process.id))#sched.state,
       case string:str(Threads,[ForcedFlowId]) of
         0 ->
           add_error(Proc,"Unavailable flow",ForcedFlow),
