@@ -37,7 +37,6 @@ add_error(Proc,Name,Task) ->
 
 add_hist(Key,Proc,Name,Task) ->
     Writer = kvs:writer(Key),
-    %%kvs:append(Proc,"/bpe/proc"),
     kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
                     name = Name,
                     time = #ts{ time = calendar:local_time()},
