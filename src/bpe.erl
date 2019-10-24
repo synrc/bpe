@@ -28,16 +28,14 @@ current_task(Id) ->
 
 add_trace(Proc,Name,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
-    Writer = kvs:writer(Key),
     kvs:append(Proc,"/bpe/proc"),
-    kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
-                    name = Name,
-                    time = #ts{ time = calendar:local_time()},
-                    docs = Proc#process.docs,
-                    task = Task}, Key).
+    add_hist(Key,Proc,Name,Task).
 
 add_error(Proc,Name,Task) ->
     Key = "/bpe/error/" ++ Proc#process.id,
+    add_hist(Key,Proc,Name,Task).
+
+add_hist(Key,Proc,Name,Task) ->
     Writer = kvs:writer(Key),
     %%kvs:append(Proc,"/bpe/proc"),
     kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
