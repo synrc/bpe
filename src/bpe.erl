@@ -26,23 +26,23 @@ current_task(Id) ->
          [] -> {empty,'Created'};
          #hist{id={step,H,_},task=T} -> {H,T} end. %% H - ProcId
 
-add_trace(Proc,Name,Time,Task) ->
+add_trace(Proc,Name,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     kvs:append(Proc,"/bpe/proc"),
     kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
                     name = Name,
-                    time = #ts{ time = Time},
+                    time = #ts{ time = calendar:local_time()},
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
-add_error(Proc,Name,Time,Task) ->
+add_error(Proc,Name,Task) ->
     Key = "/bpe/error/" ++ Proc#process.id,
     Writer = kvs:writer(Key),
     %%kvs:append(Proc,"/bpe/proc"),
     kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
                     name = Name,
-                    time = #ts{ time = Time},
+                    time = #ts{ time = calendar:local_time()},
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
@@ -63,7 +63,7 @@ start(Proc0, Options) ->
            notifications = Pid,
            started= #ts{ time = calendar:local_time() } },
 
-    case Hist of empty -> add_trace(Proc,[],calendar:local_time(),Task),
+    case Hist of empty -> add_trace(Proc,[],Task),
                           add_sched(Proc,1,[first_flow(Proc)]);
                  _ -> skip end,
 
@@ -187,21 +187,22 @@ unreg(Pool) ->
      _Defined -> syn:leave(Pool, self()),
                  erlang:erase({pool,Pool}) end.
 
-index_of(Item, List) -> index_of(Item, List, 1).
-index_of(_, [], _)  -> not_found;
-index_of(Item, [Item|_], Index) -> Index;
-index_of(Item, [_|Tl], Index) -> index_of(Item, Tl, Index+1).
-
-processFlow(ForcedFlow, #process{}=Proc) ->
+processFlow(ForcedFlowId, #process{}=Proc) ->
   Threads = (sched_head(Proc#process.id))#sched.state,
-  case index_of(ForcedFlow, Threads) of
-    not_found -> 
-      add_error(Proc,"Unavailable flow",calendar:local_time(),ForcedFlow),
-      {reply,{error,"Unavailable flow",ForcedFlow},Proc};
-    NewPointer -> 
-      add_sched(Proc,NewPointer,Threads),
-      add_trace(Proc,"Forced Flow", calendar:local_time(),flow(ForcedFlow, Proc)),
-      processFlow(Proc)
+  case flow(ForcedFlowId, Proc) of
+    false->
+      add_error(Proc, "No such sequenceFlow", ForcedFlowId),
+      {reply,{error,"No such sequenceFlow",ForcedFlowId},Proc};
+    ForcedFlow ->
+      case string:str(Threads,[ForcedFlowId]) of
+        0 ->
+          add_error(Proc,"Unavailable flow",ForcedFlow),
+          {reply,{error,"Unavailable flow",ForcedFlow},Proc};
+        NewPointer -> 
+          add_sched(Proc,NewPointer,Threads),
+          add_trace(Proc,"Forced Flow",ForcedFlow),
+          processFlow(Proc)
+      end
   end.
 
 processFlow(#process{}=Proc) -> processSched(sched_head(Proc#process.id),Proc).
@@ -216,7 +217,7 @@ processSched(#sched{} = Sched,Proc) ->
     processAuthorized(Autorized,SourceTask,TargetTask,Flow,Sched,Proc).
 
 processAuthorized(false,SourceTask,_TargetTask,Flow,_Sched,Proc) ->
-    add_error(Proc,"Access denied",calendar:local_time(),Flow),
+    add_error(Proc,"Access denied",Flow),
     {reply, {error, "Access denied", SourceTask}, Proc};
 processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Threads},Proc) ->
     Inserted = get_inserted(Task, Flow, SchedId, Proc),
@@ -226,7 +227,7 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     #sequenceFlow{name=Next, source=Src,target=Dst} = Flow,
     Resp = {Status,{Reason,_Reply},State}
          = bpe_task:task_action(element(#task.module, Task),Src,Dst,Proc),
-    add_trace(State,[],calendar:local_time(),Flow),
+    add_trace(State,[],Flow),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 
