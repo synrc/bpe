@@ -112,8 +112,7 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
 fixRoles(Tasks, []) -> Tasks;
 fixRoles(Tasks, [Lane|Lanes]) ->
   LaneAttributes = element(3,Lane),
-  RoleName = proplists:get_value(name,LaneAttributes),
-  Role = list_to_atom(RoleName),
+  Role = proplists:get_value(name,LaneAttributes),
   TaskIdsToUpdateRoles = [T || {'bpmn:flowNodeRef',[],{value,T}} <- element(2,Lane)],
   fixRoles(update_roles(TaskIdsToUpdateRoles, Tasks, Role), Lanes).
 
