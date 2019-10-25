@@ -211,7 +211,7 @@ processAuthorized(false,SourceTask,_TargetTask,Flow,_Sched,Proc) ->
     add_error(Proc,"Access denied",Flow),
     {reply, {error, "Access denied", SourceTask}, Proc};
 processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Threads},Proc) ->
-    Inserted = get_inserted(Task, Flow, SchedId, Proc),
+    Inserted = inserted(Task, Flow, SchedId, Proc),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
@@ -222,14 +222,22 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 
-get_inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
-get_inserted(#gateway{type=exclusive, out=Out},_,_,Proc) -> first_matched_flow(Out,Proc);
-get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc)
+inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
+inserted(#gateway{type=exclusive,out=Out,switch_doc=[]},_,_,Proc) -> first_matched_flow(Out,Proc);
+inserted(#gateway{type=exclusive,out=Out,switch_doc=SwitchDoc},_,_,Proc) ->
+    case doc({SwitchDoc},Proc) of
+         [] -> add_error(Proc,"No such document",SwitchDoc),[];
+         {SwitchDoc,SwitchExpr} ->
+             OutFlows = lists:map(fun(Flow) -> flow(Flow, Proc) end, Out),
+             case lists:keyfind(SwitchExpr,#sequenceFlow.condition,OutFlows) of
+                 false -> add_error(Proc,"No such value in flows",SwitchExpr),[];
+                 F -> [F#sequenceFlow.name] end end;
+inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc)
     when Type == inclusive; Type == parallel ->
     case check_all_flows(In -- [Flow#sequenceFlow.name], ScedId) of
          true -> Out;
          false -> [] end;
-get_inserted(T,_,_,Proc) -> bpe:?DRIVER(T,Proc).
+inserted(T,_,_,Proc) -> bpe:?DRIVER(T,Proc).
 
 exclusive(T, Proc) -> first_matched_flow(element(#task.out, T),Proc).
 last(T, _Proc)     -> [lists:last(element(#task.out, T))].
