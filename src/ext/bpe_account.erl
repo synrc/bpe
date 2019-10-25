@@ -8,7 +8,7 @@
 auth(_) -> true.
 
 def() ->
-    #process { name = 'IBAN Account',
+  P =  #process { name = 'IBAN Account',
         flows = [
             #sequenceFlow{name='->Init', source='Created',   target='Init'},
             #sequenceFlow{name='->Upload', source='Init',      target='Upload'},
@@ -23,14 +23,16 @@ def() ->
             #beginEvent  { name='Created',   module = bpe_account },
             #userTask    { name='Init',      module = bpe_account },
             #userTask    { name='Upload',    module = bpe_account },
-            #userTask    { name='Signatory', module = bpe_account }, %%Looks like gateway
-            #serviceTask { name='Payment',   module = bpe_account }, %%Looks like gateway
-            #serviceTask { name='Process',   module = bpe_account }, %%Looks like gateway
-            #endEvent    { name='Final',     module = bpe_account } ], %%Looks like gateway
+            #userTask    { name='Signatory', module = bpe_account },
+            #serviceTask { name='Payment',   module = bpe_account },
+            #serviceTask { name='Process',   module = bpe_account },
+            #endEvent    { name='Final',     module = bpe_account } ],
         beginEvent = 'Created',
         endEvent = 'Final',
         events = [ #messageEvent{name='PaymentReceived'},
-                   #boundaryEvent{name='*', timeout=#timeout{spec={0, {10, 0, 10}}}} ] }.
+                   #boundaryEvent{name='*', timeout=#timeout{spec={0, {10, 0, 10}}}} ] },
+
+   P#process{tasks = bpe_xml:fillInOut(P#process.tasks,P#process.flows)}.
 
 action({request,'Created',_}, Proc) ->
     {reply,Proc};
@@ -38,7 +40,7 @@ action({request,'Created',_}, Proc) ->
 action({request,'Init',_}, Proc) ->
     {reply,Proc};
 
-action({request,'Payment',_}, Proc) ->
+action({request,'Payment',X}, Proc) ->
     Payment = bpe:doc({payment_notification},Proc),
     case Payment of
          [] -> {reply,'Process',Proc#process{docs=[#tx{}]}};
@@ -47,10 +49,10 @@ action({request,'Payment',_}, Proc) ->
 action({request,'Signatory',_}, Proc) ->
     {reply,'Process',Proc};
 
-action({request,'Process',_}, Proc) ->
+action({request,'Process',X}, Proc) ->
     case bpe:doc(#close_account{},Proc) of
          #close_account{} -> {reply,'Final',Proc};
-                        _ -> {reply,Proc} end;
+                        _ -> {reply,'Process',Proc} end;
 
 action({request,'Upload',_}, Proc) ->
     {reply,Proc};

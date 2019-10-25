@@ -23,28 +23,6 @@ process_event(Event,Proc) ->
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
-prepareNext(Target,Proc) ->
-    Flow = true,
-    case Target of
-         #task{name=Name} -> preTask(Name,Proc,Flow);
-         #userTask{name=Name} -> preTask(Name,Proc,Flow);
-         #serviceTask{name=Name} -> preTask(Name,Proc,Flow);
-         #receiveTask{name=Name} -> preTask(Name,Proc,Flow);
-         #sendTask{name=Name} -> preTask(Name,Proc,Flow);
-         #gateway{name=Name} -> preGate(Name,Proc,Flow)
-    end.
-
-preTask(Name,Proc,Flow) ->
-    Proc#process{task=Name}.
-
-preGate(#gateway{name=Name},Proc,Flow) ->
-    Flows = bpe_task:targets(Name,Proc),
-    [#sequenceFlow{name=X}|_] =
-      [ begin  kvs:append(F,"/bpe/flow/"++Proc#process.id),
-               F
-        end || F <- Flows ],
-    Proc#process{task=X}.
-
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
     Curr = Proc#process.task,
@@ -72,15 +50,15 @@ process_task(Stage,Proc,NoFlow) ->
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
-handle_call({event,Event},       _,Proc) -> process_event(Event,Proc);
-handle_call({complete},          _,Proc) -> process_task([],Proc);
-handle_call({next},              _,Proc) -> bpe:processFlow(Proc);
-handle_call({complete,Stage},    _,Proc) -> process_task(Stage,Proc);
-handle_call({next,Stage},        _,Proc) -> bpe:processFlow(Stage,Proc);
-handle_call({modify,Form,append},_,Proc) -> process_task([],bpe_env:append(env,Proc,Form),true);
-handle_call({modify,Form,remove},_,Proc) -> process_task([],bpe_env:remove(env,Proc,Form),true);
-handle_call({amend,Form},        _,Proc) -> bpe:processFlow(bpe_env:append(env,Proc,Form));
-handle_call({discard,Form},      _,Proc) -> bpe:processFlow(bpe_env:remove(env,Proc,Form));
+handle_call({event,Event},       _,Proc) -> try process_event(Event,Proc) catch X:Y:Z -> {reply,{error,event,Z},Proc} end;
+handle_call({complete},          _,Proc) -> try process_task([],Proc) catch X:Y:Z -> {reply,{error,complete,Z},Proc} end;
+handle_call({next},              _,Proc) -> try bpe:processFlow(Proc) catch X:Y:Z -> {reply,{error,next,Z},Proc} end;
+handle_call({complete,Stage},    _,Proc) -> try process_task(Stage,Proc) catch X:Y:Z -> {reply,{error,'complete/2',Z},Proc} end;
+handle_call({next,Stage},        _,Proc) -> try bpe:processFlow(Stage,Proc) catch X:Y:Z -> {reply,{error,'next/2',Z},Proc} end;
+handle_call({modify,Form,append},_,Proc) -> try process_task([],bpe_env:append(env,Proc,Form),true) catch X:Y:Z -> {reply,{error,append,Z},Proc} end;
+handle_call({modify,Form,remove},_,Proc) -> try process_task([],bpe_env:remove(env,Proc,Form),true) catch X:Y:Z -> {reply,{error,remove,Z},Proc} end;
+handle_call({amend,Form},        _,Proc) -> try bpe:processFlow(bpe_env:append(env,Proc,Form)) catch X:Y:Z -> {reply,{error,amend,Z},Proc} end;
+handle_call({discard,Form},      _,Proc) -> try bpe:processFlow(bpe_env:remove(env,Proc,Form)) catch X:Y:Z -> {reply,{error,discard,Z},Proc} end;
 handle_call({get},               _,Proc) -> { reply,Proc,Proc };
 handle_call(Command,_,Proc)              -> { reply,{unknown,Command},Proc }.
 
