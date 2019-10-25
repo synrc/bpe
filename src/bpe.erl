@@ -127,7 +127,7 @@ tasks (Proc) -> Proc#process.tasks.
 events(Proc) -> Proc#process.events.
 doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
 flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.name,Flows).
-flowId(#sched{state=Flows, pointer=N}) -> lists:nth(N, Flows).
+flowId(#sched{state=Flows, pointer=N})   -> lists:nth(N, Flows).
 
 % Emulate Event-Condition-Action Systems
 
@@ -157,8 +157,7 @@ till(Now,TTL) ->
     case is_atom(TTL) of
         true -> TTL;
         false -> calendar:gregorian_seconds_to_datetime(
-                    calendar:datetime_to_gregorian_seconds(Now) + TTL)
-    end.
+                 calendar:datetime_to_gregorian_seconds(Now) + TTL) end.
 
 reload(Module) ->
     {Module, Binary, Filename} = code:get_object_code(Module),
@@ -166,43 +165,37 @@ reload(Module) ->
         {module, Module} ->
             {reloaded, Module};
         {error, Reason} ->
-            {load_error, Module, Reason}
-    end.
+            {load_error, Module, Reason} end.
 
 send(Pool, Message) -> syn:publish(term_to_binary(Pool),Message).
 reg(Pool) -> reg(Pool,undefined).
 reg(Pool, Value) ->
-  case get({pool,Pool}) of
-    undefined -> syn:register(term_to_binary(Pool),self(),Value),
-                 syn:join(term_to_binary(Pool),self()),
-                 erlang:put({pool,Pool},Pool);
-     _Defined -> skip end.
+    case get({pool,Pool}) of
+         undefined -> syn:register(term_to_binary(Pool),self(),Value),
+                      syn:join(term_to_binary(Pool),self()),
+                      erlang:put({pool,Pool},Pool);
+          _Defined -> skip end.
 
 unreg(Pool) ->
-  case get({pool,Pool}) of
-    undefined -> skip;
-     _Defined -> syn:leave(Pool, self()),
-                 erlang:erase({pool,Pool}) end.
+    case get({pool,Pool}) of
+         undefined -> skip;
+          _Defined -> syn:leave(Pool, self()),
+                      erlang:erase({pool,Pool}) end.
 
 processFlow(ForcedFlowId, #process{}=Proc) ->
-  case flow(ForcedFlowId, Proc) of
-    false->
-      add_error(Proc, "No such sequenceFlow", ForcedFlowId),
-      {reply,{error,"No such sequenceFlow",ForcedFlowId},Proc};
-    ForcedFlow ->
-      Threads = (sched_head(Proc#process.id))#sched.state,
-      case string:str(Threads,[ForcedFlowId]) of
-        0 ->
-          add_error(Proc,"Unavailable flow",ForcedFlow),
-          {reply,{error,"Unavailable flow",ForcedFlow},Proc};
-        NewPointer -> 
-          add_sched(Proc,NewPointer,Threads),
-          add_trace(Proc,"Forced Flow",ForcedFlow),
-          processFlow(Proc)
-      end
-  end.
+    case flow(ForcedFlowId, Proc) of
+             false -> add_error(Proc, "No such sequenceFlow", ForcedFlowId),
+                      {reply,{error,"No such sequenceFlow",ForcedFlowId},Proc};
+        ForcedFlow -> Threads = (sched_head(Proc#process.id))#sched.state,
+                      case string:str(Threads,[ForcedFlowId]) of
+                           0 -> add_error(Proc,"Unavailable flow",ForcedFlow),
+                                {reply,{error,"Unavailable flow",ForcedFlow},Proc};
+                  NewPointer -> add_sched(Proc,NewPointer,Threads),
+                                add_trace(Proc,"Forced Flow",ForcedFlow),
+                                processFlow(Proc) end end.
 
-processFlow(#process{}=Proc) -> processSched(sched_head(Proc#process.id),Proc).
+processFlow(#process{}=Proc) ->
+    processSched(sched_head(Proc#process.id),Proc).
 
 processSched(#sched{state=[]},Proc) -> {stop,normal,'Final',Proc};
 processSched(#sched{} = Sched,Proc) ->
@@ -229,17 +222,18 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     Resp.
 
 get_inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
-get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc) when Type == inclusive;
-                                                                       Type == parallel ->
-    case check_all_flows(In -- [Flow#sequenceFlow.name], ScedId) of true -> Out; false -> [] end;
 get_inserted(#gateway{type=exclusive, out=Out},_,_,Proc) -> first_matched_flow(Out,Proc);
-%%By default we will handle any unmatched task the same way as an exlusive gateway
+get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc)
+    when Type == inclusive; Type == parallel ->
+    case check_all_flows(In -- [Flow#sequenceFlow.name], ScedId) of
+         true -> Out;
+         false -> [] end;
 get_inserted(T,_,_,Proc) -> bpe:?DRIVER(T,Proc).
 
 exclusive(T, Proc) -> first_matched_flow(element(#task.out, T),Proc).
-last(T, _Proc) -> [lists:last(element(#task.out, T))].
-first(T, _Proc) -> [hd(element(#task.out, T))].
-random(T, _Proc) -> Out = element(#task.out, T), [lists:nth(rand:uniform(length(Out)), Out)].
+last(T, _Proc)     -> [lists:last(element(#task.out, T))].
+first(T, _Proc)    -> [hd(element(#task.out, T))].
+random(T, _Proc)   -> Out = element(#task.out, T), [lists:nth(rand:uniform(length(Out)), Out)].
 
 check_all_flows([], _) -> true;
 check_all_flows(_, #step{id = -1}) -> false;
@@ -248,10 +242,11 @@ check_all_flows(Needed, ScedId=#step{id=Id}) ->
 
 first_matched_flow([], _Proc) -> [];
 first_matched_flow([H | Flows], Proc) ->
-    Flow = flow(H,Proc),
-    case check_flow_condition(Flow,Proc) of true -> [H]; false -> first_matched_flow(Flows, Proc) end.
+    case check_flow_condition(flow(H,Proc),Proc) of
+         true -> [H];
+         false -> first_matched_flow(Flows, Proc) end.
 
 check_flow_condition(#sequenceFlow{condition=[]},_) -> true;
 check_flow_condition(#sequenceFlow{condition=C}, Proc) ->
-  Module = element(#task.module, hd(tasks(Proc))),
-  Module:C(Proc).
+    Module = element(#task.module, hd(tasks(Proc))),
+    Module:C(Proc).

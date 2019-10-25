@@ -5,6 +5,8 @@
 -export([def/0,auth/1]).
 -compile(export_all).
 
+% use bpe:complete with this BPMN 1.0 process
+
 auth(_) -> true.
 
 def() ->

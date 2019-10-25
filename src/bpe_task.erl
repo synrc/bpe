@@ -20,17 +20,13 @@ already_finished(Proc) ->
     {stop,{normal,[]},Proc}.
 
 task_action(Module,Source,Target,Proc) ->
-  try
     case Module:action({request,Source,Target},Proc) of
          {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
          {reply,Task,State}           -> {reply,{complete,Task},State};
          {reply,State}                -> {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
          {stop,Proc}                  -> {stop,{normal,Target},Proc}
-    end
-  catch X:{A,B}:Z ->
-    {reply,{error,A,Target},Proc}
-  end.
+    end.
 
 handle_task(#beginEvent{module=Module},CurrentTask,Target,Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
