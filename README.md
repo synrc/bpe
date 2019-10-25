@@ -167,7 +167,7 @@ Let us see how we could create initial 'Wire Transfer' transaction:
 Dialyzer
 --------
 
-For check API with dialyzer build with `rebar compile` and run `make dialyze`.
+To check API with dialyzer build do `rebar3 dialyzer`.
 
 Credits
 -------
