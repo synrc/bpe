@@ -38,7 +38,7 @@
 -record(serviceTask,  { ?TASK }).
 -record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
 -record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
--record(gateway,      { ?TASK, type= parallel :: gate() }).
+-record(gateway,      { ?TASK, type=parallel :: gate(), switch_doc=[] :: atom() }).
 -record(messageEvent, { ?EVENT }).
 -record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
 -record(timeoutEvent, { ?EVENT, ?CYCLIC }).
@@ -53,7 +53,8 @@
 
 -record(sched, { id = [] :: [] | #step{},
                  pointer = -1 :: integer(),
-                 state = [] :: list(#sequenceFlow{})  }).
+                 state = [] :: list(atom()),
+                 ex_pointer = [] :: [] | integer() }).
 
 -record(hist,         { id = [] :: [] | #step{},
                         container=feed :: [] | atom(),

@@ -63,9 +63,26 @@ reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process,
   Name = proplists:get_value(id,Attrs),
   reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=parallel}|Tasks]}, Module);
 
-reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
+reduce([{'bpmn:exclusiveGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
-  reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=exclusive}|Tasks]}, Module);
+  Gateway = reduce(Body,#gateway{module=Module,name=Name,type=exclusive}, Module),
+  reduce(T,Process#process{tasks=[Gateway|Tasks]}, Module);
+
+%      <bpmn:extensionElements>
+%        <camunda:properties>
+%          <camunda:property name="bpe:switch-expression" value="{:agreed,2}" />
+%        </camunda:properties>
+%      </bpmn:extensionElements>
+%      ...
+
+reduce([{'bpmn:extensionElements',Body,_Attrs}|_T],#gateway{type=exclusive}=Gate,_Module) ->
+  [{'camunda:properties', SmallBody, _} |_] = Body,
+  [{'camunda:property', [], InnerAttrs} |_] = SmallBody,
+  SwitchExpr = proplists:get_value(value, InnerAttrs),
+  Gate#gateway{switch_doc = list_to_existing_atom(SwitchExpr)};
+%TODO:Remove this when using incoming/outgoing from XML itself instead of fillInOut
+reduce([_|T],#gateway{type=exclusive}=Gate,Module) ->
+  reduce(T,#gateway{type=exclusive}=Gate,Module);
 
 reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
   Name = proplists:get_value(id,Attrs),
