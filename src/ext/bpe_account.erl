@@ -2,8 +2,10 @@
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
 -include("doc.hrl").
--export([def/0]).
+-export([def/0,auth/1]).
 -compile(export_all).
+
+auth(_) -> true.
 
 def() ->
     #process { name = 'IBAN Account',
