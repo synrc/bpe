@@ -31,11 +31,12 @@
     </section>
     <section>
         <h3>API</h3>
-        <h4>handle_event(Event,CurrentTask,Target,Proc) ->
-            {reply,{complete,Target},State} |
-            {reply,{complete,Task},State} |
-            {reply,{unknown_event,Target},Proc} |
-            {stop,{normal,Target},Proc}</h4>
+         <p>The EVENT API allows you to bind on <b>messageEvent</b>.</p>
+        <h4>action({event,atom(),atom()},#process{}) ->
+                   {reply,Task,State} |
+                   {reply,State}.</h4>
+        <p>Example:</p>
+        <figure><code> action({event,Name,Payload},Proc) -> {replay,Proc}.</code></figure>
     </section>
     <section>
         <p>This module may refer to:

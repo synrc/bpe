@@ -35,14 +35,14 @@
     </section>
     <section>
         <h3>FLOWS</h3>
-         <p>The BPMN 2.0 version of BPE allow you to bid on <b>sequenceFlow</b>.</p>
+         <p>The BPMN 2.0 version of BPE allows you to bind on <b>sequenceFlow</b>.</p>
         <h4>action({atom(),atom(),atom()},#process{}) ->
                    {reply,Task,State} |
                    {reply,State} |
                    {error,Message,Task,State} |
                    {stop,Proc}.</h4>
         <p>Example:</p>
-        <figure><code> action({:hello,From,To},Proc) -> {stop,Proc}.</code></figure>
+        <figure><code> action({hello,From,To},Proc) -> {stop,Proc}.</code></figure>
          <p>Not only on <b>task</b> as in BPMN 1.0 version.</p>
         <h4>action({atom(),atom()},#process{}) ->
                    {reply,Task,State} |
@@ -50,7 +50,7 @@
                    {error,Message,Task,State} |
                    {stop,Proc}.</h4>
         <p>Example:</p>
-        <figure><code> action({:hello,Task},Proc) -> {stop,Proc}.</code></figure>
+        <figure><code> action({hello,Task},Proc) -> {stop,Proc}.</code></figure>
     </section>
     <section>
         <p>This module may refer to:
