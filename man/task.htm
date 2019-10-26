@@ -29,12 +29,17 @@
         <p>The <b>bpe_task</b> module provides TASK handling functionality.</p>
     </section>
     <section>
-        <h3>API</h3>
-        <h4>handle_task(Event,CurrentTask,Target,Proc) ->
-            {reply,{complete,Target},State} |
-            {reply,{error,Message,Task},State} |
-            {reply,{{complete,Message},Task},State} |
-            {reply,{complete,Task},State}</h4>
+        <h3>TASKS</h3>
+        <p>The list of supported tasks organized in chain.</p>
+        <figure><img src="img/tasks.png" width="600px"/></figure>
+    </section>
+    <section>
+        <h3>FLOWS</h3>
+        <h4>action({atom(),atom(),atom()},#process{}) ->
+                   {reply,Task,State} |
+                   {reply,State} |
+                   {error,Message,Task,State} |
+                   {stop,Proc}.</h4>
     </section>
     <section>
         <p>This module may refer to:
