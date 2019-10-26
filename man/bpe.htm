@@ -34,10 +34,13 @@
     </section>
     <section>
         <h3>CONTEXT</h3>
-        <h4>process(pid()) -> #process{}.</h4>
-        <h4>complete(pid()) -> {complete,any()}.</h4>
-        <h4>complete(any(),pid()) -> {complete,any()}.</h4>
+        <h4>proc(pid()) -> #process{}.</h4>
+        <h4>next(pid()) -> {complete,any()}.</h4>
+        <h4>next(any(),pid()) -> {complete,any()}.</h4>
         <h4>amend(pid(),any()) -> {complete,any()}.</h4>
+        <h4>discard(pid(),any()) -> {complete,any()}.</h4>
+        <h4>append(pid(),any()) -> {complete,any()}.</h4>
+        <h4>remove(pid(),any()) -> {complete,any()}.</h4>
         <h4>event(pid(),any()) -> {complete,any()}.</h4>
         <h4>hist(pid()) -> list(#hist{}).</h4>
     </section>
