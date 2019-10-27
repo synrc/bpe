@@ -1,6 +1,7 @@
 BPE: Business Process Engine
 ============================
 
+[![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Build Status](https://travis-ci.org/synrc/bpe.svg?branch=master)](https://travis-ci.org/synrc/bpe)
 [![Hex pm](http://img.shields.io/hexpm/v/bpe.svg?style=flat)](https://hex.pm/packages/bpe)
 

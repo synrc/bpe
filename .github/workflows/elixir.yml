@@ -1,4 +1,4 @@
-name: Elixir
+name: mix
 on: push
 jobs:
   build:
