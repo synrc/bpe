@@ -124,6 +124,7 @@ step(Proc,Name) ->
 
 docs  (Proc) -> Proc#process.docs.
 tasks (Proc) -> Proc#process.tasks.
+flows (Proc) -> Proc#process.flows.
 events(Proc) -> Proc#process.events.
 doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
 flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.name,Flows).

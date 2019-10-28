@@ -42,31 +42,56 @@
     <section>
         <h3>SERVICE</h3>
         <h4>load(string()) -> #process{}</h4>
+         <p>Loads the process from the database.
+            This function should be protected against admin authorization.</p>
         <h4>start(#process{},list()) -> {ok,pid()} | {error,any()}.</h4>
+         <p>Start the process in the runtime.
+            This function should be hardcoded agains proper role cheching
+            against user and current task.</p>
     </section>
     <section>
         <h3>CONTEXT</h3>
         <h4>proc(pid()) -> #process{}.</h4>
+         <p>Retrieves current process state (if running) from the runtime.
+            This function should be protected against admin authorization.</p>
         <h4>next(pid()) -> {complete,any()}.</h4>
+         <p>Invokes BPMN 2.0 process shcheduler tick.</p>
         <h4>next(any(),pid()) -> {complete,any()}.</h4>
+         <p>Invokes BPMN 2.0 process shcheduler tick on particular flow (if allowed).</p>
+        <h4>complete(pid()) -> {complete,any()}.</h4>
+         <p>Invokes BPMN 1.0 process shcheduler tick.</p>
+        <h4>complete(any(),pid()) -> {complete,any()}.</h4>
+         <p>Invokes BPMN 1.0 process shcheduler tick on particular flow (if allowed).</p>
         <h4>amend(pid(),any()) -> {complete,any()}.</h4>
+         <p>Invokes BPMN 2.0 process shcheduler tick with additional document in the state as an argument.</p>
         <h4>discard(pid(),any()) -> {complete,any()}.</h4>
+         <p>Invokes BPMN 2.0 process shcheduler tick with additional document removal from the the state.</p>
         <h4>append(pid(),any()) -> {complete,any()}.</h4>
+         <p>Modifies current state of the process with additional document.</p>
         <h4>remove(pid(),any()) -> {complete,any()}.</h4>
+         <p>Modifies current state of the process with document removal.</p>
         <h4>event(pid(),any()) -> {complete,any()}.</h4>
+         <p>Sends the sync event to the runtime process.</p>
         <h4>hist(pid()) -> list(#hist{}).</h4>
+         <p>Retrieves the process history.</p>
     </section>
     <section>
         <h3>ENV</h3>
         <h4>task(Name::list(),#process{}) -> [tuple()] | tuple().</h4>
+         <p>Retrieves the task from process definition.</p>
         <h4>doc(Record::tuple(),#process{}) -> [tuple()] | tuple().</h4>
+         <p>Searches for the documents in the process environment.</p>
     </section>
     <section>
         <h3></h3>
         <h4>tasks(#process{}) -> list().</h4>
+         <p>Retrieves the tasks from process definition.</p>
+        <h4>flows(#process{}) -> list().</h4>
+         <p>Retrieves the flows from process definition.</p>
         <h4>docs(#process{}) -> list().</h4>
+         <p>Retrieves the documents from process definition.</p>
         <h4>events(#process{}) -> list().</h4>
-         <p>Retrieves the list of </p>
+         <p>Retrieves the events from process definition.</p>
     </section>
     <section>
         <p>This module may refer to:
