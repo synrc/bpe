@@ -35,7 +35,7 @@
     </section>
     <section>
         <h3>FLOWS</h3>
-         <p>The BPMN 2.0 version of BPE allows you to bind on <b>sequenceFlow</b> and its from and to fields.</p>
+         <p>BPE allows you to bind on <b>sequenceFlow</b> and its from and to fields.</p>
         <h4>action({request,atom(),atom()},#process{}) ->
                    {reply,Task,State} |
                    {reply,State} |
@@ -43,14 +43,6 @@
                    {stop,Proc}.</h4>
         <p>Example:</p>
         <figure><code> action({request,From,To},Proc) -> {stop,Proc}.</code></figure>
-         <p>Not only on <b>task</b> as in BPMN 1.0 version.</p>
-        <h4>action({request,atom()},#process{}) ->
-                   {reply,Task,State} |
-                   {reply,State} |
-                   {error,Message,Task,State} |
-                   {stop,Proc}.</h4>
-        <p>Example:</p>
-        <figure><code> action({request,Task},Proc) -> {stop,Proc}.</code></figure>
     </section>
     <section>
         <p>This module may refer to:
