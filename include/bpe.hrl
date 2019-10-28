@@ -26,8 +26,11 @@
 
 -record(timeout,      { spec= [] :: term() }).
 
+-type condition() :: {compare,BpeDocParam :: {atom(),term()},Field :: integer(), ConstCheckAgainst :: term()}
+                   | {service,atom()}.
+
 -record(sequenceFlow, { name=[] :: term(),
-                        condition=[] :: term(),
+                        condition=[] :: [] | condition(),
                         source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
 
@@ -48,8 +51,8 @@
 -type procId() :: [] | integer() | {atom(),any()}.
 -type gate()   :: exclusive | parallel | inclusive | complex | event.
 
--record(ts,           { time= [] :: term() }).
--record(step,         { id = 0 :: integer(), proc = "" :: list() }).
+-record(ts,   { time= [] :: term() }).
+-record(step, { id = 0 :: integer(), proc = "" :: list() }).
 
 -record(sched, { id = [] :: [] | #step{},
                  pointer = -1 :: integer(),
