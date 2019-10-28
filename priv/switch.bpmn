@@ -33,7 +33,7 @@
     <bpmn:exclusiveGateway id="either" name="some">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="switch-expr" value="direction" />
+          <camunda:property name="bpe:switch-expr" value="direction" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>x1</bpmn:incoming>

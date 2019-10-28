@@ -68,21 +68,15 @@ reduce([{'bpmn:exclusiveGateway',Body,Attrs}|T],#process{tasks=Tasks} = Process,
     Gateway = reduce(Body,#gateway{module=Module,name=Name,type=exclusive}, Module),
     reduce(T,Process#process{tasks=[Gateway|Tasks]}, Module);
 
-%      <bpmn:extensionElements>
-%        <camunda:properties>
-%          <camunda:property name="bpe:switch-expression" value="{:agreed,2}" />
-%        </camunda:properties>
-%      </bpmn:extensionElements>
-%      ...
-
 reduce([{'bpmn:extensionElements',Body,_Attrs}|_T],#gateway{type=exclusive}=Gate,_Module) ->
+    %%It is expected that camunda always put 'camunda:properties' as first entry in body
     [{'camunda:properties', SmallBody, _} |_] = Body,
-    [{'camunda:property', [], InnerAttrs} |_] = SmallBody,
-    SwitchExpr = proplists:get_value(value, InnerAttrs),
-    Gate#gateway{switch_doc = list_to_existing_atom(SwitchExpr)};
+    case find_property(SmallBody, "bpe:switch-expr") of
+         SwitchExpr -> Gate#gateway{switch_doc = list_to_existing_atom(SwitchExpr)};
+              false -> Gate end;
+
 %TODO:Remove this when using incoming/outgoing from XML itself instead of fillInOut
-reduce([_|T],#gateway{type=exclusive}=Gate,Module) ->
-    reduce(T,#gateway{type=exclusive}=Gate,Module);
+reduce([_|T],#gateway{type=exclusive}=Gate,Module) -> reduce(T,Gate,Module);
 
 reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
     Name = proplists:get_value(id,Attrs),
@@ -134,6 +128,12 @@ fixRoles(Tasks, [Lane|Lanes]) ->
 update_roles([], AllTasks, _Role) -> AllTasks;
 update_roles([TaskId|Rest], AllTasks, Role) ->
     update_roles(Rest,key_push_value(Role, #task.roles, TaskId, #task.name, AllTasks),Role).
+
+find_property([],_) -> false;
+find_property([{'camunda:property', [], Attrs} |T], PropName) ->
+    case proplists:get_value(name, Attrs) of
+         PropName -> proplists:get_value(value, Attrs);
+         _ -> find_property(T, PropName) end.
 
 action({request,_,_},P) -> {reply,P}.
 
