@@ -29,6 +29,7 @@ load(File,Module) ->
     Proc#process{ id=[],
                   tasks = Tasks1,
                   roles=[],
+                  xml = filename:basename(File, ".bpmn"),
                   events = [ #boundaryEvent{name='*', timeout=#timeout{spec={0,{0,30,0}}}}
                            | Proc#process.events ] }.
 

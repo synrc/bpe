@@ -84,6 +84,7 @@
                         docs       = [] :: list(tuple()),
                         options    = [] :: term(),
                         task       = 'Created' :: [] | atom(),
+                        xml        = [] :: list(),
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
