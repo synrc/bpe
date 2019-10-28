@@ -11,7 +11,7 @@ load(Id) -> load(Id, []).
 load(Id, Def) ->
     case kvs:get("/bpe/proc",Id) of
          {error,_} -> Def;
-         {ok,Proc} -> {_,T} = current_task(Id),
+         {ok,Proc} -> {_,T} = current_task(Proc),
                       Proc#process{task=T} end.
 
 cleanup(P) ->
@@ -21,9 +21,9 @@ cleanup(P) ->
     kvs:delete(writer, "/bpe/flow/" ++ P),
     kvs:delete("/bpe/proc",P).
 
-current_task(Id) ->
+current_task(#process{id=Id}=Proc) ->
     case bpe:head(Id) of
-         [] -> {empty,'Created'};
+         [] -> {empty,bpe:first_task(Proc)};
          #hist{id={step,H,_},task=T} -> {H,T} end. %% H - ProcId
 
 add_trace(Proc,Name,Task) ->
@@ -52,7 +52,7 @@ add_sched(Proc,Pointer,State) ->
 
 start(Proc0, Options) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
-    {Hist,Task} = current_task(Id),
+    {Hist,Task} = current_task(Proc0#process{id=Id}),
     Pid  = proplists:get_value(notification,Options,undefined),
     Proc = Proc0#process{id=Id,
            task= Task,
@@ -89,6 +89,14 @@ event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIME
 
 first_flow(#process{beginEvent = BeginEvent, flows = Flows}) ->
   (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.name.
+
+first_task(#process{tasks=Tasks}) ->
+  {BeginTasks,_} = lists:partition(fun(#beginEvent{}) -> true;
+                                      (_) -> false end, Tasks),
+  case BeginTasks of
+    [] -> [];
+    [#beginEvent{name=Name}|_] -> Name
+  end.
 
 head(ProcId) ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of

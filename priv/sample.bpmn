@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1hq5yf7" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.3.4">
   <bpmn:process id="sample" name="sample" isExecutable="true">
-    <bpmn:startEvent id="start" name="start">
+    <bpmn:startEvent id="Created" name="start">
       <bpmn:outgoing>x1</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="x1" name="x1" sourceRef="start" targetRef="either" />
+    <bpmn:sequenceFlow id="x1" name="x1" sourceRef="Created" targetRef="either" />
     <bpmn:parallelGateway id="either" name="either">
       <bpmn:incoming>x1</bpmn:incoming>
       <bpmn:outgoing>x2</bpmn:outgoing>
@@ -39,7 +39,7 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sample">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="start">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Created">
         <dc:Bounds x="179" y="99" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="186" y="142" width="22" height="14" />
