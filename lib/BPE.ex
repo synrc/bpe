@@ -3,7 +3,8 @@ defmodule BPE do
 
   defmacro xml(source) do
     mod = __CALLER__.module
-    file = File.cwd!() <> source
+    IO.inspect Mix.Project.app_path()
+    file = Mix.Project.app_path() <> source
     proc = Macro.escape(:bpe_xml.load(to_charlist(file), mod))
     quote do
       unquote(proc)
