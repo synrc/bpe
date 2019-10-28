@@ -102,7 +102,6 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
     Elem = keyfind(ElemId, ElemIdKey, List),
     RecName = hd(tuple_to_list(Elem)),
     case RecName of
-         beginEvent -> List;
          endEvent   -> List;
                   _ -> keyreplace(ElemId, ElemIdKey, List,
                        setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)])) end.
