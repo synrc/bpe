@@ -53,8 +53,7 @@
 
 -record(sched, { id = [] :: [] | #step{},
                  pointer = -1 :: integer(),
-                 state = [] :: list(atom()),
-                 ex_pointer = [] :: [] | integer() }).
+                 state = [] :: list(atom()) }).
 
 -record(hist,         { id = [] :: [] | #step{},
                         container=feed :: [] | atom(),
