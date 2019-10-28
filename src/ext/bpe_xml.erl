@@ -56,7 +56,9 @@ reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process, Mod
     reduce(T,Process#process{flows=[Flow|Flows]}, Module);
 
 reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow, Module) ->
-    Cond = list_to_existing_atom(hd(Body)),
+    {ok, Ts, _} = erl_scan:string(hd(Body)),
+    {ok, Cond} = erl_parse:parse_term(Ts),
+    % Cond = list_to_existing_atom(hd(Body)),
     reduce(T,Flow#sequenceFlow{condition=Cond},Module);
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->

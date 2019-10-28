@@ -256,6 +256,11 @@ first_matched_flow([H | Flows], Proc) ->
          false -> first_matched_flow(Flows, Proc) end.
 
 check_flow_condition(#sequenceFlow{condition=[]},_) -> true;
-check_flow_condition(#sequenceFlow{condition=C}, Proc) ->
+check_flow_condition(#sequenceFlow{condition={compare,BpeDocParam,Field,ConstCheckAgainst}},Proc) ->
+    case doc(BpeDocParam,Proc) of
+         [] -> add_error(Proc, "No such document", BpeDocParam),
+               false;
+        Doc -> element(Field,Doc) =:= ConstCheckAgainst end;
+check_flow_condition(#sequenceFlow{condition={service,FunName}},Proc) ->
     Module = element(#task.module, hd(tasks(Proc))),
-    Module:C(Proc).
+    Module:FunName(Proc).
