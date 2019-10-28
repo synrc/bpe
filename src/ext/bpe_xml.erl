@@ -121,8 +121,8 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
     case RecName of
          beginEvent -> List;
          endEvent   -> List;
-                  _ -> keyreplace(ElemId, ElemIdKey, List,
-                       setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)])) end.
+                  _ -> NewElem = setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)]),
+                       keyreplace(ElemId, ElemIdKey, List, NewElem) end.
 
 fixRoles(Tasks, []) -> Tasks;
 fixRoles(Tasks, [Lane|Lanes]) ->
