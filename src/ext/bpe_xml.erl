@@ -23,36 +23,38 @@ load(File,Module) ->
     _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
     _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
     Id = proplists:get_value(id,Attrs),
-    Name = proplists:get_value(name,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
     Proc = reduce(Elements,#process{id=Id,name=Name},Module),
     Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
     Tasks1 = fixRoles(Tasks, Proc#process.roles),
     Proc#process{ id=[],
-                  name=Name,
                   tasks = Tasks1,
                   roles=[],
                   xml = filename:basename(File, ".bpmn"),
-                  events = [ #boundaryEvent{name='*', timeout=#timeout{spec={0,{0,30,0}}}}
+                  events = [ #boundaryEvent{id='*', name="All", timeout=#timeout{spec={0,{0,30,0}}}}
                            | Proc#process.events ] }.
 
 reduce([], Acc, _Module) ->
     Acc;
 
 reduce([{'bpmn:task',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#task{module=Module,name=Name}|Tasks]}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#task{module=Module,id=Id,name=Name}|Tasks]}, Module);
 
 reduce([{'bpmn:startEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#beginEvent{module=Module,name=Name}|Tasks],beginEvent=Name}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#beginEvent{module=Module,id=Id,name=Name}|Tasks],beginEvent=Id}, Module);
 
 reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#endEvent{module=Module,name=Name}|Tasks],endEvent=Name}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#endEvent{module=Module,id=Id,name=Name}|Tasks],endEvent=Id}, Module);
 
 reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process, Module) ->
     Id   = proplists:get_value(id,Attrs),
-    Name   = proplists:get_value(name,Attrs),
+    Name   = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
     Source = proplists:get_value(sourceRef,Attrs),
     Target = proplists:get_value(targetRef,Attrs),
     F = #sequenceFlow{id=Id,name=Name,source=Source,target=Target},
@@ -65,24 +67,29 @@ reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow, Modu
     reduce(T,Flow#sequenceFlow{condition=Cond},Module);
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=parallel}|Tasks]}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=parallel}|Tasks]}, Module);
 
 reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=exclusive}|Tasks]}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=exclusive}|Tasks]}, Module);
 
 reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=inclusive}|Tasks]}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=inclusive}|Tasks]}, Module);
 
 reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=complex}|Tasks]}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=complex}|Tasks]}, Module);
 
 reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
-    Name = proplists:get_value(id,Attrs),
-    reduce(T,Process#process{tasks=[#gateway{module=Module,name=Name,type=none}|Tasks]}, Module);
+    Id = proplists:get_value(id,Attrs),
+    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=none}|Tasks]}, Module);
 
 reduce([{'bpmn:laneSet',Lanes,_Attrs}|T], Process, Module) ->
     reduce(T,Process#process{roles = Lanes}, Module);
@@ -98,9 +105,9 @@ reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process, Module)
 
 %%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
-fillInOut(Tasks, [#sequenceFlow{name=Name,source=Source,target=Target}|Flows]) ->
-    Tasks1 = key_push_value(Name, #gateway.out, Source, #gateway.name, Tasks),
-    Tasks2 = key_push_value(Name, #gateway.in,  Target, #gateway.name, Tasks1),
+fillInOut(Tasks, [#sequenceFlow{id=Name,source=Source,target=Target}|Flows]) ->
+    Tasks1 = key_push_value(Name, #gateway.out, Source, #gateway.id, Tasks),
+    Tasks2 = key_push_value(Name, #gateway.in,  Target, #gateway.id, Tasks1),
     fillInOut(Tasks2, Flows).
 
 key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
@@ -114,13 +121,14 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
 fixRoles(Tasks, []) -> Tasks;
 fixRoles(Tasks, [Lane|Lanes]) ->
     LaneAttributes = element(3,Lane),
+    RoleId = proplists:get_value(id,LaneAttributes),
     Role = proplists:get_value(name,LaneAttributes),
     TaskIdsToUpdateRoles = [T || {'bpmn:flowNodeRef',[],{value,T}} <- element(2,Lane)],
     fixRoles(update_roles(TaskIdsToUpdateRoles, Tasks, Role), Lanes).
 
 update_roles([], AllTasks, _Role) -> AllTasks;
 update_roles([TaskId|Rest], AllTasks, Role) ->
-    update_roles(Rest,key_push_value(Role, #task.roles, TaskId, #task.name, AllTasks),Role).
+    update_roles(Rest,key_push_value(Role, #task.roles, TaskId, #task.id, AllTasks),Role).
 
 action({request,_,_},P) -> {reply,P}.
 

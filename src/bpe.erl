@@ -88,14 +88,14 @@ modify(ProcId,Form,Arg)   -> gen_server:call(pid(ProcId),{modify,Form,Arg},?TIME
 event(ProcId,Event)       -> gen_server:call(pid(ProcId),{event,Event},    ?TIMEOUT).
 
 first_flow(#process{beginEvent = BeginEvent, flows = Flows}) ->
-  (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.name.
+  (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.id.
 
 first_task(#process{tasks=Tasks}) ->
   {BeginTasks,_} = lists:partition(fun(#beginEvent{}) -> true;
                                       (_) -> false end, Tasks),
   case BeginTasks of
     [] -> [];
-    [#beginEvent{name=Name}|_] -> Name
+    [#beginEvent{id=Name}|_] -> Name
   end.
 
 head(ProcId) ->
@@ -125,7 +125,7 @@ hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
                                           {error,_Reason} -> [] end end .
 
 step(Proc,Name) ->
-    case [ Task || Task <- tasks(Proc), element(#task.name,Task) == Name] of
+    case [ Task || Task <- tasks(Proc), element(#task.id,Task) == Name] of
          [T] -> T;
          [] -> #task{};
          E -> E end.
@@ -135,7 +135,7 @@ tasks (Proc) -> Proc#process.tasks.
 flows (Proc) -> Proc#process.flows.
 events(Proc) -> Proc#process.events.
 doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
-flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.name,Flows).
+flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.id,Flows).
 flowId(#sched{state=Flows, pointer=N})   -> lists:nth(N, Flows).
 
 % Emulate Event-Condition-Action Systems
@@ -209,8 +209,8 @@ processFlow(#process{}=Proc) ->
 processSched(#sched{state=[]},Proc) -> {stop,normal,'Final',Proc};
 processSched(#sched{} = Sched,Proc) ->
     Flow = flow(flowId(Sched), Proc),
-    SourceTask = lists:keyfind(Flow#sequenceFlow.source, #task.name, tasks(Proc)),
-    TargetTask = lists:keyfind(Flow#sequenceFlow.target, #task.name, tasks(Proc)),
+    SourceTask = lists:keyfind(Flow#sequenceFlow.source, #task.id, tasks(Proc)),
+    TargetTask = lists:keyfind(Flow#sequenceFlow.target, #task.id, tasks(Proc)),
     Module = element(#task.module, SourceTask),
     Autorized = Module:auth(element(#task.roles, SourceTask)),
     processAuthorized(Autorized,SourceTask,TargetTask,Flow,Sched,Proc).
@@ -223,7 +223,7 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
-    #sequenceFlow{name=Next, source=Src,target=Dst} = Flow,
+    #sequenceFlow{id=Next, source=Src,target=Dst} = Flow,
     Resp = {Status,{Reason,_Reply},State}
          = bpe_task:task_action(element(#task.module, Task),Src,Dst,Proc),
     add_trace(State,[],Flow),
@@ -234,7 +234,7 @@ get_inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
 get_inserted(#gateway{type=exclusive, out=Out},_,_,Proc) -> first_matched_flow(Out,Proc);
 get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc)
     when Type == inclusive; Type == parallel ->
-    case check_all_flows(In -- [Flow#sequenceFlow.name], ScedId) of
+    case check_all_flows(In -- [Flow#sequenceFlow.id], ScedId) of
          true -> Out;
          false -> [] end;
 get_inserted(T,_,_,Proc) -> bpe:?DRIVER(T,Proc).

@@ -11,15 +11,15 @@ start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 
 debug(Proc,Name,Targets,Target,Status,Reason) ->
     case application:get_env(bpe,debug,true) of
-         true -> logger:notice("BPE: ~p [~s:~s] ~p/~p ~p~n",
+         true -> logger:notice("BPE: ~p [~ts:~ts] ~p/~p ~p~n",
                                [Proc#process.id,Name,Target,Status,Reason,Targets]);
          false -> skip end.
 
 process_event(Event,Proc) ->
-    EventName = element(#messageEvent.name,Event),
+    EventName = element(#messageEvent.id,Event),
     Targets = bpe_task:targets(EventName,Proc),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
-    bpe:trace(ProcState,[],calendar:local_time(),element(#messageEvent.name,Event)),
+    bpe:trace(ProcState,[],calendar:local_time(),element(#messageEvent.id,Event)),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
 
@@ -85,7 +85,7 @@ ping() -> application:get_env(bpe,ping,{0,0,5}).
 handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     case Timer of [] -> skip; _ -> erlang:cancel_timer(Timer) end,
 %   search for '*' wildcard terminal event in process definition
-    Terminal = case lists:keytake('*',#messageEvent.name,Events) of
+    Terminal = case lists:keytake('*',#messageEvent.id,Events) of
         {value,Event,_} -> {'*',element(1,Event),element(#messageEvent.timeout,Event)};
                   false -> {'*',none,#timeout{spec={none,none}}} end, % forever if none is set
 %   search the events with the same name as current task, save event type and timeout

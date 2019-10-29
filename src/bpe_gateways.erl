@@ -31,13 +31,13 @@ def() ->
 
 vertices(R) -> vertices(reverse(R),[]).
 vertices([], N) -> N;
-vertices([#sequenceFlow{name=Id, source=From, target=To} | Rtail], N) ->
-    N1   = case keyfind(From, #task.name, N) of
+vertices([#sequenceFlow{id=Id, source=From, target=To} | Rtail], N) ->
+    N1   = case keyfind(From, #task.id, N) of
                 false -> [#task{name=From, out=[Id], module=?MODULE} | N];
-                V = #task{out=L} -> keyreplace(From, #task.name, N, V#task{out=[Id|L]}) end,
-    NewN = case keyfind(To, #task.name, N1) of
+                V = #task{out=L} -> keyreplace(From, #task.id, N, V#task{out=[Id|L]}) end,
+    NewN = case keyfind(To, #task.id, N1) of
                 false -> [#task{name=To, in=[Id], module=?MODULE} | N1];
-                V1 = #task{in=L1} -> keyreplace(To, #task.name, N1, V1#task{in=[Id|L1]}) end,
+                V1 = #task{in=L1} -> keyreplace(To, #task.id, N1, V1#task{in=[Id|L1]}) end,
     vertices(Rtail, NewN).
 
 getEdgesAndVertices(Edges_Raw) ->
@@ -45,8 +45,8 @@ getEdgesAndVertices(Edges_Raw) ->
     {R,vertices(R)}.
 
 setVertexType(Id, Type, Vertices) ->
-    NewVertex = (keyfind(Id, #task.name, Vertices))#gateway{type=Type},
-    keyreplace(Id, #sequenceFlow.name, Vertices, NewVertex).
+    NewVertex = (keyfind(Id, #task.id, Vertices))#gateway{type=Type},
+    keyreplace(Id, #sequenceFlow.id, Vertices, NewVertex).
 
 fixBeginEndEvents (Proc) ->
     Tasks = Proc#process.tasks,
