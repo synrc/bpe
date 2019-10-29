@@ -21,7 +21,6 @@ process_event(Event,Proc) ->
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
     bpe:trace(ProcState,[],calendar:local_time(),element(#messageEvent.id,Event)),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
-%    fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
     fix_reply({Status,{Reason,Target},ProcState}).
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
