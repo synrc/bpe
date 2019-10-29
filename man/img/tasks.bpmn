@@ -23,7 +23,7 @@
     <bpmn:task id="Task_07c7tyt">
       <bpmn:incoming>SequenceFlow_11rqxiv</bpmn:incoming>
     </bpmn:task>
-    <bpmn:sequenceFlow id="SequenceFlow_11rqxiv" name="Conditional Arrow" sourceRef="Task_0suvurh" targetRef="Task_07c7tyt">
+    <bpmn:sequenceFlow id="SequenceFlow_11rqxiv" name="Conditional Flow" sourceRef="Task_0suvurh" targetRef="Task_07c7tyt">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression"></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:task id="Task_0z1d0fb">
@@ -33,6 +33,22 @@
       <bpmn:incoming>SequenceFlow_05a4u7b</bpmn:incoming>
     </bpmn:task>
     <bpmn:sequenceFlow id="SequenceFlow_05a4u7b" name="Atom Arrow" sourceRef="Task_0z1d0fb" targetRef="Task_1guhs3c" />
+    <bpmn:startEvent id="StartEvent_0s1bd8u" name="Begin Event" />
+    <bpmn:endEvent id="EndEvent_06jdkbg" name="End Event" />
+    <bpmn:startEvent id="StartEvent_0zzd8um" name="Message Begin Event">
+      <bpmn:messageEventDefinition />
+    </bpmn:startEvent>
+    <bpmn:startEvent id="StartEvent_1vuwb9a" name="Timer Event">
+      <bpmn:timerEventDefinition />
+    </bpmn:startEvent>
+    <bpmn:startEvent id="StartEvent_1u8bml1" name="Conditional Begin Event">
+      <bpmn:conditionalEventDefinition>
+        <bpmn:condition xsi:type="bpmn:tFormalExpression" />
+      </bpmn:conditionalEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:startEvent id="StartEvent_1tox4r5" name="Boundary Event">
+      <bpmn:signalEventDefinition />
+    </bpmn:startEvent>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_16832s5">
@@ -100,7 +116,7 @@
         <di:waypoint x="1000" y="570" />
         <di:waypoint x="1130" y="570" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1022" y="552" width="87" height="14" />
+          <dc:Bounds x="1025" y="552" width="82" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Task_0z1d0fb_di" bpmnElement="Task_0z1d0fb">
@@ -116,6 +132,42 @@
           <dc:Bounds x="1037" y="642" width="58" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="StartEvent_0s1bd8u_di" bpmnElement="StartEvent_0s1bd8u">
+        <dc:Bounds x="1402" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1391" y="375" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_06jdkbg_di" bpmnElement="EndEvent_06jdkbg">
+        <dc:Bounds x="1402" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1395" y="445" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_0ccp424_di" bpmnElement="StartEvent_0zzd8um">
+        <dc:Bounds x="1482" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1463" y="445" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1j9n8an_di" bpmnElement="StartEvent_1vuwb9a">
+        <dc:Bounds x="1322" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1311" y="375" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_18axy8h_di" bpmnElement="StartEvent_1u8bml1">
+        <dc:Bounds x="1322" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1297" y="445" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1559suv_di" bpmnElement="StartEvent_1tox4r5">
+        <dc:Bounds x="1482" y="332" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1461" y="375" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
