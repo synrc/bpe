@@ -123,3 +123,16 @@ update_roles([TaskId|Rest], AllTasks, Role) ->
 action({request,_,_},P) -> {reply,P}.
 
 auth(_) -> true.
+
+% support bindings and evaluation for @umka1332
+% > :bpe_xml.parse("{1,2,[],{[1],'2',erlang:get(1)}}.")
+% {1, 2, [], {[1], :"2", :undefined}}
+
+parse(Term) when is_binary(Term) ->
+  parse(binary_to_list(Term));
+
+parse(Term) ->
+  {ok,Tokens,_} = erl_scan:string(Term),
+  {ok,AbsForm}  = erl_parse:parse_exprs(Tokens),
+  {_,Value,_}   = erl_eval:exprs(AbsForm, erl_eval:new_bindings()),
+  Value.
