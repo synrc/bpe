@@ -1,7 +1,7 @@
 <!DOCTYPE html><html><head><meta charset="utf-8" /><meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="" /><meta name="author" content="Maxim Sokhatsky" />
-<title>TASK</title>
+<title>GATE</title>
 <link rel="stylesheet" href="https://n2o.dev/blank.css"/>
 <link rel="stylesheet" href="https://n2o.dev/zima.css"/>
 <link rel="shortcut icon" type="image/x-icon" href="https://n2o.dev/img/favicon.ico"/>
@@ -12,7 +12,7 @@
 </head><body><nav>
     <a href="https://n2o.dev">DEV</a>
     <a href="https://bpe.n2o.space">BPE</a>
-    <a href="#" style="background:#ededed;">TASK</a>
+    <a href="#" style="background:#ededed;">GATE</a>
   <div class="dropdown">
     <a onclick="drop()" class="dropbtn">EN</a>
     <div id="dropdown" class="dropdown-content">
@@ -22,25 +22,19 @@
   </div>
 </nav><header>
     <a href="../index.html"><img src="https://n2o.space/img/Synrc Neo.svg" /></a>
-    <h1>TASK</h1>
+    <h1>GATE</h1>
 </header><main>
     <section>
         <h3>INTRO</h3>
-        <p>The <b>bpe_task</b> module provides TASK handling functionality.</p>
+        <p>The <b>bpe_gateway</b> module provides special kind of tasks (vertexes)
+           for parallel and exclusive processing.</p>
     </section>
     <section>
-        <h3>TASKS</h3>
-        <p>The list of supported tasks.</p>
-        <figure><img src="img/tasks.png" width="600px"/></figure>
-    </section>
-    <section>
-        <h3>FLOWS</h3>
-        <p>The list of supported flows.</p>
-        <figure><img src="img/flows.png" width="500px"/></figure>
-    </section>
-    <section>
-        <h3>PROTO</h3>
-         <p>BPE allows you to bind on <b>sequenceFlow</b> and its from and to fields.</p>
+        <h3>GATES</h3>
+        <p>The list of supported gates.</p>
+        <figure><img src="img/gates.png" width="350px"/></figure>
+         <p>Gates as Tasks are controlled by sequenceFlows.
+            BPE allows you to bind on <b>sequenceFlow</b> and its from and to fields.</p>
         <h4>action({request,atom(),atom()},#process{}) ->
                    {reply,Task,State} |
                    {reply,State} |
