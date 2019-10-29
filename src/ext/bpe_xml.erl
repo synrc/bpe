@@ -22,11 +22,13 @@ load(File,Module) ->
     {ok,Bin} = file:read_file(File),
     _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
     _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
-    Name = proplists:get_value(id,Attrs),
-    Proc = reduce(Elements,#process{name=Name},Module),
+    Id = proplists:get_value(id,Attrs),
+    Name = proplists:get_value(name,Attrs),
+    Proc = reduce(Elements,#process{id=Id,name=Name},Module),
     Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
     Tasks1 = fixRoles(Tasks, Proc#process.roles),
     Proc#process{ id=[],
+                  name=Name,
                   tasks = Tasks1,
                   roles=[],
                   xml = filename:basename(File, ".bpmn"),
@@ -49,17 +51,17 @@ reduce([{'bpmn:endEvent',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module
     reduce(T,Process#process{tasks=[#endEvent{module=Module,name=Name}|Tasks],endEvent=Name}, Module);
 
 reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process, Module) ->
-    Name   = proplists:get_value(id,Attrs),
+    Id   = proplists:get_value(id,Attrs),
+    Name   = proplists:get_value(name,Attrs),
     Source = proplists:get_value(sourceRef,Attrs),
     Target = proplists:get_value(targetRef,Attrs),
-    F = #sequenceFlow{name=Name,source=Source,target=Target},
+    F = #sequenceFlow{id=Id,name=Name,source=Source,target=Target},
     Flow = reduce(Body,F,Module),
     reduce(T,Process#process{flows=[Flow|Flows]}, Module);
 
 reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow, Module) ->
     {ok, Ts, _} = erl_scan:string(hd(Body)),
     {ok, Cond} = erl_parse:parse_term(Ts),
-    % Cond = list_to_existing_atom(hd(Body)),
     reduce(T,Flow#sequenceFlow{condition=Cond},Module);
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->

@@ -8,10 +8,13 @@ event_action(Module,_Name,Event,Target,Proc) ->
          {reply,State}      -> {reply,{complete,Target},State};
          {reply,Task,State} -> {reply,{complete,Task},State} end.
 
-handle_event(#beginEvent{},Target,Proc) -> 
+handle_event(#beginEvent{},Target,Proc) ->
     {reply,{complete,Target},Proc};
 
 handle_event(#endEvent{},Target,Proc) ->
+    {stop,{normal,Target},Proc};
+
+handle_event(#messageBeginEvent{},Target,Proc) ->
     {stop,{normal,Target},Proc};
 
 handle_event(#messageEvent{module=Module,name=Name}=Event,Target,Proc) ->

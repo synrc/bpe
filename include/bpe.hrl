@@ -5,7 +5,8 @@
 
 -define(DEFAULT_MODULE, application:get_env(bpe,default_module,bpe_xml)).
 
--define(TASK,           name=[] :: [] | atom(),
+-define(TASK,           id=[] :: list(),
+                        name=[] :: list(),
                         module=?DEFAULT_MODULE :: [] | atom(),
                         in=[] :: list(atom()),
                         out=[] :: list(atom()),
@@ -13,7 +14,8 @@
                         roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
 
--define(EVENT,          name=[] :: [] | atom(),
+-define(EVENT,          id=[] :: list(),
+                        name=[] :: list(),
                         module=?DEFAULT_MODULE :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
@@ -29,7 +31,8 @@
 -type condition() :: {compare,BpeDocParam :: {atom(),term()},Field :: integer(), ConstCheckAgainst :: term()}
                    | {service,atom()}.
 
--record(sequenceFlow, { name=[] :: term(),
+-record(sequenceFlow, { id=[] :: list(),
+                        name=[] :: list(),
                         condition=[] :: [] | condition(),
                         source=[] :: [] | atom(),
                         target=[] :: [] | atom() | list(atom()) }).
@@ -43,6 +46,7 @@
 -record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
 -record(gateway,      { ?TASK, type= parallel :: gate() }).
 -record(messageEvent, { ?EVENT }).
+-record(messageBeginEvent, { ?EVENT }).
 -record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
 -record(timeoutEvent, { ?EVENT, ?CYCLIC }).
 
