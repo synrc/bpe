@@ -9,10 +9,13 @@
 
 load(Id) -> load(Id, []).
 load(Id, Def) ->
-    case kvs:get("/bpe/proc",Id) of
-         {error,_} -> Def;
-         {ok,Proc} -> {_,T} = current_task(Proc),
-                      Proc#process{task=T} end.
+    case application:get_env(kvs,dba,kvs_mnesia) of
+         kvs_mnesia -> case kvs:get(process,Id) of
+                            {ok,P1} -> P1;
+                            {error,_Reason} -> Def end;
+         kvs_rocks  -> case kvs:get("/bpe/proc/",Id) of
+                            {ok,P2} -> P2;
+                            {error,_Reason} -> Def end end.
 
 cleanup(P) ->
   [ kvs:delete("/bpe/hist",Id) || #hist{id=Id} <- bpe:hist(P) ],
@@ -55,7 +58,6 @@ start(Proc0, Options) ->
     {Hist,Task} = current_task(Proc0#process{id=Id}),
     Pid  = proplists:get_value(notification,Options,undefined),
     Proc = Proc0#process{id=Id,
-           task= Task,
            docs = Options,
            notifications = Pid,
            started= #ts{ time = calendar:local_time() } },
@@ -99,19 +101,42 @@ first_task(#process{tasks=Tasks}) ->
   end.
 
 head(ProcId) ->
+  case application:get_env(kvs,dba,kvs_mnesia) of
+       kvs_rocks ->
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
        {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{step,C - 1,ProcId}) of
-       {ok, X} -> X; _ -> [] end; _ -> [] end.
+       {ok, X} -> X; _ -> [] end; _ -> [] end;
+       kvs_mnesia ->
+  case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
+       {ok, #writer{count = C}} -> case kvs:get(hist,{step,C - 1,ProcId}) of
+       {ok, X} -> X; _ -> [] end; _ -> [] end
+    end.
 
 sched(#step{proc = ProcId}=Step) ->
+  case application:get_env(kvs,dba,kvs_mnesia) of
+       kvs_rocks ->
   case kvs:get("/bpe/flow/" ++ ProcId,Step) of {ok, X} -> X; _ -> [] end;
+       kvs_mnesia ->
+  case kvs:get(sched,Step) of
+       {ok,X} -> X;
+            _ -> [] end
+    end;
 
 sched(ProcId) -> kvs:feed("/bpe/flow/" ++ ProcId).
 
 sched_head(ProcId) ->
+  case application:get_env(kvs,dba,kvs_mnesia) of
+       kvs_rocks ->
   case kvs:get(writer,"/bpe/flow/" ++ ProcId) of
        {ok, #writer{count = C}} -> case kvs:get("/bpe/flow/" ++ ProcId,{step,C - 1,ProcId}) of
-       {ok, X} -> X; _ -> [] end; _ -> [] end.
+                                        {ok, X} -> X; _ -> [] end;
+                              _ -> [] end;
+       kvs_mnesia ->
+  case kvs:get(writer,"/bpe/flow/" ++ ProcId) of
+       {ok, #writer{count = C}} -> case kvs:get(sched,{step,C - 1,ProcId}) of
+                                        {ok, X} -> X; _ -> [] end;
+                              _ -> [] end
+       end.
 
 errors(ProcId) -> kvs:feed("/bpe/error/" ++ ProcId).
 
@@ -137,16 +162,6 @@ events(Proc) -> Proc#process.events.
 doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
 flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.id,Flows).
 flowId(#sched{state=Flows, pointer=N})   -> lists:nth(N, Flows).
-
-% Emulate Event-Condition-Action Systems
-
-'ECA'(Proc,Document,Cond) -> 'ECA'(Proc,Document,Cond,fun(_,_)-> ok end).
-'ECA'(Proc,Document,Cond,Action) ->
-    case Cond(Document,Proc) of
-         true -> Action(Document,Proc), {reply,Proc};
-         {false,Message} -> {{reply,Message},Proc#process.task,Proc};
-         ErrorList -> io:format("ECA/4 failed: ~tp~n",[ErrorList]),
-                      {{reply,ErrorList},Proc#process.task,Proc} end.
 
 cache(Key, undefined) -> ets:delete(processes,Key);
 cache(Key, Value) -> ets:insert(processes,{Key,till(calendar:local_time(), ttl()),Value}), Value.

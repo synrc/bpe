@@ -3,7 +3,9 @@
 -compile(export_all).
 -include("bpe.hrl").
 
-find_flow(List) -> [H|_] = List, H.
+find_flow(noflow) -> [];
+find_flow([H|_]=List) when is_list(H) -> H;
+find_flow([H|_]=List) when is_integer(H) -> List.
 find_flow([],List) -> find_flow(List);
 find_flow(Stage,List) -> case lists:member(Stage,List) of
                               true -> Stage;

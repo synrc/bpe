@@ -38,7 +38,7 @@ defmodule Test.Compare do
     {:complete, 'any'} = :bpe.next pid
     {:complete, 'epilog'} = :bpe.next pid
     {:complete, 'finish'} = :bpe.next pid
-    :Final = :bpe.next pid
+#    :Final = :bpe.next pid
   end
 
 end

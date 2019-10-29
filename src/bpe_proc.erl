@@ -21,16 +21,17 @@ process_event(Event,Proc) ->
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
     bpe:trace(ProcState,[],calendar:local_time(),element(#messageEvent.id,Event)),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
-    fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
+%    fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
+    fix_reply({Status,{Reason,Target},ProcState}).
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
-    Curr = Proc#process.task,
+    {_,Curr} = bpe:current_task(Proc),
     Task = bpe:step(Proc,Curr),
     Targets = case NoFlow of
                    true -> noflow;
                    _ -> bpe_task:targets(Curr,Proc) end,
-
+    io:format("Targets: ~p~n",[{Stage,bpe_task:find_flow(Stage,Targets)}]),
     {Status,{Reason,Target},ProcState} =
        case {Targets,Curr,Stage} of
          {noflow,_,_} -> {reply,{complete,Curr},Proc};
@@ -45,7 +46,7 @@ process_task(Stage,Proc,NoFlow) ->
        _ -> bpe:add_trace(ProcState,[],Target),
             debug(ProcState,Curr,Targets,Target,Status,Reason) end,
 
-    fix_reply({Status,{Reason,Target},ProcState#process{task = Target}}).
+    fix_reply({Status,{Reason,Target},ProcState}).
 
 fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
@@ -82,7 +83,8 @@ handle_cast(Msg, State) ->
 timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
 ping() -> application:get_env(bpe,ping,{0,0,5}).
 
-handle_info({timer,ping}, State=#process{task=Task,timer=Timer,id=Id,events=Events,notifications=Pid}) ->
+handle_info({timer,ping}, State=#process{timer=Timer,id=Id,events=Events,notifications=Pid}) ->
+    {_,Task} = bpe:current_task(State),
     case Timer of [] -> skip; _ -> erlang:cancel_timer(Timer) end,
 %   search for '*' wildcard terminal event in process definition
     Terminal = case lists:keytake('*',#messageEvent.id,Events) of

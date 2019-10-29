@@ -59,12 +59,12 @@
 -record(step, { id = 0 :: integer(), proc = "" :: list() }).
 
 -record(sched, { id = [] :: [] | #step{},
+                 prev=[] :: [] | integer(),
+                 next=[] :: [] | integer(),
                  pointer = -1 :: integer(),
                  state = [] :: list(#sequenceFlow{})  }).
 
 -record(hist,         { id = [] :: [] | #step{},
-                        container=feed :: [] | atom(),
-                        feed_id=[] :: any(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary(),
@@ -73,8 +73,6 @@
                         time=[] :: [] | #ts{} }).
 
 -record(process,      { id = [] :: procId(),
-                        container=feed :: [] | atom(),
-                        feed_id=[] :: [] | atom() | term(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | string() | atom(),
@@ -82,12 +80,10 @@
                         roles      = [] :: list(),
                         tasks      = [] :: list(tasks()),
                         events     = [] :: list(events()),
-                        hist       = [] :: [] | term(),
                         flows      = [] :: list(#sequenceFlow{}),
                         rules      = [] :: [] | term(),
                         docs       = [] :: list(tuple()),
                         options    = [] :: term(),
-                        task       = 'Created' :: [] | atom(),
                         xml        = [] :: list(),
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
