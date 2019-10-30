@@ -13,9 +13,11 @@ load(Id, Def) ->
          kvs_mnesia -> case kvs:get(process,Id) of
                             {ok,P1} -> P1;
                             {error,_Reason} -> Def end;
-         kvs_rocks  -> case kvs:get("/bpe/proc/",Id) of
+         kvs_rocks  -> case kvs:get("/bpe/proc",Id) of
                             {ok,P2} -> P2;
-                            {error,_Reason} -> Def end end.
+                            {error,Reason} ->
+                               io:format("BPE Load Error: ~p~n",[Reason]),
+                               Def end end.
 
 cleanup(P) ->
   [ kvs:delete("/bpe/hist",Id) || #hist{id=Id} <- bpe:hist(P) ],
