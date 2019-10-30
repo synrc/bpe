@@ -19,7 +19,7 @@ process_event(Event,Proc) ->
     EventName = element(#messageEvent.id,Event),
     Targets = bpe_task:targets(EventName,Proc),
     {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
-    bpe:trace(ProcState,[],calendar:local_time(),element(#messageEvent.id,Event)),
+    bpe:add_trace(ProcState,[],element(#messageEvent.id,Event)),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState}).
 
@@ -115,7 +115,7 @@ handle_info({timer,ping}, State=#process{timer=Timer,id=Id,events=Events,notific
             {stop,normal,State} end;
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
-    logger:notice(?MODULE, "connection closed, shutting down session: ~p.~n", [Msg]),
+    logger:notice("connection closed, shutting down session: ~p.~n", [Msg]),
     bpe:cache({process,Id},undefined),
     {stop, normal, State};
 

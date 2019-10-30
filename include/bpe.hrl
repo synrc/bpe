@@ -8,8 +8,8 @@
 -define(TASK,           id=[] :: list(),
                         name=[] :: list() | binary(),
                         module=?DEFAULT_MODULE :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
+                        in=[] :: list(list()),
+                        out=[] :: list(list()),
                         prompt=[] :: list(tuple()),
                         roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
@@ -89,8 +89,8 @@
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
                         started    = [] :: [] | #ts{},
-                        beginEvent = [] :: [] | atom(),
-                        endEvent   = [] :: [] | atom()}).
+                        beginEvent = [] :: list() | atom(),
+                        endEvent   = [] :: list() | atom() }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).
