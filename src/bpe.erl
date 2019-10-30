@@ -27,7 +27,7 @@ cleanup(P) ->
 current_task(#process{id=Id}=Proc) ->
     case bpe:head(Id) of
          [] -> {empty,bpe:first_task(Proc)};
-         #hist{id={step,H,_},task=T} -> {H,T} end. %% H - ProcId
+         #hist{id={step,H,_},task=#sequenceFlow{target=T}} -> {H,T} end. %% H - ProcId
 
 add_trace(Proc,Name,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
