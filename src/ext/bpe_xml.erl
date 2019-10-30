@@ -14,6 +14,19 @@ find(E=[#xmlText{}, #xmlElement{name='bpmn:flowNodeRef'} | _],[]) ->
 find(E,[]) -> [{X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
 find(E, I) -> [{X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E, X == I].
 
+
+nextTask(Acc, Flows, Task, EndEvent) when Task == EndEvent orelse Flows == [] -> Acc;
+nextTask(Acc, Flows, Task, EndEvent) -> 
+  % io:format("acc before ~p task=~p~n", [Acc,Task]),
+  {F, Other} = lists:partition(fun(F0) -> F0#sequenceFlow.source == Task end, Flows),
+  IsTask = lists:any(fun(T) -> T==Task end, Acc), 
+  AccT = case IsTask of
+          true -> Acc;
+          false -> [Task|Acc]
+        end,
+  % io:format("next acc ~p~n", [AccT]),
+  lists:foldl(fun(F0, Acc0) -> nextTask(Acc0, Other, F0#sequenceFlow.target, EndEvent) end, AccT, F)
+.
 def() -> load("priv/sample.bpmn").
 
 load(File) -> load(File, ?MODULE).
@@ -25,8 +38,18 @@ load(File,Module) ->
     Id = proplists:get_value(id,Attrs),
     Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
     Proc = reduce(Elements,#process{id=Id,name=Name},Module),
-    Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
-    Tasks1 = fixRoles(Tasks, Proc#process.roles),
+
+    BeginEvent = Proc#process.beginEvent,
+    EndEvent = Proc#process.endEvent,
+    Flows = Proc#process.flows,
+    Tasks = Proc#process.tasks,
+    SortTasks0 = nextTask([BeginEvent], Flows, BeginEvent, EndEvent),
+    SortTasks = lists:reverse(lists:map(fun(ST) -> 
+                                            lists:keyfind(ST, 2, Tasks)
+                                          end, [EndEvent | SortTasks0])),
+  
+    Tasks0 = fillInOut(SortTasks, Flows),
+    Tasks1 = fixRoles(Tasks0, Proc#process.roles),
     Proc#process{ id=[],
                   tasks = Tasks1,
                   roles=[],
