@@ -1,8 +1,8 @@
 use Mix.Config
 
 config :kvs,
-  dba: :kvs_rocks,
-  dba_st: :kvs_st,
+  dba: :kvs_mnesia,
+  dba_st: :kvs_stream,
   schema: [:kvs, :kvs_stream, :bpe_metainfo]
 
 config :bpe,

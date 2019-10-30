@@ -6,16 +6,16 @@
 -define(DEFAULT_MODULE, application:get_env(bpe,default_module,bpe_xml)).
 
 -define(TASK,           id=[] :: list(),
-                        name=[] :: list(),
+                        name=[] :: list() | binary(),
                         module=?DEFAULT_MODULE :: [] | atom(),
-                        in=[] :: list(atom()),
-                        out=[] :: list(atom()),
+                        in=[] :: list(#sequenceFlow{}),
+                        out=[] :: list(#sequenceFlow{}),
                         prompt=[] :: list(tuple()),
                         roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
 
--define(EVENT,          id=[] :: list(),
-                        name=[] :: list(),
+-define(EVENT,          id=[] :: list() | atom(),
+                        name=[] :: list() | binary(),
                         module=?DEFAULT_MODULE :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
@@ -32,10 +32,10 @@
                    | {service,atom()}.
 
 -record(sequenceFlow, { id=[] :: list(),
-                        name=[] :: list(),
-                        condition=[] :: [] | condition(),
-                        source=[] :: [] | atom(),
-                        target=[] :: [] | atom() | list(atom()) }).
+                        name=[] :: list() | binary(),
+                        condition=[] :: [] | condition() | binary(),
+                        source=[] :: list(),
+                        target=[] :: list(integer()) | list(list()) }).
 
 -record(beginEvent ,  { ?TASK }).
 -record(endEvent,     { ?TASK }).
@@ -67,8 +67,8 @@
 -record(hist,         { id = [] :: [] | #step{},
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
-                        name=[] :: [] | binary(),
-                        task=[] :: [] | atom(),
+                        name=[] :: [] | binary() | list(),
+                        task=[] :: [] | atom() | list() | #sequenceFlow{},
                         docs=[] :: list(tuple()),
                         time=[] :: [] | #ts{} }).
 
