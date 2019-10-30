@@ -22,6 +22,16 @@ values from infinite streams (KVS chains);
 values from Erlang messages being sent to BPE process.
 
 ```erlang
+-record(step,  { id = 0 :: integer(), proc = "" :: list() }).
+
+-record(role,  { id = [] :: list(), name :: binary(), tasks = [] :: term() }).
+
+-record(sched, { id = [] :: [] | #step{},
+                 prev=[] :: [] | integer(),
+                 next=[] :: [] | integer(),
+                 pointer = -1 :: integer(),
+                 state = [] :: list(list()) }).
+                 
 -record(hist,         { id = [] :: [] | #step{},
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
