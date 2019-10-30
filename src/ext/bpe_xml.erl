@@ -88,7 +88,7 @@ reduce([{'bpmn:complexGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, 
 reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
     Id = proplists:get_value(id,Attrs),
     Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
-    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=none}|Tasks]}, Module);
+    reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name}|Tasks]}, Module);
 
 reduce([{'bpmn:laneSet',Lanes,Attrs}|T], Process, Module) ->
     Roles = [ #role{ id = proplists:get_value(id,Att,[]),

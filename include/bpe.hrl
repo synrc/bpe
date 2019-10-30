@@ -8,8 +8,8 @@
 -define(TASK,           id=[] :: list(),
                         name=[] :: list() | binary(),
                         module=?DEFAULT_MODULE :: [] | atom(),
-                        in=[] :: list(#sequenceFlow{}),
-                        out=[] :: list(#sequenceFlow{}),
+                        in=[] :: list(list()),
+                        out=[] :: list(list()),
                         prompt=[] :: list(tuple()),
                         roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
@@ -62,13 +62,13 @@
                  prev=[] :: [] | integer(),
                  next=[] :: [] | integer(),
                  pointer = -1 :: integer(),
-                 state = [] :: list(#sequenceFlow{})  }).
+                 state = [] :: list(list()) }).
 
 -record(hist,         { id = [] :: [] | #step{},
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | list(),
-                        task=[] :: [] | atom() | list() | #sequenceFlow{},
+                        task=[] :: [] | atom() | list() | #sequenceFlow{} | condition(),
                         docs=[] :: list(tuple()),
                         time=[] :: [] | #ts{} }).
 
@@ -88,8 +88,8 @@
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
                         started    = [] :: [] | #ts{},
-                        beginEvent = [] :: [] | atom(),
-                        endEvent   = [] :: [] | atom()}).
+                        beginEvent = [] :: list() | atom(),
+                        endEvent   = [] :: list() | atom() }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).
