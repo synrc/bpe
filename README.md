@@ -22,9 +22,32 @@ values from infinite streams (KVS chains);
 values from Erlang messages being sent to BPE process.
 
 ```erlang
--record(hist, { id, next, prev, name, task, docs, time }).
--record(process, { id, next, prev, roles, tasks, events, hist, flows, rules, docs,
-                   options, task, timer, notify, result, beginEvent, endEvent }).
+-record(hist,         { id = [] :: [] | #step{},
+                        prev=[] :: [] | integer(),
+                        next=[] :: [] | integer(),
+                        name=[] :: [] | binary() | list(),
+                        task=[] :: [] | atom() | list() | #sequenceFlow{} | condition(),
+                        docs=[] :: list(tuple()),
+                        time=[] :: [] | #ts{} }).
+
+-record(process,      { id = [] :: procId(),
+                        prev=[] :: [] | integer(),
+                        next=[] :: [] | integer(),
+                        name=[] :: [] | binary() | string() | atom(),
+                        feeds=[] :: list(),
+                        roles      = [] :: term(),
+                        tasks      = [] :: list(tasks()),
+                        events     = [] :: list(events()),
+                        flows      = [] :: list(#sequenceFlow{}),
+                        docs       = [] :: list(tuple()),
+                        options    = [] :: term(),
+                        xml        = [] :: list(),
+                        timer      = [] :: [] | reference(),
+                        notifications=[] :: [] | term(),
+                        result     = [] :: [] | binary(),
+                        started    = [] :: [] | #ts{},
+                        beginEvent = [] :: list() | atom(),
+                        endEvent   = [] :: list() | atom() }).
 ```
 
 During execution of the process, all steps are being written to the persistent storage,
@@ -38,13 +61,22 @@ The step itself is represented as `task` (point). The transition between steps i
 represented as `sequenceFlow` (edge). 
 
 ```erlang
--record(task, { name, id, roles, module }).
--record(userTask, { name, id, roles, module }).
--record(manualTask, { name, id, roles, module }).
--record(serviceTask, { name, id, roles, module }).
--record(receiveTask, { name, id, roles, module }).
--record(sendTask, { name, id, roles, module }).
--record(subProcess,  { name, id, roles, module }).
+-define(TASK,           id=[] :: list(),
+                        name=[] :: list() | binary(),
+                        module=?DEFAULT_MODULE :: [] | atom(),
+                        in=[] :: list(list()),
+                        out=[] :: list(list()),
+                        prompt=[] :: list(tuple()),
+                        roles=[] :: list(atom()),
+                        etc=[] :: list({term(),term()}) ).
+
+-record(beginEvent ,  { ?TASK }).
+-record(endEvent,     { ?TASK }).
+-record(task,         { ?TASK }).
+-record(userTask,     { ?TASK }).
+-record(serviceTask,  { ?TASK }).
+-record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
+-record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
 ```
 
 The history record of process execution is
@@ -63,11 +95,22 @@ the Events are non-deterministic, where you could get a new task by external
 event from the system to the process.
 
 ```erlang
--record(beginEvent, { name, id }).
--record(endEvent, { name, id }).
--record(timeoutEvent, { name, id }).
--record(messageEvent, { name, id }).
--record(boundaryEvent, { name, id }).
+-define(EVENT,          id=[] :: list() | atom(),
+                        name=[] :: list() | binary(),
+                        module=?DEFAULT_MODULE :: [] | atom(),
+                        prompt=[] :: list(tuple()),
+                        etc=[] :: list({term(),term()}),
+                        payload=[] :: [] | binary(),
+                        timeout=[] :: [] | #timeout{} ).
+
+-define(CYCLIC,         timeDate=[] :: [] | binary(),
+                        timeDuration=[] :: [] | binary(),
+                        timeCycle=[] :: [] | binary() ).
+
+-record(messageEvent, { ?EVENT }).
+-record(messageBeginEvent, { ?EVENT }).
+-record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
+-record(timeoutEvent, { ?EVENT, ?CYCLIC }).
 ```
 
 Gateways
@@ -77,7 +120,9 @@ Gateways represent multiplexors and demultiplexors which cause non-linear trace 
 current states as leaves of execution graph.
 
 ```erlang
--record(gateway, { name, type, inputs, outputs }).
+-type gate()   :: exclusive | parallel | inclusive | complex | event.
+
+-record(gateway,      { ?TASK, type= parallel :: gate() }).
 ```
 
 Full set of BPMN 2.0 fields could be obtained
