@@ -55,9 +55,9 @@
 -type procId() :: [] | integer() | {atom(),any()}.
 -type gate()   :: exclusive | parallel | inclusive | complex | event.
 
--record(ts,   { time= [] :: term() }).
--record(step, { id = 0 :: integer(), proc = "" :: list() }).
-
+-record(ts,    { time= [] :: term() }).
+-record(step,  { id = 0 :: integer(), proc = "" :: list() }).
+-record(role,  { id = [] :: list(), name :: binary(), tasks = [] :: term() }).
 -record(sched, { id = [] :: [] | #step{},
                  prev=[] :: [] | integer(),
                  next=[] :: [] | integer(),
@@ -77,11 +77,10 @@
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | string() | atom(),
                         feeds=[] :: list(),
-                        roles      = [] :: list(),
+                        roles      = [] :: term(),
                         tasks      = [] :: list(tasks()),
                         events     = [] :: list(events()),
                         flows      = [] :: list(#sequenceFlow{}),
-                        rules      = [] :: [] | term(),
                         docs       = [] :: list(tuple()),
                         options    = [] :: term(),
                         xml        = [] :: list(),

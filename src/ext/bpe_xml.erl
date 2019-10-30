@@ -29,7 +29,6 @@ load(File,Module) ->
     Tasks1 = fixRoles(Tasks, Proc#process.roles),
     Proc#process{ id=[],
                   tasks = Tasks1,
-                  roles=[],
                   xml = filename:basename(File, ".bpmn"),
                   events = [ #boundaryEvent{id='*', name="All", timeout=#timeout{spec={0,{0,30,0}}}}
                            | Proc#process.events ] }.
@@ -91,8 +90,14 @@ reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module)
     Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
     reduce(T,Process#process{tasks=[#gateway{module=Module,id=Id,name=Name,type=none}|Tasks]}, Module);
 
-reduce([{'bpmn:laneSet',Lanes,_Attrs}|T], Process, Module) ->
-    reduce(T,Process#process{roles = Lanes}, Module);
+reduce([{'bpmn:laneSet',Lanes,Attrs}|T], Process, Module) ->
+    Roles = [ #role{ id = proplists:get_value(id,Att,[]),
+                     tasks = [ Name || {_, [], {value, Name}} <- Tasks ],
+                     name = unicode:characters_to_binary(proplists:get_value(name,Att,[]),utf16)
+                   } || {_,Tasks,Att} <- Lanes],
+    io:format("Lanes: ~p~n",[Lanes]),
+    io:format("Roles: ~p~n",[Roles]),
+    reduce(T,Process#process{roles = Roles}, Module);
 
 %%TODO? Maybe add support for those intries and remove them from this guard
 reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process, Module)
@@ -119,12 +124,7 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
                        setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)])) end.
 
 fixRoles(Tasks, []) -> Tasks;
-fixRoles(Tasks, [Lane|Lanes]) ->
-    LaneAttributes = element(3,Lane),
-    RoleId = proplists:get_value(id,LaneAttributes),
-    Role = proplists:get_value(name,LaneAttributes),
-    TaskIdsToUpdateRoles = [T || {'bpmn:flowNodeRef',[],{value,T}} <- element(2,Lane)],
-    fixRoles(update_roles(TaskIdsToUpdateRoles, Tasks, Role), Lanes).
+fixRoles(Tasks, [#role{id=Id,name=Name,tasks=XmlTasks}|Lanes]) -> fixRoles(update_roles(XmlTasks, Tasks, Id), Lanes).
 
 update_roles([], AllTasks, _Role) -> AllTasks;
 update_roles([TaskId|Rest], AllTasks, Role) ->
