@@ -62,13 +62,13 @@
                  prev=[] :: [] | integer(),
                  next=[] :: [] | integer(),
                  pointer = -1 :: integer(),
-                 state = [] :: list(#sequenceFlow{})  }).
+                 state = [] :: list(list()) }).
 
 -record(hist,         { id = [] :: [] | #step{},
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | list(),
-                        task=[] :: [] | atom() | list() | #sequenceFlow{},
+                        task=[] :: [] | atom() | list() | #sequenceFlow{} | condition(),
                         docs=[] :: list(tuple()),
                         time=[] :: [] | #ts{} }).
 
