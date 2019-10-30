@@ -83,7 +83,12 @@ The history record of process execution is
 represented as `hist` and captures the `sequenceFlow` information.
 
 ```erlang
--type condition() :: {compare,BpeDocParam :: {atom(),term()},Field :: integer(), ConstCheckAgainst :: term()}
+-type condition() :: {compare,BpeDocParam :: 
+                         { atom(),
+                           term()},
+                           Field :: integer(),
+                           ConstCheckAgainst :: term()
+                         }
                    | {service,atom()}.
 
 -record(sequenceFlow, { id=[] :: list(),
