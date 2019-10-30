@@ -104,53 +104,41 @@ first_task(#process{tasks=Tasks}) ->
   end.
 
 head(ProcId) ->
-  case application:get_env(kvs,dba,kvs_mnesia) of
-       kvs_rocks ->
+  Key = case application:get_env(kvs,dba,kvs_mnesia) of
+             kvs_rocks  -> "/bpe/hist/" ++ ProcId;
+             kvs_mnesia -> hist end,
   case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get("/bpe/hist/" ++ ProcId,{step,C - 1,ProcId}) of
-       {ok, X} -> X; _ -> [] end; _ -> [] end;
-       kvs_mnesia ->
-  case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get(hist,{step,C - 1,ProcId}) of
-       {ok, X} -> X; _ -> [] end; _ -> [] end
-    end.
+       {ok, #writer{count = C}} -> case kvs:get(Key,{step,C - 1,ProcId}) of
+                                        {ok, X} -> X; _ -> [] end;
+                              _ -> [] end.
 
 sched(#step{proc = ProcId}=Step) ->
-  case application:get_env(kvs,dba,kvs_mnesia) of
-       kvs_rocks ->
+  Key = case application:get_env(kvs,dba,kvs_mnesia) of
+             kvs_rocks  -> "/bpe/flow/" ++ ProcId;
+             kvs_mnesia -> sched end,
   case kvs:get("/bpe/flow/" ++ ProcId,Step) of {ok, X} -> X; _ -> [] end;
-       kvs_mnesia ->
-  case kvs:get(sched,Step) of
-       {ok,X} -> X;
-            _ -> [] end
-    end;
 
 sched(ProcId) -> kvs:feed("/bpe/flow/" ++ ProcId).
 
 sched_head(ProcId) ->
-  case application:get_env(kvs,dba,kvs_mnesia) of
-       kvs_rocks ->
+  Key = case application:get_env(kvs,dba,kvs_mnesia) of
+             kvs_rocks  -> "/bpe/flow/" ++ ProcId;
+             kvs_mnesia -> sched end,
   case kvs:get(writer,"/bpe/flow/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get("/bpe/flow/" ++ ProcId,{step,C - 1,ProcId}) of
+       {ok, #writer{count = C}} -> case kvs:get(Key,{step,C - 1,ProcId}) of
                                         {ok, X} -> X; _ -> [] end;
-                              _ -> [] end;
-       kvs_mnesia ->
-  case kvs:get(writer,"/bpe/flow/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get(sched,{step,C - 1,ProcId}) of
-                                        {ok, X} -> X; _ -> [] end;
-                              _ -> [] end
-       end.
+                              _ -> [] end.
 
 errors(ProcId) -> kvs:feed("/bpe/error/" ++ ProcId).
 
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
-hist(ProcId,N) -> case application:get_env(kvs,dba,kvs_mnesia) of
-                       kvs_mnesia -> case kvs:get(hist,{N,ProcId}) of
-                                          {ok,Res} -> Res;
-                                          {error,_Reason} -> [] end;
-                       kvs_rocks  -> case kvs:get("/bpe/hist/" ++ ProcId,{step,N,ProcId}) of
-                                          {ok,Res} -> Res;
-                                          {error,_Reason} -> [] end end .
+hist(ProcId,N) ->
+  Key =  case application:get_env(kvs,dba,kvs_mnesia) of
+              kvs_rocks  -> "/bpe/hist/" ++ ProcId;
+              kvs_mnesia -> hist end,
+  case kvs:get(Key,{step,N,ProcId}) of
+       {ok,Res} -> Res;
+       {error,_Reason} -> [] end .
 
 step(Proc,Name) ->
     case [ Task || Task <- tasks(Proc), element(#task.id,Task) == Name] of
