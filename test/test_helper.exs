@@ -1,5 +1,4 @@
 
-:kvs.join
 ExUnit.start()
 :kvs.join()
 
