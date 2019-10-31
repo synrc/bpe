@@ -231,11 +231,6 @@ Let us see how we could create initial 'Wire Transfer' transaction:
 > bpe:docs(bpe:load(39)).
 ```
 
-Dialyzer
---------
-
-To check API with dialyzer build do `rebar3 dialyzer`.
-
 Credits
 -------
 
