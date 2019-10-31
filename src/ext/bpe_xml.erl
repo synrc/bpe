@@ -8,7 +8,6 @@ attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 
 find(E=[#xmlText{}, #xmlElement{name='bpmn:conditionExpression'} | _],[]) ->
   [{X,[V],attr(A)} || #xmlElement{name=X,attributes=A,content=[#xmlText{value=V}]} <- E];
-%%It is expected that bpmn:flowNodeRef are present only in bpmn:lane and only #xmlText{} and #xmlElement{name='bpmn:flowNodeRef'} are present there 
 find(E=[#xmlText{}, #xmlElement{name='bpmn:flowNodeRef'} | _],[]) ->
   [{X,[],{value,V}} || #xmlElement{name=X,content=[#xmlText{value=V}]} <- E];
 find(E,[]) -> [{X,find(Sub,[]),attr(A)} || #xmlElement{name=X,attributes=A,content=Sub} <- E];
