@@ -51,6 +51,7 @@ values from Erlang messages being sent to BPE process.
                         flows      = [] :: list(#sequenceFlow{}),
                         docs       = [] :: list(tuple()),
                         options    = [] :: term(),
+                        module     = ?DEFAULT_MODULE :: [] | atom(),
                         xml        = [] :: list(),
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
@@ -73,7 +74,6 @@ represented as `sequenceFlow` (edge).
 ```erlang
 -define(TASK,           id=[] :: list(),
                         name=[] :: list() | binary(),
-                        module=?DEFAULT_MODULE :: [] | atom(),
                         in=[] :: list(list()),
                         out=[] :: list(list()),
                         prompt=[] :: list(tuple()),
@@ -118,7 +118,6 @@ event from the system to the process.
 ```erlang
 -define(EVENT,          id=[] :: list() | atom(),
                         name=[] :: list() | binary(),
-                        module=?DEFAULT_MODULE :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
