@@ -14,7 +14,7 @@
 
 % find task or document in process
 
--spec step(term(),#process{}) -> [tuple()] | tuple().
+-spec step(#process{},term()) -> [tuple()] | tuple().
 -spec tasks(#process{}) -> list().
 -spec docs(#process{}) -> list().
 -spec doc(tuple(),#process{}) -> list().

@@ -8,8 +8,8 @@ defmodule Test.Service do
 
   @doc_type :direction
 
-  def dir_right(proc), do: {@doc_type, :right} === :bpe.doc({@doc_type},proc)
-  def dir_left(proc),  do: {@doc_type, :left}  === :bpe.doc({@doc_type},proc)
+  def dir_right(proc), do: [{@doc_type, :right}] === :bpe.doc({@doc_type},proc)
+  def dir_left(proc),  do: [{@doc_type, :left}]  === :bpe.doc({@doc_type},proc)
 
   def test() do
     test0()

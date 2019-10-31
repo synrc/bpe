@@ -150,7 +150,7 @@ docs  (Proc) -> Proc#process.docs.
 tasks (Proc) -> Proc#process.tasks.
 flows (Proc) -> Proc#process.flows.
 events(Proc) -> Proc#process.events.
-doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), case X of [A] -> A; _ -> X end.
+doc (R,Proc) -> {X,_} = bpe_env:find(env,Proc,R), X.
 flow(FlowId,_Proc=#process{flows=Flows}) -> lists:keyfind(FlowId,#sequenceFlow.id,Flows).
 flowId(#sched{state=Flows, pointer=N})   -> lists:nth(N, Flows).
 
@@ -261,12 +261,11 @@ first_matched_flow([H | Flows], Proc) ->
          true -> [H];
          false -> first_matched_flow(Flows, Proc) end.
 
-check_flow_condition(#sequenceFlow{condition=[]},_) -> true;
+check_flow_condition(#sequenceFlow{condition=[]},#process{}) -> true;
 check_flow_condition(#sequenceFlow{condition={compare,BpeDocParam,Field,ConstCheckAgainst}},Proc) ->
     case doc(BpeDocParam,Proc) of
-         [] -> add_error(Proc, "No such document", BpeDocParam),
-               false;
-        Doc -> element(Field,Doc) =:= ConstCheckAgainst end;
+         [] -> add_error(Proc, "No such document", BpeDocParam), false;
+       Docs when is_list(Docs) -> element(Field,hd(Docs)) == ConstCheckAgainst end;
 check_flow_condition(#sequenceFlow{condition={service,FunName}},Proc) ->
     Module = element(#task.module, hd(tasks(Proc))),
     Module:FunName(Proc).

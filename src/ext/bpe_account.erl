@@ -53,8 +53,8 @@ action({request,"Signatory",_}, Proc) ->
 
 action({request,"Process",X}, Proc) ->
     case bpe:doc(#close_account{},Proc) of
-         #close_account{} -> {reply,"Final",Proc};
-                        _ -> {reply,"Process",Proc} end;
+         [#close_account{}] -> {reply,"Final",Proc};
+                          _ -> {reply,"Process",Proc} end;
 
 action({request,"Upload",_}, Proc) ->
     {reply,Proc};
