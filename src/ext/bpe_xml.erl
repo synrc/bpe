@@ -61,9 +61,7 @@ reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process, Mod
     reduce(T,Process#process{flows=[Flow|Flows]}, Module);
 
 reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow, Module) ->
-    {ok, Ts, _} = erl_scan:string(hd(Body)),
-    {ok, Cond} = erl_parse:parse_term(Ts),
-    reduce(T,Flow#sequenceFlow{condition=Cond},Module);
+    reduce(T,Flow#sequenceFlow{condition = parse(hd(Body))}, Module);
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process, Module) ->
     Id = proplists:get_value(id,Attrs),
