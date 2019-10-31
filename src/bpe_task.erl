@@ -30,25 +30,25 @@ task_action(Module,Source,Target,Proc) ->
          {stop,Proc}                  -> {stop,{normal,Target},Proc}
     end.
 
-handle_task(#beginEvent{module=Module},CurrentTask,Target,Proc) ->
+handle_task(#beginEvent{},CurrentTask,Target,Proc) ->
+    task_action(Proc#process.module,CurrentTask,Target,Proc);
+
+handle_task(#userTask{},CurrentTask,Target,Proc=#process{module=Module}) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#userTask{module=Module},CurrentTask,Target,Proc) ->
+handle_task(#receiveTask{reader=_Reader},CurrentTask,Target,#process{module=Module}=Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#receiveTask{module=Module,reader=_Reader},CurrentTask,Target,Proc) ->
+handle_task(#sendTask{writer=_Writer},CurrentTask,Target,#process{module=Module}=Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#sendTask{module=Module,writer=_Writer},CurrentTask,Target,Proc) ->
+handle_task(#serviceTask{},CurrentTask,Target,#process{module=Module}=Proc) ->
     task_action(Module,CurrentTask,Target,Proc);
 
-handle_task(#serviceTask{module=Module},CurrentTask,Target,Proc) ->
-    task_action(Module,CurrentTask,Target,Proc);
-
-handle_task(#gateway{type=parallel,module=Module},Src,Dst,Proc) ->
+handle_task(#gateway{type=parallel},Src,Dst,#process{module=Module}=Proc) ->
     task_action(Module,Src,Dst,Proc);
 
-handle_task(#endEvent{module=Module},CurrentTask,Target,Proc) ->
+handle_task(#endEvent{},CurrentTask,Target,#process{module=Module}=Proc) ->
     task_action(Module,CurrentTask,Target,Proc),
     {stop,{normal,Target},Proc};
 

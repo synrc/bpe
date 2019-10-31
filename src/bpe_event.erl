@@ -17,7 +17,7 @@ handle_event(#endEvent{},Target,Proc) ->
 handle_event(#messageBeginEvent{},Target,Proc) ->
     {stop,{normal,Target},Proc};
 
-handle_event(#messageEvent{module=Module,name=Name}=Event,Target,Proc) ->
+handle_event(#messageEvent{name=Name}=Event,Target,#process{module=Module}=Proc) ->
     event_action(Module,Name,Event,Target,Proc);
 
 handle_event(_,Target,Proc) ->

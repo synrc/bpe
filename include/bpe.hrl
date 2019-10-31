@@ -7,7 +7,6 @@
 
 -define(TASK,           id=[] :: list(),
                         name=[] :: list() | binary(),
-                        module=?DEFAULT_MODULE :: [] | atom(),
                         in=[] :: list(list()),
                         out=[] :: list(list()),
                         prompt=[] :: list(tuple()),
@@ -16,7 +15,6 @@
 
 -define(EVENT,          id=[] :: list() | atom(),
                         name=[] :: list() | binary(),
-                        module=?DEFAULT_MODULE :: [] | atom(),
                         prompt=[] :: list(tuple()),
                         etc=[] :: list({term(),term()}),
                         payload=[] :: [] | binary(),
@@ -77,6 +75,7 @@
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | string() | atom(),
                         feeds=[] :: list(),
+                        module     = [] :: [] | atom(),
                         roles      = [] :: term(),
                         tasks      = [] :: list(tasks()),
                         events     = [] :: list(events()),

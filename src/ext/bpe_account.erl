@@ -11,6 +11,7 @@ auth(_) -> true.
 
 def() ->
   P =  #process { name = "IBAN Account",
+        module = ?MODULE,
         flows = [
             #sequenceFlow{id="->Init", source="Created",   target="Init"},
             #sequenceFlow{id="->Upload", source="Init",      target="Upload"},
@@ -22,13 +23,13 @@ def() ->
             #sequenceFlow{id="Signatory->Process", source="Signatory", target="Process"},
             #sequenceFlow{id="Signatory->Final", source="Signatory", target="Final"} ],
         tasks = [
-            #beginEvent  { id="Created",   module = bpe_account },
-            #userTask    { id="Init",      module = bpe_account },
-            #userTask    { id="Upload",    module = bpe_account },
-            #userTask    { id="Signatory", module = bpe_account },
-            #serviceTask { id="Payment",   module = bpe_account },
-            #serviceTask { id="Process",   module = bpe_account },
-            #endEvent    { id="Final",     module = bpe_account } ],
+            #beginEvent  { id="Created" },
+            #userTask    { id="Init" },
+            #userTask    { id="Upload" },
+            #userTask    { id="Signatory" },
+            #serviceTask { id="Payment" },
+            #serviceTask { id="Process" },
+            #endEvent    { id="Final" } ],
         beginEvent = "Created",
         endEvent = "Final",
         events = [ #messageEvent{id="PaymentReceived"},

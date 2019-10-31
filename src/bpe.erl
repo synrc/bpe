@@ -217,7 +217,7 @@ processSched(#sched{} = Sched,Proc) ->
     Flow = flow(flowId(Sched), Proc),
     SourceTask = lists:keyfind(Flow#sequenceFlow.source, #task.id, tasks(Proc)),
     TargetTask = lists:keyfind(Flow#sequenceFlow.target, #task.id, tasks(Proc)),
-    Module = element(#task.module, SourceTask),
+    Module = Proc#process.module,
     Autorized = Module:auth(element(#task.roles, SourceTask)),
     processAuthorized(Autorized,SourceTask,TargetTask,Flow,Sched,Proc).
 
@@ -231,7 +231,7 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     add_sched(Proc, NewPointer, NewThreads),
     #sequenceFlow{id=Next, source=Src,target=Dst} = Flow,
     Resp = {Status,{Reason,_Reply},State}
-         = bpe_task:task_action(element(#task.module, Task),Src,Dst,Proc),
+         = bpe_task:task_action(Proc#process.module,Src,Dst,Proc),
     add_trace(State,[],Flow),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
@@ -267,5 +267,5 @@ check_flow_condition(#sequenceFlow{condition={compare,BpeDocParam,Field,ConstChe
          [] -> add_error(Proc, "No such document", BpeDocParam), false;
        Docs when is_list(Docs) -> element(Field,hd(Docs)) == ConstCheckAgainst end;
 check_flow_condition(#sequenceFlow{condition={service,FunName}},Proc) ->
-    Module = element(#task.module, hd(tasks(Proc))),
+    Module = Proc#process.module,
     Module:FunName(Proc).
