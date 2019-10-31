@@ -1,5 +1,7 @@
 
+:kvs.join
 ExUnit.start()
+:kvs.join()
 
 defmodule BPE.Test do
   use ExUnit.Case, async: true

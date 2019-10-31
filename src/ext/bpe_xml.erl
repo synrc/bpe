@@ -61,9 +61,7 @@ reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process) ->
     reduce(T,Process#process{flows=[Flow|Flows]});
 
 reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow) ->
-    {ok, Ts, _} = erl_scan:string(hd(Body)),
-    {ok, Cond} = erl_parse:parse_term(Ts),
-    reduce(T,Flow#sequenceFlow{condition=Cond});
+    reduce(T,Flow#sequenceFlow{condition = parse(hd(Body))});
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
     Id = proplists:get_value(id,Attrs),
@@ -133,10 +131,6 @@ update_roles([TaskId|Rest], AllTasks, Role) ->
 action({request,_,_},P) -> {reply,P}.
 
 auth(_) -> true.
-
-% support bindings and evaluation for @umka1332
-% > :bpe_xml.parse("{1,2,[],{[1],'2',erlang:get(1)}}.")
-% {1, 2, [], {[1], :"2", :undefined}}
 
 parse(Term) when is_binary(Term) ->
   parse(binary_to_list(Term));
