@@ -1,4 +1,5 @@
 
+:kvs.join
 ExUnit.start()
 
 defmodule BPE.Test do
