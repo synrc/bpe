@@ -116,7 +116,7 @@ sched(#step{proc = ProcId}=Step) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
              kvs_rocks  -> "/bpe/flow/" ++ ProcId;
              kvs_mnesia -> sched end,
-  case kvs:get("/bpe/flow/" ++ ProcId,Step) of {ok, X} -> X; _ -> [] end;
+  case kvs:get(Key,Step) of {ok, X} -> X; _ -> [] end;
 
 sched(ProcId) -> kvs:feed("/bpe/flow/" ++ ProcId).
 
