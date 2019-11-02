@@ -15,11 +15,9 @@ append(env,#process{id=Proc, docs = Docs} = P,Rec) ->
     S.
 
 find(Rec,Feed) ->
-    Zip = [ {X,Y} || {X,Y} <- lists:zip(lists:seq(1,size(Rec)),
-                                        tuple_to_list(Rec)),Y/=[]],
     lists:partition(fun (R) ->
-    lists:foldl(fun ({P,X},A) -> A andalso (element(P,R) == X)
-    end, true, Zip)
+      lists:foldl(fun ({P,X},A) -> A andalso (element(P,R) == X) end, true,
+            [ {X,Y} || {X,Y} <- lists:zip(lists:seq(1,size(Rec)), tuple_to_list(Rec)),Y/=[]])
     end, Feed).
 
 find(kvs,Feed,Rec) ->
