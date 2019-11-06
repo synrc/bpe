@@ -66,7 +66,7 @@
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name=[] :: [] | binary() | list(),
-                        task=[] :: [] | atom() | list() | #sequenceFlow{} | condition(),
+                        task=[] :: [] | atom() | list() | #sequenceFlow{} | condition() | tasks(),
                         docs=[] :: list(tuple()),
                         time=[] :: [] | #ts{} }).
 
