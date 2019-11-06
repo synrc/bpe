@@ -42,7 +42,7 @@
 -record(serviceTask,  { ?TASK }).
 -record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
 -record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
--record(gateway,      { ?TASK, type= parallel :: gate() }).
+-record(gateway,      { ?TASK, type= parallel :: gate(), default=[] :: list() }).
 -record(messageEvent, { ?EVENT }).
 -record(messageBeginEvent, { ?EVENT }).
 -record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
