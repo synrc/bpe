@@ -233,10 +233,10 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     Resp.
 
 get_inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
-get_inserted(#gateway{type=exclusive,out=Out,default=[]}=Gate,_,_,Proc) ->
+get_inserted(#gateway{id=Name,type=exclusive,out=Out,default=[]},_,_,Proc) ->
   case first_matched_flow(Out,Proc) of
     [] ->
-      add_error(Proc,"All conditions evaluate to false in exlusive gateway without default",Gate),
+      add_error(Proc,"All conditions evaluate to false in exlusive gateway without default",Name),
       [];
     X -> X end;
 get_inserted(#gateway{type=exclusive,out=Out,default=DefFlow},_,_,Proc) ->
