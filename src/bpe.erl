@@ -96,12 +96,7 @@ first_flow(#process{beginEvent = BeginEvent, flows = Flows}) ->
   (lists:keyfind(BeginEvent, #sequenceFlow.source, Flows))#sequenceFlow.id.
 
 first_task(#process{tasks=Tasks}) ->
-  {BeginTasks,_} = lists:partition(fun(#beginEvent{}) -> true;
-                                      (_) -> false end, Tasks),
-  case BeginTasks of
-    [] -> [];
-    [#beginEvent{id=Name}|_] -> Name
-  end.
+  case [N || #beginEvent{id=N} <- Tasks] of [] -> []; [Name|_] -> Name end.
 
 head(ProcId) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
