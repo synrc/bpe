@@ -38,6 +38,7 @@ add_trace(Proc,Name,Task) ->
     add_hist(Key,Proc,Name,Task).
 
 add_error(Proc,Name,Task) ->
+    io:format("BPE Error for PID ~p:~n~p~n~p~n",[Proc#process.id, Name, Task]),
     Key = "/bpe/error/" ++ Proc#process.id,
     add_hist(Key,Proc,Name,Task).
 
@@ -232,7 +233,16 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     Resp.
 
 get_inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
-get_inserted(#gateway{type=exclusive, out=Out},_,_,Proc) -> first_matched_flow(Out,Proc);
+get_inserted(#gateway{type=exclusive,out=Out,default=[]}=Gate,_,_,Proc) ->
+  case first_matched_flow(Out,Proc) of
+    [] ->
+      add_error(Proc,"All conditions evaluate to false in exlusive gateway without default",Gate),
+      [];
+    X -> X end;
+get_inserted(#gateway{type=exclusive,out=Out,default=DefFlow},_,_,Proc) ->
+  case first_matched_flow(Out--[DefFlow],Proc) of
+    [] -> [DefFlow];
+    X  -> X end;
 get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc)
     when Type == inclusive; Type == parallel ->
     case check_all_flows(In -- [Flow#sequenceFlow.id], ScedId) of

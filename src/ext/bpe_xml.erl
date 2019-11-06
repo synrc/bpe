@@ -69,8 +69,9 @@ reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process)
 
 reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
     Id = proplists:get_value(id,Attrs),
+    Default = proplists:get_value(default,Attrs,[]),
     Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
-    reduce(T,Process#process{tasks=[#gateway{id=Id,name=Name,type=exclusive}|Tasks]});
+    reduce(T,Process#process{tasks=[#gateway{id=Id,name=Name,type=exclusive,default=Default}|Tasks]});
 
 reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
     Id = proplists:get_value(id,Attrs),

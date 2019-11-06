@@ -18,6 +18,10 @@ defmodule Test.Compare do
   def test0() do
     {:ok, pid} = :bpe.start def(), []
     {:complete, 'some'} = :bpe.next pid
+    {:complete, 'default'} = :bpe.next pid
+    {:complete, 'any'} = :bpe.next pid
+    {:complete, 'epilog'} = :bpe.next pid
+    {:complete, 'finish'} = :bpe.next pid
     :Final = :bpe.next pid
   end
 
@@ -38,7 +42,7 @@ defmodule Test.Compare do
     {:complete, 'any'} = :bpe.next pid
     {:complete, 'epilog'} = :bpe.next pid
     {:complete, 'finish'} = :bpe.next pid
-#    :Final = :bpe.next pid
+    :Final = :bpe.next pid
   end
 
 end
