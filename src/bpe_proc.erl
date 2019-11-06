@@ -53,18 +53,36 @@ fix_reply(P) -> P.
 % BPMN 2.0 Инфотех
 
 handle_call({get},               _,Proc) -> { reply,Proc,Proc };
-handle_call({next},              _,Proc) -> try bpe:processFlow(Proc) catch X:Y:Z -> {reply,{error,'next/1',Z},Proc} end;
-handle_call({next,Stage},        _,Proc) -> try bpe:processFlow(Stage,Proc) catch X:Y:Z -> {reply,{error,'next/2',Z},Proc} end;
-handle_call({amend,Form},        _,Proc) -> try bpe:processFlow(bpe_env:append(env,Proc,Form)) catch X:Y:Z -> {reply,{error,'amend/2',Z},Proc} end;
-handle_call({discard,Form},      _,Proc) -> try bpe:processFlow(bpe_env:remove(env,Proc,Form)) catch X:Y:Z -> {reply,{error,'discard/2',Z},Proc} end;
-handle_call({event,Event},       _,Proc) -> try process_event(Event,Proc) catch X:Y:Z -> {reply,{error,'event/2',Z},Proc} end;
+handle_call({next},              _,Proc) ->
+  try bpe:processFlow(Proc)
+  catch _X:_Y:Z -> {reply,{error,'next/1',Z},Proc} end;
+handle_call({next,Stage},        _,Proc) ->
+  try bpe:processFlow(Stage,Proc)
+  catch _X:_Y:Z -> {reply,{error,'next/2',Z},Proc} end;
+handle_call({amend,Form},        _,Proc) ->
+  try bpe:processFlow(bpe_env:append(env,Proc,Form))
+  catch _X:_Y:Z -> {reply,{error,'amend/2',Z},Proc} end;
+handle_call({discard,Form},      _,Proc) ->
+  try bpe:processFlow(bpe_env:remove(env,Proc,Form))
+  catch _X:_Y:Z -> {reply,{error,'discard/2',Z},Proc} end;
+handle_call({event,Event},       _,Proc) ->
+  try process_event(Event,Proc)
+  catch _X:_Y:Z -> {reply,{error,'event/2',Z},Proc} end;
 
 % BPMN 1.0 ПриватБанк
 
-handle_call({complete},          _,Proc) -> try process_task([],Proc) catch X:Y:Z -> {reply,{error,'complete/1',Z},Proc} end;
-handle_call({complete,Stage},    _,Proc) -> try process_task(Stage,Proc) catch X:Y:Z -> {reply,{error,'complete/2',Z},Proc} end;
-handle_call({modify,Form,append},_,Proc) -> try process_task([],bpe_env:append(env,Proc,Form),true) catch X:Y:Z -> {reply,{error,'append/2',Z},Proc} end;
-handle_call({modify,Form,remove},_,Proc) -> try process_task([],bpe_env:remove(env,Proc,Form),true) catch X:Y:Z -> {reply,{error,'remove/2',Z},Proc} end;
+handle_call({complete},          _,Proc) ->
+  try process_task([],Proc)
+  catch _X:_Y:Z -> {reply,{error,'complete/1',Z},Proc} end;
+handle_call({complete,Stage},    _,Proc) ->
+  try process_task(Stage,Proc)
+  catch _X:_Y:Z -> {reply,{error,'complete/2',Z},Proc} end;
+handle_call({modify,Form,append},_,Proc) ->
+  try process_task([],bpe_env:append(env,Proc,Form),true)
+  catch _X:_Y:Z -> {reply,{error,'append/2',Z},Proc} end;
+handle_call({modify,Form,remove},_,Proc) ->
+  try process_task([],bpe_env:remove(env,Proc,Form),true)
+  catch _X:_Y:Z -> {reply,{error,'remove/2',Z},Proc} end;
 handle_call(Command,_,Proc)              -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
