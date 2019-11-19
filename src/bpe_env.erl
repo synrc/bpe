@@ -6,7 +6,10 @@
 append(kvs,Feed,Rec) ->
     kvs:append(Rec,Feed);
 
-append(env,#process{id=Proc, docs = Docs} = P,Rec) ->
+append(env,P,[]) -> P;
+append(env,P,[Rec|Tail]) -> append(env,append(env,P,Rec),Tail);
+
+append(env,#process{id=Proc, docs = Docs} = P,Rec) when is_tuple(Rec) ->
     Feed = "/bpe/proc",
     S = case find(env,P,Rec) of
         {[],Rest} -> P#process{docs = [Rec|Rest]};
@@ -26,11 +29,14 @@ find(kvs,Feed,Rec) ->
 find(env,Proc,Rec) ->
     find(Rec,Proc#process.docs).
 
-remove(kvs,Feed,Rec) ->
+remove(env,P,[]) -> P;
+remove(env,P,[Rec|Tail]) -> remove(env,remove(env,P,Rec),Tail);
+
+remove(kvs,Feed,Rec) when is_tuple(Rec) ->
     {X,Y} = find(kvs,Feed,Rec),
     lists:map(fun(I) -> kvs:delete(Feed,element(2,I)) end, X);
 
-remove(env,Proc,Rec) ->
+remove(env,Proc,Rec) when is_tuple(Rec) ->
     {X,Y} = find(env,Proc,Rec),
     S=Proc#process{docs=Y},
     kvs:append(S,"/bpe/proc"),

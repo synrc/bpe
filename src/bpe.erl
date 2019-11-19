@@ -226,6 +226,7 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     add_sched(Proc, NewPointer, NewThreads),
     #sequenceFlow{id=Next, source=Src,target=Dst} = Flow,
+    io:format("Flow: ~p~n",[Flow]),
     Resp = {Status,{Reason,_Reply},State}
          = bpe_task:task_action(Proc#process.module,Src,Dst,Proc),
     add_trace(State,[],Flow),
