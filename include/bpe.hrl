@@ -93,6 +93,17 @@
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).
 
+-record(procRec,      { id = [] :: procId(),
+                        name = [] :: list(),
+                        etc = [] :: term() }).
+
+-record(procMonitor,  { id = [] :: integer(),
+                        name = [] :: list(),
+                        roles = [] :: list(#role{}),
+                        ogrName = [] :: list(),
+                        group = [] :: list(#procRec{}),
+                        status = [] :: term() }).
+
 -record('Comp', { id=[]   :: [] | integer() }).
 -record('Proc', { id=[]   :: [] | integer() }).
 -record('Load', { id=[]   :: [] | integer() }).
