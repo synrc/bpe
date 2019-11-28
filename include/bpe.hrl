@@ -97,7 +97,7 @@
                         name = [] :: list(),
                         etc = [] :: term() }).
 
--record(procMonitor,  { id = [] :: integer(),
+-record(procMonitor,  { id = [] :: [] | integer(),
                         name = [] :: list(),
                         roles = [] :: list(#role{}),
                         ogrName = [] :: list(),
