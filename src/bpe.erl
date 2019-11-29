@@ -34,7 +34,7 @@ current_task(#process{id=Id}=Proc) ->
 
 add_trace(Proc,Name,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
-%    kvs:append(Proc,"/bpe/proc"),
+    kvs:append(Proc,"/bpe/proc"),
     add_hist(Key,Proc,Name,Task).
 
 add_error(Proc,Name,Task) ->
