@@ -1,6 +1,7 @@
 
 ExUnit.start()
 :kvs.join()
+require BPE
 
 defmodule BPE.Test do
   use ExUnit.Case, async: true
@@ -9,5 +10,12 @@ defmodule BPE.Test do
   end
   test "service" do
     assert Test.Service.test == :ok
+  end
+  test "process group" do
+    count = 5
+    name = :kvs.seq([],[])
+    :lists.map(fn _ ->:bpe.start Test.Compare.def, [], BPE.procMonitor(id: name) end, :lists.seq(1,count))
+    group = :kvs.feed '/bpe/mon/' ++ name
+    assert count == length group
   end
 end

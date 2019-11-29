@@ -1,7 +1,7 @@
 -module(bpe).
 -author('Maxim Sokhatsky').
--include("bpe.hrl").
--include("api.hrl").
+-include_lib("bpe/include/bpe.hrl").
+-include_lib("bpe/include/api.hrl").
 -include_lib("kvs/include/cursors.hrl").
 -compile(export_all).
 -define(TIMEOUT, application:get_env(bpe,timeout,60000)).
@@ -57,7 +57,9 @@ add_sched(Proc,Pointer,State) ->
                   pointer = Pointer,
                     state = State}, Key).
 
-start(Proc0, Options) ->
+start(Proc0, Options) -> start(Proc0, Options, []).
+
+start(Proc0, Options, Monitor) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
     {Hist,Task} = current_task(Proc0#process{id=Id}),
     Pid  = proplists:get_value(notification,Options,undefined),
@@ -77,9 +79,15 @@ start(Proc0, Options) ->
                   Restart, Shutdown, worker, [bpe_proc] },
 
     case supervisor:start_child(bpe_otp,ChildSpec) of
-         {ok,_}    -> {ok,Proc#process.id};
-         {ok,_,_}  -> {ok,Proc#process.id};
+         {ok,_}    -> supervise(Proc, Monitor), {ok,Proc#process.id};
+         {ok,_,_}  -> supervise(Proc, Monitor), {ok,Proc#process.id};
          {error,Reason} -> {error,Reason} end.
+
+supervise(#process{} = Proc, []) -> ok;
+supervise(#process{} = Proc, #procMonitor{} = Monitor) ->
+   Key = "/bpe/mon/" ++ Monitor#procMonitor.id,
+   kvs:writer(Key),
+   kvs:append(#procRec{id=Proc#process.id,name=Proc#process.name}, Key).
 
 pid(Id) -> bpe:cache({process,Id}).
 
