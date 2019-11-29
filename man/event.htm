@@ -37,11 +37,11 @@
     <section>
         <h3>CALLBACK API</h3>
          <p>The EVENT API allows you to bind on <b>messageEvent</b>.</p>
-        <h4>action({event,atom(),atom()},#process{}) ->
-                   {reply,Task,State} |
-                   {reply,State}.</h4>
+        <h4>action({event,atom(), atom()}, #process{}) ->
+                   {reply, Task, State} |
+                   {reply, State}.</h4>
         <p>Example:</p>
-        <figure><code> action({event,Name,Payload},Proc) -> {replay,Proc}.</code></figure>
+        <figure><code> action({event, Name, Payload}, Proc) -> {replay, Proc}.</code></figure>
     </section>
     <section>
         <p>This module may refer to:
