@@ -84,8 +84,8 @@ start(Proc0, Options, Monitor) ->
          {error,Reason} -> {error,Reason} end.
 
 supervise(#process{} = Proc, []) -> ok;
-supervise(#process{} = Proc, #procMonitor{} = Monitor) ->
-   Key = "/bpe/mon/" ++ Monitor#procMonitor.id,
+supervise(#process{} = Proc, #monitor{} = Monitor) ->
+   Key = "/bpe/mon/" ++ Monitor#monitor.id,
    kvs:writer(Key),
    kvs:append(#procRec{id=Proc#process.id,name=Proc#process.name}, Key).
 

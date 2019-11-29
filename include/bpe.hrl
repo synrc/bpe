@@ -98,7 +98,7 @@
                         roles = [] :: list(atom()),
                         etc = [] :: term() }).
 
--record(procMonitor,  { id = [] :: [] | integer(),
+-record(monitor,  { id = [] :: [] | integer(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name = [] :: list(),
