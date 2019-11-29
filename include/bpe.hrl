@@ -95,9 +95,10 @@
 
 -record(procRec,      { id = [] :: procId(),
                         name = [] :: list(),
+                        roles = [] :: list(atom()),
                         etc = [] :: term() }).
 
--record(procMonitor,  { id = [] :: integer(),
+-record(procMonitor,  { id = [] :: [] | integer(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name = [] :: list(),
