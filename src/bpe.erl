@@ -153,7 +153,7 @@ step(Proc,Name) ->
          [] -> #task{};
          E -> E end.
 
-docs  (Proc) -> Proc#process.docs.
+docs  (Proc) -> (bpe:head(Proc#process.id))#hist.docs.
 tasks (Proc) -> Proc#process.tasks.
 flows (Proc) -> Proc#process.flows.
 events(Proc) -> Proc#process.events.
