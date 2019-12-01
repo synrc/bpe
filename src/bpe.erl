@@ -34,7 +34,6 @@ current_task(#process{id=Id}=Proc) ->
 
 add_trace(Proc,Name,Task) ->
     Key = "/bpe/hist/" ++ Proc#process.id,
-    kvs:append(Proc,"/bpe/proc"),
     add_hist(Key,Proc,Name,Task).
 
 add_error(Proc,Name,Task) ->
@@ -83,12 +82,14 @@ start(Proc0, Options, Monitor) ->
          {ok,_,_}  -> supervise(Proc, Monitor), {ok,Proc#process.id};
          {error,Reason} -> {error,Reason} end.
 
-supervise(#process{} = Proc, []) -> ok;
+supervise(#process{} = Proc, []) ->
+   kvs:append(Proc,"/bpe/proc");
 supervise(#process{} = Proc, #monitor{} = Monitor) ->
    Key = "/bpe/mon/" ++ Monitor#monitor.id,
    case kvs:get(writer, Key) of
         {error,_} -> kvs:writer(Key), kvs:append(Monitor, "/bpe/monitors");
         {ok,_} -> skip end,
+   kvs:append(Proc,"/bpe/proc"),
    kvs:append(#procRec{id=Proc#process.id,name=Proc#process.name}, Key).
 
 pid(Id) -> bpe:cache({process,Id}).

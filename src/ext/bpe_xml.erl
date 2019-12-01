@@ -93,8 +93,8 @@ reduce([{'bpmn:laneSet',Lanes,Attrs}|T], Process) ->
                      tasks = [ Name || {_, [], {value, Name}} <- Tasks ],
                      name = unicode:characters_to_binary(proplists:get_value(name,Att,[]),utf16)
                    } || {_,Tasks,Att} <- Lanes],
-    io:format("Lanes: ~p~n",[Lanes]),
-    io:format("Roles: ~p~n",[Roles]),
+%    io:format("Lanes: ~p~n",[Lanes]),
+%    io:format("Roles: ~p~n",[Roles]),
     reduce(T,Process#process{roles = Roles});
 
 %%TODO? Maybe add support for those intries and remove them from this guard
