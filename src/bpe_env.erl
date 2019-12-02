@@ -1,7 +1,7 @@
 -module(bpe_env).
 -author('Maxim Sokhatsky').
 -include("bpe.hrl").
--export([append/3,find/3,remove/3]).
+-export([append/3,find/2,find/3,remove/3]).
 
 append(kvs,Feed,Rec) ->
     kvs:append(Rec,Feed);
