@@ -27,6 +27,7 @@
 -record(timeout,      { spec= [] :: term() }).
 
 -type condition() :: {compare,BpeDocParam :: {atom(),term()},Field :: integer(), ConstCheckAgainst :: term()}
+                   | {service,atom(),atom()}
                    | {service,atom()}.
 
 -record(sequenceFlow, { id=[] :: list(),
