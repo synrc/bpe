@@ -283,6 +283,8 @@ check_flow_condition(#sequenceFlow{condition={compare,BpeDocParam,Field,ConstChe
     case doc(BpeDocParam,Proc) of
          [] -> add_error(Proc, "No such document", BpeDocParam), false;
        Docs when is_list(Docs) -> element(Field,hd(Docs)) == ConstCheckAgainst end;
-check_flow_condition(#sequenceFlow{condition={service,FunName}},Proc) ->
-    Module = Proc#process.module,
-    Module:FunName(Proc).
+check_flow_condition(#sequenceFlow{condition={service,Fun}},Proc=#process{module=Module}) ->
+    Module:Fun(Proc);
+check_flow_condition(#sequenceFlow{condition={service,Fun,Module}},Proc) ->
+    Module:Fun(Proc).
+
