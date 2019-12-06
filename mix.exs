@@ -4,7 +4,7 @@ defmodule BPE.Mixfile do
   def project do
     [
       app: :bpe,
-      version: "4.12.1",
+      version: "4.12.2",
       description: "BPE Business Process Engine",
       package: package(),
       deps: deps()
@@ -28,7 +28,7 @@ defmodule BPE.Mixfile do
   def deps do
     [
       {:ex_doc, "~> 0.11", only: :dev},
-      {:syn, "~> 1.6.3"},
+      {:syn, "~> 2.0.0"},
       {:rocksdb, "~> 1.3.2"},
       {:kvs, "~> 6.10.2"}
     ]

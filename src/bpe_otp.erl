@@ -11,7 +11,7 @@ opt()        -> [ set, named_table, { keypos, 1 }, public ].
 respawn()    -> spawn(fun () -> [ worker(I) || I <- kvs:all("/bpe/proc")] end).
 start(_,_)   -> [ bpe:reload(I) || I <- application:get_env(bpe,procmodules,[bpe_account,bpe]) ],
                 logger:add_handlers(bpe),
-                syn:init(), kvs:join(), kvs:ensure(kvs:writer("/bpe/proc")),
+                kvs:join(), kvs:ensure(kvs:writer("/bpe/proc")),
                 supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 init([])     -> [ ets:new(T,opt()) || T <- [ processes ] ],
                 { ok, { { one_for_one, 5, 10 }, [] } }.
