@@ -138,6 +138,7 @@ sched_head(ProcId) ->
 
 errors(ProcId) -> kvs:feed("/bpe/error/" ++ ProcId).
 
+hist(#step{proc = ProcId, id = N}) -> hist(ProcId,N);
 hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
 hist(ProcId,N) ->
   Key =  case application:get_env(kvs,dba,kvs_mnesia) of
@@ -235,11 +236,11 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     Inserted = get_inserted(Task, Flow, SchedId, Proc),
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
-    add_sched(Proc, NewPointer, NewThreads),
     #sequenceFlow{id=Next, source=Src,target=Dst} = Flow,
     io:format("Flow: ~p~n",[Flow]),
     Resp = {Status,{Reason,_Reply},State}
          = bpe_task:task_action(Proc#process.module,Src,Dst,Proc),
+    add_sched(Proc, NewPointer, NewThreads),
     add_trace(State,[],Flow),
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
@@ -268,9 +269,9 @@ first(T, _Proc)    -> [hd(element(#task.out, T))].
 random(T, _Proc)   -> Out = element(#task.out, T), [lists:nth(rand:uniform(length(Out)), Out)].
 
 check_all_flows([], _) -> true;
-check_all_flows(_, #step{id = -1}) -> false;
+check_all_flows(_, #step{id = 0}) -> false;
 check_all_flows(Needed, ScedId=#step{id=Id}) ->
-    check_all_flows(Needed -- [flowId(sched(ScedId))], ScedId#step{id = Id-1}).
+    check_all_flows(Needed -- [((hist(ScedId))#hist.task)#sequenceFlow.id], ScedId#step{id = Id-1}).
 
 first_matched_flow([], _Proc) -> [];
 first_matched_flow([H | Flows], Proc) ->
