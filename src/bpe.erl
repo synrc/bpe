@@ -271,7 +271,9 @@ random(T, _Proc)   -> Out = element(#task.out, T), [lists:nth(rand:uniform(lengt
 check_all_flows([], _) -> true;
 check_all_flows(_, #step{id = 0}) -> false;
 check_all_flows(Needed, ScedId=#step{id=Id}) ->
-    check_all_flows(Needed -- [((hist(ScedId))#hist.task)#sequenceFlow.id], ScedId#step{id = Id-1}).
+    case hist(ScedId) of
+         #hist{task=#sequenceFlow{id=Fid}} -> check_all_flows(Needed -- [Fid], ScedId#step{id = Id-1});
+         _ -> false end.
 
 first_matched_flow([], _Proc) -> [];
 first_matched_flow([H | Flows], Proc) ->
