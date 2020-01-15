@@ -14,7 +14,7 @@ defmodule BPE.Test do
   test "process group" do
     count = 5
     name = :kvs.seq([],[])
-    :lists.map(fn _ ->:bpe.start Test.Compare.def, [], BPE.monitor(id: name) end, :lists.seq(1,count))
+    :lists.map(fn _ -> :bpe.start(Test.Compare.def, [], {BPE.monitor(id: name), BPE.procRec()}) end, :lists.seq(1,count))
     group = :kvs.feed '/bpe/mon/' ++ name
     assert count == length group
   end
