@@ -56,9 +56,10 @@ add_sched(Proc,Pointer,State) ->
                   pointer = Pointer,
                     state = State}, Key).
 
-start(Proc0, Options) -> start(Proc0, Options, []).
+start(Proc0, Options) ->
+    start(Proc0, Options, {[],#procRec{id=Proc0#process.id}}).
 
-start(Proc0, Options, Monitor) ->
+start(Proc0, Options, {Monitor,ProcRec}) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
     {Hist,Task} = current_task(Proc0#process{id=Id}),
     Pid  = proplists:get_value(notification,Options,undefined),
@@ -78,19 +79,24 @@ start(Proc0, Options, Monitor) ->
                   Restart, Shutdown, worker, [bpe_proc] },
 
     case supervisor:start_child(bpe_otp,ChildSpec) of
-         {ok,_}    -> supervise(Proc, Monitor), {ok,Proc#process.id};
-         {ok,_,_}  -> supervise(Proc, Monitor), {ok,Proc#process.id};
+         {ok,_}    -> mon_link(Monitor, Proc, ProcRec#procRec{id=Proc#process.id}), {ok,Proc#process.id};
+         {ok,_,_}  -> mon_link(Monitor, Proc, ProcRec#procRec{id=Proc#process.id}), {ok,Proc#process.id};
          {error,Reason} -> {error,Reason} end.
 
-supervise(#process{} = Proc, []) ->
-   kvs:append(Proc,"/bpe/proc");
-supervise(#process{} = Proc, #monitor{} = Monitor) ->
-   Key = "/bpe/mon/" ++ Monitor#monitor.id,
-   case kvs:get(writer, Key) of
-        {error,_} -> kvs:writer(Key), kvs:append(Monitor, "/bpe/monitors");
-        {ok,_} -> skip end,
-   kvs:append(Proc,"/bpe/proc"),
-   kvs:append(#procRec{id=Proc#process.id,name=Proc#process.name}, Key).
+% monitors
+
+mon_link([], Proc, _) ->
+    kvs:append(Proc,"/bpe/proc");
+mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec) ->
+    Key = "/bpe/mon/" ++ MID,
+    case kvs:get(writer, Key) of
+         {error,_} -> kvs:append(Monitor, "/bpe/monitors");
+         {ok,_} -> skip end,
+    kvs:append(Proc#process{monitor=MID},"/bpe/proc"),
+    kvs:append(ProcRec#procRec{id=Proc#process.id}, Key).
+
+mon_children(MID) ->
+    kvs:feed("/bpe/mon/"++MID).
 
 pid(Id) -> bpe:cache({process,Id}).
 

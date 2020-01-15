@@ -51,7 +51,7 @@
 
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #sendTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.
--type procId() :: [] | integer() | {atom(),any()}.
+-type procId() :: [] | string() | integer() | {atom(),any()}.
 -type gate()   :: exclusive | parallel | inclusive | complex | event.
 
 -record(ts,    { time= [] :: term() }).
@@ -88,6 +88,7 @@
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
                         started    = [] :: [] | #ts{},
+                        monitor    = [] :: [] | integer(),
                         beginEvent = [] :: list() | atom(),
                         endEvent   = [] :: list() | atom() }).
 
@@ -95,11 +96,11 @@
                         diagram= #process{} :: #process{} }).
 
 -record(procRec,      { id = [] :: procId(),
-                        name = [] :: list(),
+                        name = [] :: list(), % "/1/23e132/2/2/sdfvsdfgasdfasdf"
                         roles = [] :: list(atom()),
                         etc = [] :: term() }).
 
--record(monitor,  { id = [] :: [] | integer(),
+-record(monitor,  {     id = [] :: procId(),
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
                         name = [] :: list(),
