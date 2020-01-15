@@ -57,7 +57,7 @@ add_sched(Proc,Pointer,State) ->
                     state = State}, Key).
 
 start(Proc0, Options) ->
-    start(Proc0, Options, {[],#procRec{id=Proc0#process.id}}).
+    start(Proc0, Options, {[],#procRec{}}).
 
 start(Proc0, Options, {Monitor,ProcRec}) ->
     Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
@@ -79,8 +79,8 @@ start(Proc0, Options, {Monitor,ProcRec}) ->
                   Restart, Shutdown, worker, [bpe_proc] },
 
     case supervisor:start_child(bpe_otp,ChildSpec) of
-         {ok,_}    -> mon_link(Monitor, Proc, ProcRec#procRec{id=Proc#process.id}), {ok,Proc#process.id};
-         {ok,_,_}  -> mon_link(Monitor, Proc, ProcRec#procRec{id=Proc#process.id}), {ok,Proc#process.id};
+         {ok,_}    -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
+         {ok,_,_}  -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
          {error,Reason} -> {error,Reason} end.
 
 % monitors
