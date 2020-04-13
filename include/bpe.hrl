@@ -89,6 +89,7 @@
                         result     = [] :: [] | binary(),
                         started    = [] :: [] | #ts{},
                         monitor    = [] :: [] | integer(),
+                        parent     = [] :: [] | procId(),
                         beginEvent = [] :: list() | atom(),
                         endEvent   = [] :: list() | atom() }).
 
