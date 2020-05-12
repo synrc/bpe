@@ -1,6 +1,6 @@
 -module(bpe_env).
 -author('Maxim Sokhatsky').
--include("bpe.hrl").
+-include_lib("bpe/include/bpe.hrl").
 -export([append/3,find/2,find/3,remove/3]).
 
 append(kvs,Feed,Rec) ->
@@ -15,7 +15,9 @@ append(env,#process{id=Proc, docs = Docs} = P,Rec) when is_tuple(Rec) ->
         {[],Rest} -> P#process{docs = [Rec|Rest]};
         {Found,Rest} -> P#process{docs = [Rec|Found]++Rest} end,
     kvs:append(S, Feed),
-    S.
+    X = S#process{ modified = #ts{time = calendar:local_time()} },
+    kvs:put(X),
+    X.
 
 find(Rec,Feed) ->
     lists:partition(fun (R) ->
@@ -38,6 +40,7 @@ remove(kvs,Feed,Rec) when is_tuple(Rec) ->
 
 remove(env,Proc,Rec) when is_tuple(Rec) ->
     {X,Y} = find(env,Proc,Rec),
-    S=Proc#process{docs=Y},
+    S=Proc#process{docs=Y, modified = #ts{ time = calendar:local_time()}},
     kvs:append(S,"/bpe/proc"),
+    kvs:put(S),
     S.

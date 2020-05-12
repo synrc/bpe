@@ -66,7 +66,8 @@ start(Proc0, Options, {Monitor,ProcRec}) ->
     Proc = Proc0#process{id=Id,
            docs = Options,
            notifications = Pid,
-           started= #ts{ time = calendar:local_time() } },
+           modified = #ts{ time = calendar:local_time() },
+           started = #ts{ time = calendar:local_time() } },
 
     case Hist of empty -> add_trace(Proc,[],Task),
                           add_sched(Proc,1,[first_flow(Proc)]);

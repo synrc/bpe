@@ -88,6 +88,7 @@
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
                         started    = [] :: [] | #ts{},
+                        modified   = [] :: [] | #ts{},
                         monitor    = [] :: [] | integer(),
                         parent     = [] :: [] | procId(),
                         beginEvent = [] :: list() | atom(),
