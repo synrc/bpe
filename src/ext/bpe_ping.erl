@@ -11,7 +11,7 @@ ping(State=#process{timer=Timer,id=Id,modified = #ts{time=Time2}, events=Events,
         #hist{time=#ts{time=Time1}} ->
             {D1,Diff1} = calendar:time_difference(Time1,calendar:local_time()),
             {D2,Diff2} = calendar:time_difference(Time2,calendar:local_time()),
-            io:format("BPE timer ~p: ~p~n",[Id,[{D1,Diff1},{D2,Diff2}]]),
+            % io:format("BPE timer ~p: ~p~n",[Id,[{D1,Diff1},{D2,Diff2}]]),
             case {D1,Diff1} > termination() orelse {D2,Diff2} > termination() of
                  true  -> {stop,normal,State};
                  false -> {noreply,State#process{timer=timer_restart(ping())}} end;
