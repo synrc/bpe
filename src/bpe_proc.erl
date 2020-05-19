@@ -51,7 +51,9 @@ fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
 % BPMN 2.0 Инфотех
-
+handle_call({mon_link,MID},      _,Proc) ->
+  Proc2 = Proc#process{monitor=MID},
+  {reply,Proc2,Proc2};
 handle_call({get},               _,Proc) -> { reply,Proc,Proc };
 handle_call({next},              _,Proc) ->
   try bpe:processFlow(Proc)

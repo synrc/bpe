@@ -93,8 +93,10 @@ mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec) ->
     case kvs:get(writer, Key) of
          {error,_} -> kvs:append(Monitor, "/bpe/monitors");
          {ok,_} -> skip end,
+    ProcId = Proc#process.id,
+    gen_server:call(pid(ProcId), {mon_link, MID}, ?TIMEOUT),
     kvs:append(Proc#process{monitor=MID},"/bpe/proc"),
-    kvs:append(ProcRec#procRec{id=Proc#process.id}, Key).
+    kvs:append(ProcRec#procRec{id=ProcId}, Key).
 
 mon_children(MID) ->
     kvs:feed("/bpe/mon/"++MID).
