@@ -51,9 +51,6 @@ fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
 % BPMN 2.0 Инфотех
-handle_call({mon_link,MID},      _,Proc) ->
-  Proc2 = Proc#process{monitor=MID},
-  {reply,Proc2,Proc2};
 handle_call({get},               _,Proc) -> { reply,Proc,Proc };
 handle_call({next},              _,Proc) ->
   try bpe:processFlow(Proc)
@@ -95,6 +92,7 @@ init(Process) ->
     [ bpe:reg({messageEvent,element(1,EventRec),Proc#process.id}) || EventRec <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(rand:uniform(10000),self(),{timer,ping})}}.
 
+handle_cast({mon_link,MID},Proc) -> {noreply, Proc#process{monitor=MID}};
 handle_cast(Msg, State) ->
     logger:notice("Unknown API async: ~p.~n", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
