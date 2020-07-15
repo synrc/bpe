@@ -51,7 +51,8 @@ fix_reply({stop,{Reason,Reply},State}) -> {stop,Reason,Reply,State};
 fix_reply(P) -> P.
 
 % BPMN 2.0 Инфотех
-handle_call({get},               _,Proc) -> { reply,Proc,Proc };
+handle_call({get},               _,Proc) -> { reply, Proc, Proc };
+handle_call({set,State},         _,Proc) -> { reply, Proc, State };
 handle_call({next},              _,Proc) ->
   try bpe:processFlow(Proc)
   catch _X:_Y:Z -> {reply,{error,'next/1',Z},Proc} end;

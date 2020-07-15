@@ -104,6 +104,7 @@ mon_children(MID) ->
 pid(Id) -> bpe:cache({process,Id}).
 
 proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
+update(ProcId,State)      -> gen_server:call(pid(ProcId),{set,State},      ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
 next(ProcId)              -> gen_server:call(pid(ProcId),{next},           ?TIMEOUT).
 complete(ProcId,Stage)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
