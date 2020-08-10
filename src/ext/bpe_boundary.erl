@@ -26,11 +26,11 @@ ping(State=#process{timer=Timer,id=Id,events=Events,notifications=Pid}) ->
         {_,none} -> {noreply,State#process{timer=timer_restart(ping())}};
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};
         {false,timeoutEvent} -> % perform auto-complete on timeoutEvents
-            logger:notice("BPE: ~p complete Timeout: ~p~n",[Id,{DD,Diff}]),
+            logger:notice("BPE: ~p complete Timeout: ~p",[Id,{DD,Diff}]),
             case bpe_proc:process_task([],State) of
                 {reply,_,NewState} -> {noreply,NewState#process{timer=timer_restart(ping())}};
                 {stop,normal,_,NewState} -> {stop,normal,NewState} end;
-        {false,Record} -> logger:notice("BPE: ~p close ~p Timeout: ~p~n",[Id,Record,{DD,Diff}]),
+        {false,Record} -> logger:notice("BPE: ~p close ~p Timeout: ~p",[Id,Record,{DD,Diff}]),
             case is_pid(Pid) of
                 true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                 false -> skip end,

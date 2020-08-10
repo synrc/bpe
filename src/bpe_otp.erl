@@ -20,7 +20,7 @@ worker(#process{id=Id}=P) ->
    case bpe:head(Id) of
         #hist{time = #ts{time=Time}} -> worker_do(calendar:time_difference(Time,calendar:local_time()),P);
         _ -> broken end;
-worker(P) -> logger:notice("Unknown: ~p~n",[P]).
+worker(P) -> logger:notice("BPE: Unknown ~p",[P]).
 
 worker_do({Days,_Time},_) when Days >= 14 -> skip;
 worker_do({_,_},P) -> bpe:start(P,[]).

@@ -37,7 +37,7 @@ add_trace(Proc,Name,Task) ->
     add_hist(Key,Proc,Name,Task).
 
 add_error(Proc,Name,Task) ->
-    io:format("BPE Error for PID ~p:~n~p~n~p~n",[Proc#process.id, Name, Task]),
+    logger:notice("BPE: Error for PID ~ts: ~p ~p",[erlang:list_to_binary(Proc#process.id), Name, Task]),
     Key = "/bpe/error/" ++ Proc#process.id,
     add_hist(Key,Proc,Name,Task).
 
@@ -247,7 +247,9 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     NewThreads = lists:sublist(Threads, Pointer-1) ++ Inserted ++ lists:nthtail(Pointer, Threads),
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     #sequenceFlow{id=Next, source=Src,target=Dst} = Flow,
-    io:format("Flow: ~p~n",[Flow]),
+    case application:get_env(bpe,debug,true) of
+         true -> logger:notice("BPE: Flow ~p", [Flow]);
+         false -> skip end,
     Resp = {Status,{Reason,_Reply},State}
          = bpe_task:task_action(Proc#process.module,Src,Dst,Proc),
     add_sched(Proc, NewPointer, NewThreads),
