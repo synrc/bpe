@@ -18,8 +18,13 @@ debug(Proc,Name,Targets,Target,Status,Reason) ->
 process_event(Event,Proc) ->
     EventName = element(#messageEvent.id,Event),
     Targets = bpe_task:targets(EventName,Proc),
-    {Status,{Reason,Target},ProcState} = bpe_event:handle_event(Event,bpe_task:find_flow(Targets),Proc),
-    bpe:add_trace(ProcState,[],element(#messageEvent.id,Event)),
+    Target0 = bpe_task:find_flow(EventName, Targets),
+    Target1 = case Target0 of
+                [] -> EventName;
+                T -> T
+              end,
+    {Status,{Reason, Target}, ProcState} = bpe_event:handle_event(Event, Target1, Proc),
+    bpe:add_trace(ProcState, [], Target),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState}).
 
