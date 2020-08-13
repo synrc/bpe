@@ -15,18 +15,67 @@ debug(Proc,Name,Targets,Target,Status,Reason) ->
                                [erlang:list_to_binary(Proc#process.id),Name,Target,Status,Reason,Targets]);
          false -> skip end.
 
-process_event(Event,Proc) ->
-    EventName = element(#messageEvent.id,Event),
-    Targets = bpe_task:targets(EventName,Proc),
-    Target0 = bpe_task:find_flow(EventName, Targets),
-    Target1 = case Target0 of
-                [] -> EventName;
-                T -> T
-              end,
-    {Status,{Reason, Target}, ProcState} = bpe_event:handle_event(Event, Target1, Proc),
-    bpe:add_trace(ProcState, [], Target),
-    debug(ProcState,EventName,Targets,Target,Status,Reason),
-    fix_reply({Status,{Reason,Target},ProcState}).
+% process_event0(Event,Proc) ->
+%     EventId = element(#messageEvent.id, Event),
+%     {_,Curr} = bpe:current_task(Proc),
+%     Targets = bpe_task:targets(EventId, Proc),
+%     Target0 = bpe_task:find_flow(EventId, Targets),
+%     Target1 = case Target0 of
+%                 [] -> EventId;
+%                 T -> bpe:step(Proc, T)
+%               end,
+%     {Status,{Reason, Target},ProcState} = bpe_event:handle_event(Event, Curr, Target1, Proc),
+%     bpe:add_trace(ProcState, [], Target),
+%     debug(ProcState,EventId,Targets,Target,Status,Reason),
+%     fix_reply({Status,{Reason,Target},ProcState}).
+
+process_event(Event, Proc=#process{id = ProcId}) ->
+  {Flow, EventId} = event_flow(Event, Proc),
+  logger:notice("BPE: event_flow: ~p for a event_id: ~p", [Flow, EventId]),
+  case Flow of
+    #sequenceFlow{id=FlowId, source=Src, target=Dst} -> 
+      #sched{pointer=Pointer, state=Threads} = bpe:sched_head(ProcId),
+      Res = {Status,{Reason, Target},ProcState} = bpe_event:handle_event(Event, Src, Dst, Proc),
+      % logger:notice("BPE: event result: ~p", [Res]),
+      NewThreads = lists:sublist(Threads, Pointer-1) ++ [FlowId] ++ lists:nthtail(Pointer, Threads),
+      NewPointer = Pointer + 1,
+      % logger:notice("BPE: event add sched with a pointer ~p and threads ~p", [NewPointer, NewThreads]),
+      bpe:add_sched(ProcState, NewPointer, NewThreads),
+      bpe:add_trace(ProcState, [], Flow),
+      debug(ProcState,FlowId,EventId,Target,Status,Reason),
+      fix_reply({Status,{Reason,Target},ProcState});
+    [] -> bpe:add_error(Proc, io_lib:format("Wrong flow ~p in a bpe event ~ts\n", [EventId, ProcId]), []),
+          {reply, {error, "Wrong flow", EventId}, Proc}
+                                      
+  end.
+
+event_flow(Event, Proc) ->
+  EventId = element(#messageEvent.id, Event),
+  Flows = bpe:flows(Proc),
+  ForcedFlow = lists:foldl(fun(F = #sequenceFlow{source=S}, []=Acc) when S==EventId -> 
+                                      case check_event_flow_condition(Event, F, Proc) of
+                                        true -> F;
+                                        _ -> Acc
+                                      end;
+                                (_, Acc) -> Acc
+                            end, [], Flows),
+  {ForcedFlow, EventId}                          
+  .
+
+check_event_flow_condition(_Event, #sequenceFlow{condition=[]}, #process{}) -> true;
+check_event_flow_condition(#messageEvent{payload = Docs0}, 
+                           #sequenceFlow{condition={compare, BpeDocParam, Field, ConstCheckAgainst}}, Proc) -> 
+  {Docs, _} = bpe_env:find(BpeDocParam, Docs0),
+  case Docs of
+    [] -> bpe:add_error(Proc, "No such document in a bpe#messageEvent.payload", BpeDocParam), false;
+    _ -> Doc = hd(Docs),
+         element(Field, Doc) == ConstCheckAgainst
+  end;
+check_event_flow_condition(Event, #sequenceFlow{condition={service,Fun}},Proc=#process{module=Module}) ->
+      Module:Fun(Event, Proc);
+check_event_flow_condition(Event, #sequenceFlow{condition={service,Fun,Module}},Proc) ->
+      Module:Fun(Event, Proc).
+
 
 process_task(Stage,Proc) -> process_task(Stage,Proc,false).
 process_task(Stage,Proc,NoFlow) ->
@@ -102,7 +151,7 @@ handle_cast(Msg, State) ->
     logger:notice("BPE: Unknown API async: ~p.", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
-handle_info({timer,ping}, State=#process{timer=Timer,id=Id,events=Events,notifications=Pid}) ->
+handle_info({timer,ping}, State=#process{}) ->
     (application:get_env(bpe,ping_discipline,bpe_ping)):ping(State);
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
