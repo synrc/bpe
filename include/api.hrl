@@ -2,7 +2,7 @@
 
 -spec load(term()) -> #process{}.
 -spec start(#process{},list()) -> {ok,integer()} | {error,integer()}.
--spec proc(integer()) -> #process{}.
+-spec proc(term()) -> #process{}.
 -spec complete(term()) -> {complete,any()}.
 -spec next(term()) -> {complete,any()}.
 -spec complete(any(),term()) -> {complete,any()}.
