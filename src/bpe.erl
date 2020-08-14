@@ -75,7 +75,7 @@ start(Proc0, Options, {Monitor,ProcRec}) ->
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
-    ChildSpec = { Id,
+    ChildSpec = { erlang:list_to_binary(Id),
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
 
@@ -101,7 +101,7 @@ mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec) ->
 mon_children(MID) ->
     kvs:feed("/bpe/mon/"++MID).
 
-pid(Id) -> bpe:cache({process,Id}).
+pid(Id) -> bpe:cache({process,erlang:list_to_binary(Id)}).
 
 proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
 update(ProcId,State)      -> gen_server:call(pid(ProcId),{set,State},      ?TIMEOUT).
