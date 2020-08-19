@@ -71,11 +71,13 @@
                         docs=[] :: list(tuple()),
                         time=[] :: [] | #ts{} }).
 
--record(process,      { id = [] :: procId(),
-                        prev=[] :: [] | integer(),
-                        next=[] :: [] | integer(),
-                        name=[] :: [] | binary() | string() | atom(),
-                        feeds=[] :: list(),
+-record(process,      { id         = [] :: procId(),
+                        prev       = [] :: [] | integer(),
+                        next       = [] :: [] | integer(),
+                        name       = [] :: [] | binary() | string() | atom(),
+                        desc       = [] :: list() | binary(),
+                        vsn        = [] :: term(),
+                        feeds      = [] :: list(),
                         module     = [] :: [] | atom(),
                         roles      = [] :: term(),
                         tasks      = [] :: list(tasks()),
@@ -84,15 +86,29 @@
                         docs       = [] :: list(tuple()),
                         options    = [] :: term(),
                         xml        = [] :: list(),
+                        svg        = [] :: list(),
                         timer      = [] :: [] | reference(),
                         notifications=[] :: [] | term(),
                         result     = [] :: [] | binary(),
                         started    = [] :: [] | #ts{},
                         modified   = [] :: [] | #ts{},
+                        finished   = [] :: [] | #ts{},
                         monitor    = [] :: [] | integer(),
                         parent     = [] :: [] | procId(),
+                        children   = [] :: list(procId()),
                         beginEvent = [] :: list() | atom(),
-                        endEvent   = [] :: list() | atom() }).
+                        endEvent   = [] :: list() | atom(),
+                        status     = [] :: term(), % future reserved
+                        current    = [] :: term(),
+                        rules      = [] :: term(),
+                        userStarted  = [] :: term(),
+                        userModified = [] :: term(),
+                        userFinished = [] :: term(),
+                        params     = [] :: term(),
+                        filters    = [] :: term(),
+                        etc        = [] :: term(),
+                        flags      = [] :: term()
+                         }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
                         diagram= #process{} :: #process{} }).
