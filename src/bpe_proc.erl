@@ -25,6 +25,7 @@ process_event(Event,Proc) ->
               end,
     {Status,{Reason, Target}, ProcState} = bpe_event:handle_event(Event, Target1, Proc),
     bpe:add_trace(ProcState, [], Target),
+    kvs:append(ProcState,"/bpe/proc"),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState}).
 
