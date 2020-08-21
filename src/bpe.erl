@@ -80,8 +80,8 @@ start(Proc0, Options, {Monitor,ProcRec}) ->
                   Restart, Shutdown, worker, [bpe_proc] },
 
     case supervisor:start_child(bpe_otp,ChildSpec) of
-         {ok,_}    -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
-         {ok,_,_}  -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
+         {ok,_}    -> mon_link(Monitor, proc(Id) , ProcRec), {ok, Id};
+         {ok,_,_}  -> mon_link(Monitor, proc(Id) , ProcRec), {ok, Id};
          {error,Reason} -> {error,Reason} end.
 
 % monitors
