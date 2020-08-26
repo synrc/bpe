@@ -86,25 +86,42 @@ start(Proc0, Options, {Monitor,ProcRec}) ->
 
 % monitors
 
-mon_link([], Proc, _) ->
+mon_link(Mon, Proc, ProcRec) -> mon_link(Mon, Proc, ProcRec, false).
+
+mon_link([], Proc, _, _) ->
     kvs:append(Proc,"/bpe/proc");
-mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec) ->
+mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec, Embedded) ->
     Key = "/bpe/mon/" ++ MID,
     case kvs:get(writer, Key) of
          {error,_} -> kvs:append(Monitor, "/bpe/monitors");
          {ok,_} -> skip end,
     ProcId = Proc#process.id,
-    gen_server:cast(pid(ProcId), {mon_link, MID}),
+    MemoProc = case Embedded of
+         false -> gen_server:call(pid(ProcId), {mon_link, MID});
+         true -> Proc#process{monitor=MID} end,
     kvs:append(Proc#process{monitor=MID},"/bpe/proc"),
-    kvs:append(ProcRec#procRec{id=ProcId}, Key).
+    kvs:append(ProcRec#procRec{id=ProcId}, Key),
+    MemoProc.
 
 mon_children(MID) ->
     kvs:feed("/bpe/mon/"++MID).
 
 pid(Id) -> bpe:cache({process,erlang:list_to_binary(Id)}).
 
+ensure_mon(#process{monitor = [], id = Id} = Proc) ->
+    Mon = #monitor{id = kvs:seq([],[])},
+    ProcRec = #procRec{id = []},
+    {Mon,mon_link(Mon, Proc, ProcRec#procRec{id = Id}, true)};
+
+ensure_mon(#process{monitor = MID} = Proc) -> 
+    case kvs:get("/bpe/monitors", MID) of
+         {error,X} -> throw({error,X});
+         {ok, Mon} -> {Mon, Proc}
+    end.
+
 proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
 update(ProcId,State)      -> gen_server:call(pid(ProcId),{set,State},      ?TIMEOUT).
+assign(ProcId)            -> gen_server:call(pid(ProcId),{ensure_mon},     ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
 next(ProcId)              -> gen_server:call(pid(ProcId),{next},           ?TIMEOUT).
 complete(ProcId,Stage)    -> gen_server:call(pid(ProcId),{complete,Stage}, ?TIMEOUT).
