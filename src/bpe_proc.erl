@@ -64,6 +64,7 @@ handle_call({ensure_mon},_,Proc) ->
   {reply, Mon, ProcNew};
 handle_call({get},               _,Proc) -> { reply, Proc, Proc };
 handle_call({set,State},         _,Proc) -> { reply, Proc, State };
+handle_call({persist,State},     _,Proc) -> kvs:append(State, "/bpe/proc"), { reply, State, State };
 handle_call({next},              _,Proc) ->
   try bpe:processFlow(Proc)
   catch _X:_Y:Z -> {reply,{error,'next/1',Z},Proc} end;

@@ -121,6 +121,7 @@ ensure_mon(#process{monitor = MID} = Proc) ->
 
 proc(ProcId)              -> gen_server:call(pid(ProcId),{get},            ?TIMEOUT).
 update(ProcId,State)      -> gen_server:call(pid(ProcId),{set,State},      ?TIMEOUT).
+persist(ProcId,State)     -> gen_server:call(pid(ProcId),{persist,State},  ?TIMEOUT).
 assign(ProcId)            -> gen_server:call(pid(ProcId),{ensure_mon},     ?TIMEOUT).
 complete(ProcId)          -> gen_server:call(pid(ProcId),{complete},       ?TIMEOUT).
 next(ProcId)              -> gen_server:call(pid(ProcId),{next},           ?TIMEOUT).
