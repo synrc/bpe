@@ -23,5 +23,6 @@ worker(#process{id=Id}=P) ->
 worker(P) -> logger:notice("BPE: Unknown ~p",[P]).
 
 worker_do({Days,_Time},_) when Days >= 14 -> skip;
+worker_do({_,_},#process{status="deleted"}) -> skip;
 worker_do({_,_},P) -> bpe:start(P,[]).
 
