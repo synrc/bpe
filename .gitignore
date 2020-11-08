@@ -4,3 +4,5 @@ _build/
 .applist
 Mnesia*/
 deps
+rocksdb/
+*.log

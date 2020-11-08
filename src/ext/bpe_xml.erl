@@ -4,6 +4,20 @@
 -compile(export_all).
 -import(lists,[keyfind/3, keyreplace/4]).
 
+-define(MODEL, 'http://www.omg.org/spec/BPMN/20100524/MODEL').
+
+% explicit namespace for model elements
+ns(#xmlElement{name=N, nsinfo=[], namespace=#xmlNamespace{default=?MODEL}}=E,S) ->
+  N1 = list_to_atom("bpmn:"++atom_to_list(N)),
+  {E#xmlElement{name=N1, nsinfo={"bpmn", N}}, S};
+ns(#xmlElement{name=N, nsinfo=[], namespace=#xmlNamespace{default=[], nodes=Nds}}=E,S) ->
+  case lists:keyfind(?MODEL, 2, Nds) of
+    {P,_} -> 
+      N1 = list_to_atom(P++":"++atom_to_list(N)),
+      {E#xmlElement{name=N1, nsinfo={P,N}},S};
+    false -> {E,S} end;
+ns(E,S) -> {E,S}.
+
 attr(E) -> [ {N,V} || #xmlAttribute{name=N,value=V} <- E].
 
 find(E=[#xmlText{}, #xmlElement{name='bpmn:conditionExpression'} | _],[]) ->
@@ -18,18 +32,19 @@ def() -> load("priv/sample.bpmn").
 load(File) -> load(File, ?MODULE).
 
 load(File,Module) ->
-    {ok,Bin} = file:read_file(File),
-    _Y = {#xmlElement{name=N,content=C}=_X,_} = xmerl_scan:string(binary_to_list(Bin)),
-    _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
-    Id = proplists:get_value(id,Attrs),
-    Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
-    Proc = reduce(Elements,#process{id=Id,name=Name,module=Module}),
-    Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
-    Tasks1 = fixRoles(Tasks, Proc#process.roles),
-    Proc#process{ id=[],
-                  tasks = Tasks1,
-                  xml = filename:basename(File, ".bpmn"),
-                  events = Proc#process.events }.
+    case xmerl_scan:file(File, [{hook_fun, fun ns/2}]) of 
+      {error, R} -> {error, R};
+      {#xmlElement{name=N,content=C}=X,_} ->
+        _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
+        Id = proplists:get_value(id,Attrs),
+        Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
+        Proc = reduce(Elements,#process{id=Id,name=Name,module=Module}),
+        Tasks = fillInOut(Proc#process.tasks, Proc#process.flows),
+        Tasks1 = fixRoles(Tasks, Proc#process.roles),
+        Proc#process{ id=[],
+                      tasks = Tasks1,
+                      xml = filename:basename(File, ".bpmn"),
+                      events = Proc#process.events } end.
 
 reduce([], Acc) ->
     Acc;
@@ -101,7 +116,8 @@ reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
     when SkipType == 'bpmn:dataObjectReference';
          SkipType == 'bpmn:dataObject';
          SkipType == 'bpmn:association';
-         SkipType == 'bpmn:textAnnotation' ->
+         SkipType == 'bpmn:textAnnotation';
+         SkipType == 'bpmn:extensionElements' ->
     skip,
     reduce(T,Process).
 
