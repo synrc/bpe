@@ -126,11 +126,11 @@
                         ogrName = [] :: list(),
                         status = [] :: term() }).
 
--record('Comp', { id=[]   :: [] | integer() }).
--record('Proc', { id=[]   :: [] | integer() }).
--record('Load', { id=[]   :: [] | integer() }).
--record('Hist', { id=[]   :: [] | integer() }).
+-record('Comp', { id=[]   :: [] | binary() }).
+-record('Proc', { id=[]   :: [] | binary() }).
+-record('Load', { id=[]   :: [] | binary() }).
+-record('Hist', { id=[]   :: [] | binary() }).
 -record('Make', { proc=[] :: [] | #process{} | binary(), docs=[] :: [] | list(tuple()) }).
--record('Amen', { id=[]   :: [] | integer(), docs=[] :: [] | list(tuple()) }).
+-record('Amen', { id=[]   :: [] | binary(), docs=[] :: [] | list(tuple()) }).
 
 -endif.
