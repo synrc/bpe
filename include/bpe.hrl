@@ -7,8 +7,8 @@
 
 -define(TASK,           id=[] :: list(),
                         name=[] :: list() | binary(),
-                        in=[] :: list(list()),
-                        out=[] :: list(list()),
+                        input=[] :: list(),
+                        output=[] :: list(),
                         prompt=[] :: list(tuple()),
                         roles=[] :: list(atom()),
                         etc=[] :: list({term(),term()}) ).
@@ -43,7 +43,7 @@
 -record(serviceTask,  { ?TASK }).
 -record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
 -record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
--record(gateway,      { ?TASK, type= parallel :: gate(), default=[] :: list() }).
+-record(gateway,      { ?TASK, type= parallel :: gate(), def=[] :: list() }).
 -record(messageEvent, { ?EVENT }).
 -record(messageBeginEvent, { ?EVENT }).
 -record(boundaryEvent,{ ?EVENT, ?CYCLIC }).

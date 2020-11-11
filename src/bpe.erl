@@ -275,28 +275,28 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     bpe_proc:debug(State,Next,Src,Dst,Status,Reason),
     Resp.
 
-get_inserted(T,_,_,_) when [] == element(#task.out, T) -> [];
-get_inserted(#gateway{id=Name,type=exclusive,out=Out,default=[]},_,_,Proc) ->
+get_inserted(T,_,_,_) when [] == element(#task.output, T) -> [];
+get_inserted(#gateway{id=Name,type=exclusive,output=Out,def=[]},_,_,Proc) ->
   case first_matched_flow(Out,Proc) of
     [] ->
       add_error(Proc,"All conditions evaluate to false in exlusive gateway without default",Name),
       [];
     X -> X end;
-get_inserted(#gateway{type=exclusive,out=Out,default=DefFlow},_,_,Proc) ->
+get_inserted(#gateway{type=exclusive,output=Out,def=DefFlow},_,_,Proc) ->
   case first_matched_flow(Out--[DefFlow],Proc) of
     [] -> [DefFlow];
     X  -> X end;
-get_inserted(#gateway{type=Type,in=In,out=Out},Flow,ScedId,_Proc)
+get_inserted(#gateway{type=Type,input=In,output=Out},Flow,ScedId,_Proc)
     when Type == inclusive; Type == parallel ->
     case check_all_flows(In -- [Flow#sequenceFlow.id], ScedId) of
          true -> Out;
          false -> [] end;
 get_inserted(T,_,_,Proc) -> bpe:?DRIVER(T,Proc).
 
-exclusive(T, Proc) -> first_matched_flow(element(#task.out, T),Proc).
-last(T, _Proc)     -> [lists:last(element(#task.out, T))].
-first(T, _Proc)    -> [hd(element(#task.out, T))].
-random(T, _Proc)   -> Out = element(#task.out, T), [lists:nth(rand:uniform(length(Out)), Out)].
+exclusive(T, Proc) -> first_matched_flow(element(#task.output, T),Proc).
+last(T, _Proc)     -> [lists:last(element(#task.output, T))].
+first(T, _Proc)    -> [hd(element(#task.output, T))].
+random(T, _Proc)   -> Out = element(#task.output, T), [lists:nth(rand:uniform(length(Out)), Out)].
 
 check_all_flows([], _) -> true;
 check_all_flows(_, #step{id = 0}) -> false;

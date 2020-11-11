@@ -33,11 +33,11 @@ vertices(R) -> vertices(reverse(R),[]).
 vertices([], N) -> N;
 vertices([#sequenceFlow{id=Id, source=From, target=To} | Rtail], N) ->
     N1   = case keyfind(From, #task.id, N) of
-                false -> [#task{name=From, out=[Id]} | N];
-                V = #task{out=L} -> keyreplace(From, #task.id, N, V#task{out=[Id|L]}) end,
+                false -> [#task{name=From, output=[Id]} | N];
+                V = #task{output=L} -> keyreplace(From, #task.id, N, V#task{output=[Id|L]}) end,
     NewN = case keyfind(To, #task.id, N1) of
-                false -> [#task{name=To, in=[Id]} | N1];
-                V1 = #task{in=L1} -> keyreplace(To, #task.id, N1, V1#task{in=[Id|L1]}) end,
+                false -> [#task{name=To, input=[Id]} | N1];
+                V1 = #task{input=L1} -> keyreplace(To, #task.id, N1, V1#task{input=[Id|L1]}) end,
     vertices(Rtail, NewN).
 
 getEdgesAndVertices(Edges_Raw) ->
@@ -50,10 +50,10 @@ setVertexType(Id, Type, Vertices) ->
 
 fixBeginEndEvents (Proc) ->
     Tasks = Proc#process.tasks,
-    [BeginTask] = [T || #task{in=In}=T <- Tasks, In==[]],
-    #task{name=BName, out=_BOut} = BeginTask,
-    [EndTask] = [T || #task{out=Out}=T <- Tasks, Out==[]],
-    #task{name=EName, in=_EIn, out=[]} = EndTask,
+    [BeginTask] = [T || #task{input=In}=T <- Tasks, In==[]],
+    #task{name=BName, output=_BOut} = BeginTask,
+    [EndTask] = [T || #task{output=Out}=T <- Tasks, Out==[]],
+    #task{name=EName, input=_EIn, output=[]} = EndTask,
     BeginEvent = #beginEvent{name=BName},
     EndEvent = #endEvent{name=EName},
     Proc#process{tasks = [BeginEvent, EndEvent | Tasks -- [BeginTask,EndTask]],
@@ -63,8 +63,8 @@ fixBeginEndEvents (Proc) ->
 fixGateways(#process{tasks=Tasks}=Proc) ->
     Proc#process{ tasks = [convertIfNeeded(T) || T <- Tasks ] }.
 
-convertIfNeeded(#task{name=Name, in=In, out=Out})
-    when length(In) > 1; length(Out) > 1 -> #gateway{name=Name, type=parallel, in=In, out=Out};
+convertIfNeeded(#task{name=Name, input=In, output=Out})
+    when length(In) > 1; length(Out) > 1 -> #gateway{name=Name, type=parallel, input=In, output=Out};
 convertIfNeeded(Task) -> Task.
 
 action({request,_,_}, Proc) ->

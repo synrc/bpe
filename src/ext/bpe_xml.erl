@@ -85,7 +85,7 @@ reduce([{'bpmn:exclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process
     Id = proplists:get_value(id,Attrs),
     Default = proplists:get_value(default,Attrs,[]),
     Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
-    reduce(T,Process#process{tasks=[#gateway{id=Id,name=Name,type=exclusive,default=Default}|Tasks]});
+    reduce(T,Process#process{tasks=[#gateway{id=Id,name=Name,type=exclusive,def=Default}|Tasks]});
 
 reduce([{'bpmn:inclusiveGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
     Id = proplists:get_value(id,Attrs),
@@ -124,8 +124,8 @@ reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
 %%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
 fillInOut(Tasks, [#sequenceFlow{id=Name,source=Source,target=Target}|Flows]) ->
-    Tasks1 = key_push_value(Name, #gateway.out, Source, #gateway.id, Tasks),
-    Tasks2 = key_push_value(Name, #gateway.in,  Target, #gateway.id, Tasks1),
+    Tasks1 = key_push_value(Name, #gateway.output, Source, #gateway.id, Tasks),
+    Tasks2 = key_push_value(Name, #gateway.input,  Target, #gateway.id, Tasks1),
     fillInOut(Tasks2, Flows).
 
 key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
