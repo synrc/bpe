@@ -24,7 +24,9 @@ process_event(Event,Proc) ->
                 T -> T
               end,
     {Status,{Reason, Target}, ProcState} = bpe_event:handle_event(Event, Target1, Proc),
-    bpe:add_trace(ProcState, [], Target),
+    bpe:add_trace(ProcState, [], Target), %It will be better always use EventName instead of Target
+    #sched{pointer = Pointer, state=ScheduledFlows} = bpe:sched_head(ProcState#process.id),
+    bpe:add_sched(ProcState,Pointer,ScheduledFlows),
     kvs:append(ProcState,"/bpe/proc"),
     debug(ProcState,EventName,Targets,Target,Status,Reason),
     fix_reply({Status,{Reason,Target},ProcState}).
