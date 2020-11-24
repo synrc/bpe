@@ -126,7 +126,7 @@
                         ogrName = [] :: list(),
                         status = [] :: term() }).
 
--record('Comp', { id=[]   :: [] | binary() }).
+-record('Next', { id=[]   :: [] | binary() }).
 -record('Proc', { id=[]   :: [] | binary() }).
 -record('Load', { id=[]   :: [] | binary() }).
 -record('Hist', { id=[]   :: [] | binary() }).
