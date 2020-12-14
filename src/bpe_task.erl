@@ -11,6 +11,8 @@ find_flow(Stage,List) -> case lists:member(Stage,List) of
                               true -> Stage;
                               _ -> find_flow(List) end.
 
+move_doclink({Source,Target},Proc) -> [].
+
 targets(Name,Proc) ->
     lists:flatten([ Target || #sequenceFlow{source=Source,target=Target}
                            <- Proc#process.flows,  Source==Name]).
@@ -22,10 +24,11 @@ already_finished(Proc) ->
     {stop,{normal,[]},Proc}.
 
 task_action(Module,Source,Target,Proc) ->
+    {M,F,A} = proplists:get_value(flow_callback,Proc#process.etc,{bpe_task,move_doclink,[{Source,Target},Proc]}),
     case Module:action({request,Source,Target},Proc) of
-         {{reply,Message},Task,State} -> {reply,{{complete,Message},Task},State};
-         {reply,Task,State}           -> {reply,{complete,Task},State};
-         {reply,State}                -> {reply,{complete,Target},State};
+         {{reply,Message},Task,State} -> apply(M,F,A), {reply,{{complete,Message},Task},State};
+         {reply,Task,State}           -> apply(M,F,A), {reply,{complete,Task},State};
+         {reply,State}                -> apply(M,F,A), {reply,{complete,Target},State};
          {error,Message,Task,State}   -> {reply,{error,Message,Task},State};
          {stop,Proc}                  -> {stop,{normal,Target},Proc}
     end.
