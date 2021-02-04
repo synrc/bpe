@@ -30,7 +30,7 @@ defmodule BPE.Mixfile do
       {:ex_doc, "~> 0.11", only: :dev},
       {:syn, "~> 2.1.0"},
       {:rocksdb, "~> 1.6.0"},
-      {:kvs, "~> 7.9.1"}
+      {:kvs, "~> 7.11.5"}
     ]
   end
 end
