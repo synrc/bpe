@@ -4,7 +4,7 @@
 -include_lib("bpe/include/api.hrl").
 -include_lib("kvs/include/cursors.hrl").
 -compile(export_all).
--define(TIMEOUT, application:get_env(bpe,timeout,60000)).
+-define(TIMEOUT, application:get_env(bpe,timeout,6000)).
 -define(DRIVER,  (application:get_env(bpe,driver,exclusive))).
 
 load(Id) -> load(Id, []).
