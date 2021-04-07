@@ -43,7 +43,7 @@ action({request,"Created",_}, Proc) ->
 action({request,"Init",_}, Proc) ->
     {reply,Proc};
 
-action({request,"Payment",X}, Proc) ->
+action({request,"Payment",_X}, Proc) ->
     Payment = bpe:doc({payment_notification},Proc),
     case Payment of
          [] -> {reply,"Process",Proc#process{docs=[#tx{}]}};
@@ -52,7 +52,7 @@ action({request,"Payment",X}, Proc) ->
 action({request,"Signatory",_}, Proc) ->
     {reply,"Process",Proc};
 
-action({request,"Process",X}, Proc) ->
+action({request,"Process",_X}, Proc) ->
     case bpe:doc(#close_account{},Proc) of
          [#close_account{}] -> {reply,"Final",Proc};
                           _ -> {reply,"Process",Proc} end;

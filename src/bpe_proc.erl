@@ -66,7 +66,7 @@ handle_call({ensure_mon},_,Proc) ->
   {reply, Mon, ProcNew};
 handle_call({get},               _,Proc) -> { reply, Proc, Proc };
 handle_call({set,State},         _,Proc) -> { reply, Proc, State };
-handle_call({persist,State},     _,Proc) -> kvs:append(State, "/bpe/proc"), { reply, State, State };
+handle_call({persist,State},     _,_Proc) -> kvs:append(State, "/bpe/proc"), { reply, State, State };
 handle_call({next},              _,Proc) ->
   try bpe:processFlow(Proc)
   catch _X:_Y:Z -> {reply,{error,'next/1',Z},Proc} end;
@@ -111,7 +111,7 @@ handle_cast(Msg, State) ->
     logger:notice("BPE: Unknown API async: ~p.", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
-handle_info({timer,ping}, State=#process{timer=Timer,id=Id,events=Events,notifications=Pid}) ->
+handle_info({timer,ping}, State=#process{timer=_Timer,id=_Id,events=_Events,notifications=_Pid}) ->
     (application:get_env(bpe,ping_discipline,bpe_ping)):ping(State);
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
