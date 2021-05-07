@@ -34,7 +34,7 @@ load(File) -> load(File, ?MODULE).
 load(File,Module) ->
     case xmerl_scan:file(File, [{hook_fun, fun ns/2}]) of 
       {error, R} -> {error, R};
-      {#xmlElement{name=N,content=C}=X,_} ->
+      {#xmlElement{name=N,content=C},_} ->
         _E = {'bpmn:definitions',[{'bpmn:process',Elements,Attrs}],_} = {N,find(C,'bpmn:process'),attr(C)},
         Id = proplists:get_value(id,Attrs),
         Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
@@ -102,7 +102,7 @@ reduce([{'bpmn:gateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
     Name = unicode:characters_to_binary(proplists:get_value(name,Attrs,[])),
     reduce(T,Process#process{tasks=[#gateway{id=Id,name=Name}|Tasks]});
 
-reduce([{'bpmn:laneSet',Lanes,Attrs}|T], Process) ->
+reduce([{'bpmn:laneSet',Lanes,_Attrs}|T], Process) ->
     Roles = [ #role{ id = proplists:get_value(id,Att,[]),
                      tasks = [ Name || {_, [], {value, Name}} <- Tasks ],
                      name = unicode:characters_to_binary(proplists:get_value(name,Att,[]),utf16)
@@ -137,7 +137,7 @@ key_push_value(Value, ValueKey, ElemId, ElemIdKey, List) ->
                        setelement(ValueKey, Elem, [Value|element(ValueKey,Elem)])) end.
 
 fixRoles(Tasks, []) -> Tasks;
-fixRoles(Tasks, [#role{id=Id,name=Name,tasks=XmlTasks}|Lanes]) -> fixRoles(update_roles(XmlTasks, Tasks, Id), Lanes).
+fixRoles(Tasks, [#role{id=Id,name=_Name,tasks=XmlTasks}|Lanes]) -> fixRoles(update_roles(XmlTasks, Tasks, Id), Lanes).
 
 update_roles([], AllTasks, _Role) -> AllTasks;
 update_roles([TaskId|Rest], AllTasks, Role) ->
