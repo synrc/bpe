@@ -183,11 +183,7 @@ step(Proc,Name) ->
          [] -> #task{};
          E -> E end.
 
-docs  (#process{id=Pid}) ->
-  case bpe:head(Pid) of
-    #hist{docs=Docs} -> Docs;
-    _ -> []
-  end.
+docs  (Proc) -> (bpe:head(Proc#process.id))#hist.docs.
 tasks (Proc) -> Proc#process.tasks.
 flows (Proc) -> Proc#process.flows.
 events(Proc) -> Proc#process.events.
