@@ -8,7 +8,8 @@
 -define(DRIVER,  (application:get_env(bpe,driver,exclusive))).
 
 load(Id) -> load(Id, []).
-load(Id, Def) ->
+load(Id, Def) when is_list(Id) -> load(nitro:to_binary(Id), Def);
+load(Id, Def) when is_binary(Id) ->
     case application:get_env(kvs,dba,kvs_mnesia) of
          kvs_mnesia -> case kvs:get(process,Id) of
                             {ok,P1} -> P1;
