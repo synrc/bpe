@@ -107,7 +107,7 @@ mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec, Embedded) ->
 mon_children(MID) ->
     kvs:all(key("/bpe/mon/",MID)).
 
-pid(Id) -> bpe:cache({process,Id}).
+pid(Id) -> bpe:cache({process,iolist_to_binary([Id])}).
 
 ensure_mon(#process{monitor = [], id = Id} = Proc) ->
     Mon = #monitor{id = kvs:seq([],[])},
