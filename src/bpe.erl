@@ -17,7 +17,7 @@ load(Id, Def) ->
          kvs_rocks  -> case kvs:get("/bpe/proc",Id) of
                             {ok,P2} -> P2;
                             {error,Reason} ->
-                               io:format("BPE Load Error: ~p~n",[Reason]),
+                               io:format("BPE Load Error: ~tp, ~p~n",[Id, Reason]),
                                Def end end.
 
 cleanup(P) ->
