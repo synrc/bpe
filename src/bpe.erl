@@ -22,9 +22,9 @@ load(Id, Def) ->
 
 cleanup(P) ->
   [ kvs:delete("/bpe/hist",Id) || #hist{id=Id} <- bpe:hist(P) ],
-    kvs:delete(writer,"/bpe/hist/" ++ P),
+    kvs:delete(writer, key("/bpe/hist/",P)),
   [ kvs:delete("/bpe/flow",Id) || #sched{id=Id} <- sched(P) ],
-    kvs:delete(writer, "/bpe/flow/" ++ P),
+    kvs:delete(writer, key("/bpe/flow/", P)),
     kvs:delete("/bpe/proc",P).
 
 current_task(#process{id=Id}=Proc) ->
@@ -34,26 +34,26 @@ current_task(#process{id=Id}=Proc) ->
          #hist{id={step,H,_},task=T} -> {H,T} end. %% H - ProcId
 
 add_trace(Proc,Name,Task) ->
-    Key = "/bpe/hist/" ++ Proc#process.id,
+    Key = key("/bpe/hist/", Proc#process.id),
     add_hist(Key,Proc,Name,Task).
 
 add_error(Proc,Name,Task) ->
-    logger:notice("BPE: Error for PID ~ts: ~p ~p",[erlang:list_to_binary(Proc#process.id), Name, Task]),
-    Key = "/bpe/error/" ++ Proc#process.id,
+    logger:notice("BPE: Error for PID ~ts: ~p ~p",[Proc#process.id, Name, Task]),
+    Key = key("/bpe/error/",Proc#process.id),
     add_hist(Key,Proc,Name,Task).
 
 add_hist(Key,Proc,Name,Task) ->
     Writer = kvs:writer(Key),
-    kvs:append(#hist{ id = {step,Writer#writer.count,Proc#process.id},
+    kvs:append(#hist{ id = key({step,Writer#writer.count,Proc#process.id}),
                     name = Name,
                     time = #ts{ time = calendar:local_time()},
                     docs = Proc#process.docs,
                     task = Task}, Key).
 
 add_sched(Proc,Pointer,State) ->
-    Key = "/bpe/flow/" ++ Proc#process.id,
+    Key = key("/bpe/flow/",Proc#process.id),
     Writer = kvs:writer(Key),
-    kvs:append(#sched{ id = {step,Writer#writer.count,Proc#process.id},
+    kvs:append(#sched{ id = key({step,Writer#writer.count,Proc#process.id}),
                   pointer = Pointer,
                     state = State}, Key).
 
@@ -76,7 +76,7 @@ start(Proc0, Options, {Monitor,ProcRec}) ->
 
     Restart = transient,
     Shutdown = ?TIMEOUT,
-    ChildSpec = { erlang:list_to_binary(Id),
+    ChildSpec = { Id,
                   {bpe_proc, start_link, [Proc]},
                   Restart, Shutdown, worker, [bpe_proc] },
 
@@ -92,7 +92,7 @@ mon_link(Mon, Proc, ProcRec) -> mon_link(Mon, Proc, ProcRec, false).
 mon_link([], Proc, _, _) ->
     kvs:append(Proc,"/bpe/proc");
 mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec, Embedded) ->
-    Key = "/bpe/mon/" ++ MID,
+    Key = key("/bpe/mon/",MID),
     case kvs:get(writer, Key) of
          {error,_} -> kvs:append(Monitor, "/bpe/monitors");
          {ok,_} -> skip end,
@@ -105,16 +105,16 @@ mon_link(#monitor{id=MID} = Monitor, Proc, ProcRec, Embedded) ->
     MemoProc.
 
 mon_children(MID) ->
-    kvs:feed("/bpe/mon/"++MID).
+    kvs:all(key("/bpe/mon/",MID)).
 
-pid(Id) -> bpe:cache({process,erlang:list_to_binary(Id)}).
+pid(Id) -> bpe:cache({process,Id}).
 
 ensure_mon(#process{monitor = [], id = Id} = Proc) ->
     Mon = #monitor{id = kvs:seq([],[])},
     ProcRec = #procRec{id = []},
     {Mon,mon_link(Mon, Proc, ProcRec#procRec{id = Id}, true)};
 
-ensure_mon(#process{monitor = MID} = Proc) -> 
+ensure_mon(#process{monitor = MID} = Proc) ->
     case kvs:get("/bpe/monitors", MID) of
          {error,X} -> throw({error,X});
          {ok, Mon} -> {Mon, Proc}
@@ -141,39 +141,39 @@ first_task(#process{tasks=Tasks}) ->
 
 head(ProcId) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
-             kvs_rocks  -> "/bpe/hist/" ++ ProcId;
+             kvs_rocks  -> key("/bpe/hist/",ProcId);
              kvs_mnesia -> hist end,
-  case kvs:get(writer,"/bpe/hist/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get(Key,{step,C - 1,ProcId}) of
+  case kvs:get(writer,key("/bpe/hist/",ProcId)) of
+       {ok, #writer{count = C}} -> case kvs:get(Key,key({step,C - 1,ProcId})) of
                                         {ok, X} -> X; _ -> [] end;
                               _ -> [] end.
 
 sched(#step{proc = ProcId}=Step) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
-             kvs_rocks  -> "/bpe/flow/" ++ ProcId;
+             kvs_rocks  -> key("/bpe/flow/",ProcId);
              kvs_mnesia -> sched end,
   case kvs:get(Key,Step) of {ok, X} -> X; _ -> [] end;
 
-sched(ProcId) -> kvs:feed("/bpe/flow/" ++ ProcId).
+sched(ProcId) -> kvs:all(key("/bpe/flow/", ProcId)).
 
 sched_head(ProcId) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
-             kvs_rocks  -> "/bpe/flow/" ++ ProcId;
+             kvs_rocks  -> key("/bpe/flow/",ProcId);
              kvs_mnesia -> sched end,
-  case kvs:get(writer,"/bpe/flow/" ++ ProcId) of
-       {ok, #writer{count = C}} -> case kvs:get(Key,{step,C - 1,ProcId}) of
+  case kvs:get(writer, key("/bpe/flow/",ProcId)) of
+       {ok, #writer{count = C}} -> case kvs:get(Key,key({step,C - 1,ProcId})) of
                                         {ok, X} -> X; _ -> [] end;
                               _ -> [] end.
 
-errors(ProcId) -> kvs:feed("/bpe/error/" ++ ProcId).
+errors(ProcId) -> kvs:all(key("/bpe/error/",ProcId)).
 
 hist(#step{proc = ProcId, id = N}) -> hist(ProcId,N);
-hist(ProcId)   -> kvs:feed("/bpe/hist/" ++ ProcId).
+hist(ProcId)   -> kvs:all(key("/bpe/hist/",ProcId)).
 hist(ProcId,N) ->
   Key =  case application:get_env(kvs,dba,kvs_mnesia) of
-              kvs_rocks  -> "/bpe/hist/" ++ ProcId;
+              kvs_rocks  -> key("/bpe/hist/", ProcId);
               kvs_mnesia -> hist end,
-  case kvs:get(Key,{step,N,ProcId}) of
+  case kvs:get(Key,key({step,N,ProcId})) of
        {ok,Res} -> Res;
        {error,_Reason} -> [] end .
 
@@ -322,3 +322,8 @@ check_flow_condition(#sequenceFlow{condition={service,Fun}},Proc=#process{module
 check_flow_condition(#sequenceFlow{condition={service,Fun,Module}},Proc) ->
     Module:Fun(Proc).
 
+% temp
+key({step,N,[208|_]=Pid}) -> {step,N,list_to_binary(Pid)};
+key(Pid) -> Pid.
+key(Prefix,[208|_]=Pid) -> key(Prefix, list_to_binary(Pid));
+key(Prefix,Pid) -> Prefix ++ Pid.

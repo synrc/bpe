@@ -12,7 +12,7 @@ start_link(Parameters) -> gen_server:start_link(?MODULE, Parameters, []).
 debug(Proc,Name,Targets,Target,Status,Reason) ->
     case application:get_env(bpe,debug,true) of
          true -> logger:notice("BPE: ~ts [~ts:~ts] ~p/~p ~p",
-                               [erlang:list_to_binary(Proc#process.id),Name,Target,Status,Reason,Targets]);
+                               [Proc#process.id,Name,Target,Status,Reason,Targets]);
          false -> skip end.
 
 process_event(Event,Proc) ->
@@ -101,9 +101,9 @@ handle_call(Command,_,Proc)              -> { reply,{unknown,Command},Proc }.
 
 init(Process) ->
     Proc = bpe:load(Process#process.id,Process),
-    logger:notice("BPE: ~ts spawned as ~p",[erlang:list_to_binary(Proc#process.id),self()]),
+    logger:notice("BPE: ~ts spawned as ~p",[Proc#process.id,self()]),
     Till = bpe:till(calendar:local_time(), application:get_env(bpe,ttl,24*60*60)),
-    bpe:cache({process,erlang:list_to_binary(Proc#process.id)},self(),Till),
+    bpe:cache({process,Proc#process.id},self(),Till),
     [ bpe:reg({messageEvent,element(1,EventRec),Proc#process.id}) || EventRec <- bpe:events(Proc) ],
     {ok, Proc#process{timer=erlang:send_after(rand:uniform(10000),self(),{timer,ping})}}.
 
@@ -116,7 +116,7 @@ handle_info({timer,ping}, State=#process{timer=_Timer,id=_Id,events=_Events,noti
 
 handle_info({'DOWN', _MonitorRef, _Type, _Object, _Info} = Msg, State = #process{id=Id}) ->
     logger:notice("BPE: Connection closed, shutting down session: ~p.", [Msg]),
-    bpe:cache({process,erlang:list_to_binary(Id)},undefined),
+    bpe:cache({process,Id},undefined),
     {stop, normal, State};
 
 handle_info(Info, State=#process{}) ->
@@ -124,10 +124,9 @@ handle_info(Info, State=#process{}) ->
     {noreply, State}.
 
 terminate(Reason, #process{id=Id}) ->
-    BinId = erlang:list_to_binary(Id),
-    logger:notice("BPE: ~ts terminate Reason: ~p", [BinId,Reason]),
-    spawn(fun() -> supervisor:delete_child(bpe_otp,BinId) end),
-    bpe:cache({process,BinId},undefined),
+    logger:notice("BPE: ~ts terminate Reason: ~p", [Id,Reason]),
+    spawn(fun() -> supervisor:delete_child(bpe_otp,Id) end),
+    bpe:cache({process,Id},undefined),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
