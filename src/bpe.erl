@@ -61,7 +61,7 @@ start(Proc0, Options) ->
     start(Proc0, Options, {[],#procRec{}}).
 
 start(Proc0, Options, {Monitor,ProcRec}) ->
-    Id   = case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end,
+    Id   = iolist_to_binary([case Proc0#process.id of [] -> kvs:seq([],[]); X -> X end]),
     {Hist,Task} = current_task(Proc0#process{id=Id}),
     Pid  = proplists:get_value(notification,Options,undefined),
     Proc = Proc0#process{id=Id,
@@ -325,5 +325,4 @@ check_flow_condition(#sequenceFlow{condition={service,Fun,Module}},Proc) ->
 % temp
 key({step,N,[208|_]=Pid}) -> {step,N,list_to_binary(Pid)};
 key(Pid) -> Pid.
-key(Prefix,[208|_]=Pid) -> key(Prefix, list_to_binary(Pid));
-key(Prefix,Pid) -> Prefix ++ Pid.
+key(Prefix,Pid) -> iolist_to_binary([Prefix,Pid]).
