@@ -11,10 +11,10 @@ load(Id) -> load(Id, []).
 % load(Id, Def) when is_list(Id) -> load(apply(nitro,to_binary,[Id]), Def);
 load(Id, Def) ->
     case application:get_env(kvs,dba,kvs_mnesia) of
-         kvs_mnesia -> case kvs:get(process,Id) of
+         kvs_rocks -> case kvs:get(process,Id) of
                             {ok,P1} -> P1;
                             {error,_Reason} -> Def end;
-         kvs_rocks  -> case kvs:get("/bpe/proc",Id) of
+         kvs_mnesia  -> case kvs:get("/bpe/proc",Id) of
                             {ok,P2} -> P2;
                             {error,Reason} ->
                                io:format("BPE Load Error: ~tp, ~p~n",[Id, Reason]),
@@ -141,8 +141,8 @@ first_task(#process{tasks=Tasks}) ->
 
 head(ProcId) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
-             kvs_rocks  -> key("/bpe/hist/",ProcId);
-             kvs_mnesia -> hist end,
+             kvs_mnesia  -> key("/bpe/hist/",ProcId);
+             kvs_rocks -> hist end,
   case kvs:get(writer,key("/bpe/hist/",ProcId)) of
        {ok, #writer{count = C}} -> case kvs:get(Key,key({step,C - 1,ProcId})) of
                                         {ok, X} -> X; _ -> [] end;
@@ -150,16 +150,16 @@ head(ProcId) ->
 
 sched(#step{proc = ProcId}=Step) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
-             kvs_rocks  -> key("/bpe/flow/",ProcId);
-             kvs_mnesia -> sched end,
+             kvs_mnesia  -> key("/bpe/flow/",ProcId);
+             kvs_rocks -> sched end,
   case kvs:get(Key,Step) of {ok, X} -> X; _ -> [] end;
 
 sched(ProcId) -> kvs:all(key("/bpe/flow/", ProcId)).
 
 sched_head(ProcId) ->
   Key = case application:get_env(kvs,dba,kvs_mnesia) of
-             kvs_rocks  -> key("/bpe/flow/",ProcId);
-             kvs_mnesia -> sched end,
+             kvs_mnesia  -> key("/bpe/flow/",ProcId);
+             kvs_rocks -> sched end,
   case kvs:get(writer, key("/bpe/flow/",ProcId)) of
        {ok, #writer{count = C}} -> case kvs:get(Key,key({step,C - 1,ProcId})) of
                                         {ok, X} -> X; _ -> [] end;
@@ -171,8 +171,8 @@ hist(#step{proc = ProcId, id = N}) -> hist(ProcId,N);
 hist(ProcId)   -> kvs:all(key("/bpe/hist/",ProcId)).
 hist(ProcId,N) ->
   Key =  case application:get_env(kvs,dba,kvs_mnesia) of
-              kvs_rocks  -> key("/bpe/hist/", ProcId);
-              kvs_mnesia -> hist end,
+              kvs_mnesia  -> key("/bpe/hist/", ProcId);
+              kvs_rocks -> hist end,
   case kvs:get(Key,key({step,N,ProcId})) of
        {ok,Res} -> Res;
        {error,_Reason} -> [] end .
