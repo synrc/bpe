@@ -13,6 +13,44 @@ BPE is a Business Process Engine that brings BPMN to Erlang and Erlang to Enterp
 It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
+<img src="https://bpe.n2o.dev/man/img/camunda.png" width=600/>
+
+```
+
+ iex(1)> {_,p} = :bpe.start :bpe_xml.def, []
+ {:ok, '76900759556000'}
+ iex(2)> :bpe.next p
+ {:complete, 'either'}
+ iex(3)> :bpe.next p
+ {:complete, 'left'}
+ iex(4)> :bpe.next p
+ {:complete, 'right'}
+ iex(5)> :bpe.next p
+ {:complete, 'join'}
+ iex(6)> :bpe.next p
+ {:complete, 'join'}
+ iex(7)> :bpe.next p
+ {:complete, 'epilog'}
+ iex(8)> :bpe.next p
+ {:complete, 'finish'}
+ iex(9)> :bpe.next p
+ :Final
+```
+
+```
+> :kvs.all '/bpe/flow/77012724426000'
+ [
+   {:sched, {:step, 0, '77012724426000'}, 1, ['x1']},
+   {:sched, {:step, 1, '77012724426000'}, 1, ['x2', 'x3']},
+   {:sched, {:step, 2, '77012724426000'}, 2, ['x4', 'x3']},
+   {:sched, {:step, 3, '77012724426000'}, 1, ['x4', 'x5']},
+   {:sched, {:step, 4, '77012724426000'}, 1, ['x5']},
+   {:sched, {:step, 5, '77012724426000'}, 1, ['x6']},
+   {:sched, {:step, 6, '77012724426000'}, 1, ['x7']},
+   {:sched, {:step, 7, '77012724426000'}, 1, []}
+ ]
+```
+
 Processes
 ---------
 
