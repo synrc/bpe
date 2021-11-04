@@ -266,7 +266,7 @@ processAuthorized(true,_,Task,Flow,#sched{id=SchedId, pointer=Pointer, state=Thr
     NewPointer = if Pointer == length(Threads) -> 1; true -> Pointer + length(Inserted) end,
     #sequenceFlow{id=Next, source=Src,target=Dst} = Flow,
     case application:get_env(bpe,debug,true) of
-         true -> logger:notice("BPE: Flow ~p", [Flow]);
+         true -> skip ; % logger:notice("BPE: Flow ~p", [Flow]);
          false -> skip end,
     Resp = {Status,{Reason,_Reply},State}
          = bpe_task:task_action(Proc#process.module,Src,Dst,Proc),
