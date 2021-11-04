@@ -31,11 +31,11 @@
       <bpmn:incoming>x7</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="x7" name="x7" sourceRef="epilog" targetRef="finish" />
-    <bpmn:exclusiveGateway id="join" name="join">
+    <bpmn:parallelGateway id="join" name="join">
       <bpmn:incoming>x5</bpmn:incoming>
       <bpmn:incoming>x4</bpmn:incoming>
       <bpmn:outgoing>x6</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
+    </bpmn:parallelGateway>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sample">
@@ -117,7 +117,7 @@
           <dc:Bounds x="797" y="255" width="26" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0fana6w_di" bpmnElement="join" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="Gateway_1ebrx8j_di" bpmnElement="join">
         <dc:Bounds x="525" y="205" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="542" y="262" width="17" height="14" />
