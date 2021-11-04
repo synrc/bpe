@@ -1,6 +1,6 @@
 -module(bpe_boundary).
 -include_lib("bpe/include/bpe.hrl").
--compile(export_all).
+-export([timer_restart/1, ping/0, ping/1]).
 
 timer_restart(Diff) -> {X,Y,Z} = Diff, erlang:send_after(500*(Z+60*Y+60*60*X),self(),{timer,ping}).
 ping() -> application:get_env(bpe,ping,{0,0,5}).
@@ -8,20 +8,23 @@ ping() -> application:get_env(bpe,ping,{0,0,5}).
 ping(State=#process{timer=Timer,id=Id,events=Events,notifications=Pid}) ->
     {_,Task} = bpe:current_task(State),
     case Timer of [] -> skip; _ -> erlang:cancel_timer(Timer) end,
+
 %   search for '*' wildcard terminal event in process definition
     Terminal = case lists:keytake('*',#messageEvent.id,Events) of
         {value,Event,_} -> {'*',element(1,Event),element(#messageEvent.timeout,Event)};
                   false -> {'*',none,#timeout{spec={none,none}}} end, % forever if none is set
+
 %   search the events with the same name as current task, save event type and timeout
 %   if no event found then use timeout information from terminal event
     {Name,Record,#timeout{spec={Days,Pattern}}} = case lists:keytake(Task,#messageEvent.name,Events) of
         {value,Event2,_} -> {Task,element(1,Event2),element(#messageEvent.timeout,Event2)};
                    false -> Terminal end,
+
 %   calculate diff from past event
     {DD,Diff} = case bpe:head(Id) of
         #hist{time=#ts{time=Time1}} -> calendar:time_difference(Time1,calendar:local_time());
-                        _ -> io:format("T~n"), {immediate,timeout} end,
-%   io:format("Ping: ~p, Task: ~p Hist: ~p~n", [Id,Task,bpe:head(Id)]),
+                        _ -> {immediate,timeout} end,
+
     case {{DD,Diff} < {Days,Pattern}, Record} of
         {_,none} -> {noreply,State#process{timer=timer_restart(ping())}};
         {true,_} -> {noreply,State#process{timer=timer_restart(ping())}};

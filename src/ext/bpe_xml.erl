@@ -1,12 +1,11 @@
 -module(bpe_xml).
 -include_lib("bpe/include/bpe.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
--compile(export_all).
+-export([ns/2, def/0, attr/1, find/2, load/1, load/2, reduce/2, fillInOut/2, fixRoles/2, update_roles/3, parse/1, auth/1, action/2]).
 -import(lists,[keyfind/3, keyreplace/4]).
 
 -define(MODEL, 'http://www.omg.org/spec/BPMN/20100524/MODEL').
 
-% explicit namespace for model elements
 ns(#xmlElement{name=N, nsinfo=[], namespace=#xmlNamespace{default=?MODEL}}=E,S) ->
   N1 = list_to_atom("bpmn:"++atom_to_list(N)),
   {E#xmlElement{name=N1, nsinfo={"bpmn", N}}, S};
@@ -107,11 +106,10 @@ reduce([{'bpmn:laneSet',Lanes,_Attrs}|T], Process) ->
                      tasks = [ Name || {_, [], {value, Name}} <- Tasks ],
                      name = unicode:characters_to_binary(proplists:get_value(name,Att,[]),utf16)
                    } || {_,Tasks,Att} <- Lanes],
-%    io:format("Lanes: ~p~n",[Lanes]),
-%    io:format("Roles: ~p~n",[Roles]),
+%   io:format("Lanes: ~p~n",[Lanes]),
+%   io:format("Roles: ~p~n",[Roles]),
     reduce(T,Process#process{roles = Roles});
 
-%%TODO? Maybe add support for those intries and remove them from this guard
 reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
     when SkipType == 'bpmn:dataObjectReference';
          SkipType == 'bpmn:dataObject';
@@ -121,7 +119,6 @@ reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
     skip,
     reduce(T,Process).
 
-%%TODO?: Maybe use incoming/outgoing from XML itself instead of fillInOut
 fillInOut(Tasks, []) -> Tasks;
 fillInOut(Tasks, [#sequenceFlow{id=Name,source=Source,target=Target}|Flows]) ->
     Tasks1 = key_push_value(Name, #gateway.output, Source, #gateway.id, Tasks),

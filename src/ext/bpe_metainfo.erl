@@ -1,7 +1,7 @@
 -module(bpe_metainfo).
 -include("bpe.hrl").
 -include_lib("kvs/include/metainfo.hrl").
--compile(export_all).
+-export([metainfo/0]).
 
 metainfo() ->
     #schema{name = bpe, tables = [

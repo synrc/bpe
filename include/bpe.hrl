@@ -114,7 +114,7 @@
                         diagram= #process{} :: #process{} }).
 
 -record(procRec,      { id = [] :: procId(),
-                        name = [] :: list(), % "/1/23e132/2/2/sdfvsdfgasdfasdf"
+                        name = [] :: list(),
                         roles = [] :: list(atom()),
                         etc = [] :: term() }).
 
