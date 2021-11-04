@@ -13,7 +13,7 @@ BPE is a Business Process Engine that brings BPMN to Erlang and Erlang to Enterp
 It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
-<img src="https://bpe.n2o.dev/man/img/camunda.png"/>
+<img src="https://bpe.n2o.dev/man/img/camunda.png" width=600/>
 
 Processes
 ---------
