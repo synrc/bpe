@@ -213,7 +213,7 @@ terminate(Reason, #process{id = Id}) ->
     logger:notice("BPE: ~ts terminate Reason: ~p",
                   [Id, Reason]),
     spawn(fun () ->
-      supervisor:delete_child(bpe_terminate, Id),
+      supervisor:terminate_child(bpe_terminate, Id),
       supervisor:delete_child(bpe_otp, Id)
     end),
     bpe:cache({process, Id}, undefined),
