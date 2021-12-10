@@ -142,6 +142,8 @@ add_sched(Proc, Pointer, State) ->
                           key({step, Writer#writer.count, Proc#process.id}),
                       pointer = Pointer, state = State},
                Key).
+start(#process{docs = Docs} = Proc, []) ->
+  start(Proc, Docs, {[], #procRec{}});
 
 start(Proc0, Options) ->
     start(Proc0, Options, {[], #procRec{}}).
