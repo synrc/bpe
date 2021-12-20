@@ -142,6 +142,8 @@ add_sched(Proc, Pointer, State) ->
                           key({step, Writer#writer.count, Proc#process.id}),
                       pointer = Pointer, state = State},
                Key).
+start(#process{docs = Docs} = Proc, []) ->
+  start(Proc, Docs, {[], #procRec{}});
 
 start(Proc0, Options) ->
     start(Proc0, Options, {[], #procRec{}}).
@@ -175,10 +177,10 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
                  [bpe_proc]},
     case supervisor:start_child(bpe_otp, ChildSpec) of
         {ok, _} ->
-            mon_link(Monitor, proc(Id), ProcRec),
+            mon_link(Monitor, Proc, ProcRec),
             {ok, Id};
         {ok, _, _} ->
-            mon_link(Monitor, proc(Id), ProcRec),
+            mon_link(Monitor, Proc, ProcRec),
             {ok, Id};
         {error, Reason} -> {error, Reason}
     end.

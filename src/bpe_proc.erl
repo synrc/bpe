@@ -212,8 +212,10 @@ handle_info(Info, State = #process{}) ->
 terminate(Reason, #process{id = Id}) ->
     logger:notice("BPE: ~ts terminate Reason: ~p",
                   [Id, Reason]),
-    spawn(fun () -> supervisor:delete_child(bpe_otp, Id)
-          end),
+    spawn(fun () ->
+      supervisor:terminate_child(bpe_otp, Id),
+      supervisor:delete_child(bpe_otp, Id)
+    end),
     bpe:cache({process, Id}, undefined),
     ok.
 
