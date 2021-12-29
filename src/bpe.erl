@@ -224,45 +224,57 @@ ensure_mon(#process{monitor = MID} = Proc) ->
     end.
 
 proc(ProcId) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {get}, ?TIMEOUT).
 
 update(ProcId, State) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {set, State}, ?TIMEOUT).
 
 persist(ProcId, State) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId),
                     {persist, State},
                     ?TIMEOUT).
 
 assign(ProcId) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {ensure_mon}, ?TIMEOUT).
 
 complete(ProcId) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {complete}, ?TIMEOUT).
 
 next(ProcId) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {next}, ?TIMEOUT).
 
 complete(ProcId, Stage) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId),
                     {complete, Stage},
                     ?TIMEOUT).
 
 next(ProcId, Stage) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {next, Stage}, ?TIMEOUT).
 
 amend(ProcId, Form) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {amend, Form}, ?TIMEOUT).
 
 discard(ProcId, Form) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {discard, Form}, ?TIMEOUT).
 
 modify(ProcId, Form, Arg) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId),
                     {modify, Form, Arg},
                     ?TIMEOUT).
 
 event(ProcId, Event) ->
+    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {event, Event}, ?TIMEOUT).
 
 first_flow(#process{beginEvent = BeginEvent,
