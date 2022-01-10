@@ -27,7 +27,8 @@
          update/2,
          persist/2]).
 
--export([key/2,
+-export([key/1,
+         key/2,
          check_flow_condition/2,
          first_matched_flow/2,
          check_all_flows/2,
@@ -82,21 +83,30 @@
 -define(DRIVER,
         application:get_env(bpe, driver, exclusive)).
 
-load(Id) -> load(Id, []).
+-define(API,
+        (application:get_env(bpe, api, bpe_api))).
 
-load(Id, Def) ->
-    case application:get_env(kvs, dba, kvs_mnesia) of
-        kvs_mnesia ->
-            case kvs:get(process, Id) of
-                {ok, P1} -> P1;
-                {error, _Reason} -> Def
-            end;
-        kvs_rocks ->
-            case kvs:get("/bpe/proc", Id) of
-                {ok, P2} -> P2;
-                {error, _Reason} -> Def
-            end
-    end.
+load(X) -> ?API:load(X).
+load(X, Y) -> ?API:load(X, Y).
+add_hist(A, B, C, D) -> ?API:add_hist(A, B, C, D).
+start(X, Y) -> ?API:start(X, Y).
+proc(X) -> ?API:proc(X).
+update(X, Y) -> ?API:update(X, Y).
+persist(X, Y) -> ?API:persist(X, Y).
+assign(X) -> ?API:assign(X).
+complete(X) -> ?API:complete(X).
+complete(X, Y) -> ?API:complete(X, Y).
+next(X) -> ?API:next(X).
+next(X, Y) -> ?API:next(X, Y).
+amend(X, Y) -> ?API:amend(X, Y).
+discard(X, Y) -> ?API:discard(X, Y).
+modify(X, Y, Z) -> ?API:modify(X, Y, Z).
+event(X, Y) -> ?API:event(X, Y).
+head(X) -> ?API:head(X).
+hist(X) -> ?API:hist(X).
+docs(X) -> ?API:docs(X).
+doc(X, Y) -> ?API:doc(X, Y).
+check_flow_condition(X, Y) -> ?API:check_flow_condition(X, Y).
 
 cleanup(P) ->
     [kvs:delete("/bpe/hist", Id)
@@ -127,14 +137,6 @@ add_error(Proc, Name, Task) ->
     Key = key("/bpe/error/", Proc#process.id),
     add_hist(Key, Proc, Name, Task).
 
-add_hist(Key, Proc, Name, Task) ->
-    Writer = kvs:writer(Key),
-    kvs:append(#hist{id =
-                         key({step, Writer#writer.count, Proc#process.id}),
-                     name = Name, time = #ts{time = calendar:local_time()},
-                     docs = Proc#process.docs, task = Task},
-               Key).
-
 add_sched(Proc, Pointer, State) ->
     Key = key("/bpe/flow/", Proc#process.id),
     Writer = kvs:writer(Key),
@@ -142,11 +144,6 @@ add_sched(Proc, Pointer, State) ->
                           key({step, Writer#writer.count, Proc#process.id}),
                       pointer = Pointer, state = State},
                Key).
-start(#process{docs = Docs} = Proc, []) ->
-  start(Proc, Docs, {[], #procRec{}});
-
-start(Proc0, Options) ->
-    start(Proc0, Options, {[], #procRec{}}).
 
 start(Proc0, Options, {Monitor, ProcRec}) ->
     Id = iolist_to_binary([case Proc0#process.id of
@@ -223,60 +220,6 @@ ensure_mon(#process{monitor = MID} = Proc) ->
         {ok, Mon} -> {Mon, Proc}
     end.
 
-proc(ProcId) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {get}, ?TIMEOUT).
-
-update(ProcId, State) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {set, State}, ?TIMEOUT).
-
-persist(ProcId, State) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId),
-                    {persist, State},
-                    ?TIMEOUT).
-
-assign(ProcId) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {ensure_mon}, ?TIMEOUT).
-
-complete(ProcId) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {complete}, ?TIMEOUT).
-
-next(ProcId) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {next}, ?TIMEOUT).
-
-complete(ProcId, Stage) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId),
-                    {complete, Stage},
-                    ?TIMEOUT).
-
-next(ProcId, Stage) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {next, Stage}, ?TIMEOUT).
-
-amend(ProcId, Form) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {amend, Form}, ?TIMEOUT).
-
-discard(ProcId, Form) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {discard, Form}, ?TIMEOUT).
-
-modify(ProcId, Form, Arg) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId),
-                    {modify, Form, Arg},
-                    ?TIMEOUT).
-
-event(ProcId, Event) ->
-    start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {event, Event}, ?TIMEOUT).
-
 first_flow(#process{beginEvent = BeginEvent,
                     flows = Flows}) ->
     (lists:keyfind(BeginEvent,
@@ -287,20 +230,6 @@ first_task(#process{tasks = Tasks}) ->
     case [N || #beginEvent{id = N} <- Tasks] of
         [] -> [];
         [Name | _] -> Name
-    end.
-
-head(ProcId) ->
-    Key = case application:get_env(kvs, dba, kvs_mnesia) of
-              kvs_rocks -> key("/bpe/hist/", ProcId);
-              kvs_mnesia -> hist
-          end,
-    case kvs:get(writer, key("/bpe/hist/", ProcId)) of
-        {ok, #writer{count = C}} ->
-            case kvs:get(Key, key({step, C - 1, ProcId})) of
-                {ok, X} -> X;
-                _ -> []
-            end;
-        _ -> []
     end.
 
 sched(#step{proc = ProcId} = Step) ->
@@ -330,19 +259,6 @@ sched_head(ProcId) ->
 
 errors(ProcId) -> kvs:all(key("/bpe/error/", ProcId)).
 
-hist(#step{proc = ProcId, id = N}) -> hist(ProcId, N);
-hist(ProcId) -> kvs:all(key("/bpe/hist/", ProcId)).
-
-hist(ProcId, N) ->
-    Key = case application:get_env(kvs, dba, kvs_mnesia) of
-              kvs_rocks -> key("/bpe/hist/", ProcId);
-              kvs_mnesia -> hist
-          end,
-    case kvs:get(Key, key({step, N, ProcId})) of
-        {ok, Res} -> Res;
-        {error, _Reason} -> []
-    end.
-
 step(Proc, Name) ->
     case [Task
           || Task <- tasks(Proc), element(#task.id, Task) == Name]
@@ -352,17 +268,11 @@ step(Proc, Name) ->
         E -> E
     end.
 
-docs(Proc) -> (bpe:head(Proc#process.id))#hist.docs.
-
 tasks(Proc) -> Proc#process.tasks.
 
 flows(Proc) -> Proc#process.flows.
 
 events(Proc) -> Proc#process.events.
-
-doc(R, Proc) ->
-    {X, _} = bpe_env:find(env, Proc, R),
-    X.
 
 flow(FlowId, _Proc = #process{flows = Flows}) ->
     lists:keyfind(FlowId, #sequenceFlow.id, Flows).
@@ -574,28 +484,6 @@ first_matched_flow([H | Flows], Proc) ->
         true -> [H];
         false -> first_matched_flow(Flows, Proc)
     end.
-
-check_flow_condition(#sequenceFlow{condition = []},
-                     #process{}) ->
-    true;
-check_flow_condition(#sequenceFlow{condition =
-                                       {compare, BpeDocParam, Field, ConstCheckAgainst}},
-                     Proc) ->
-    case doc(BpeDocParam, Proc) of
-        [] ->
-            add_error(Proc, "No such document", BpeDocParam),
-            false;
-        Docs when is_list(Docs) ->
-            element(Field, hd(Docs)) == ConstCheckAgainst
-    end;
-check_flow_condition(#sequenceFlow{condition =
-                                       {service, Fun}},
-                     Proc = #process{module = Module}) ->
-    Module:Fun(Proc);
-check_flow_condition(#sequenceFlow{condition =
-                                       {service, Fun, Module}},
-                     Proc) ->
-    Module:Fun(Proc).
 
 % temp
 key({step, N, [208 | _] = Pid}) ->

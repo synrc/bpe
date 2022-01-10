@@ -6,6 +6,7 @@ config :kvs,
   schema: [:kvs, :kvs_stream, :bpe_metainfo]
 
 config :bpe,
+  api: :bpe_api,
   logger_level: :debug,
   logger: [{:handler, :synrc, :logger_std_h,
             %{level: :debug,
