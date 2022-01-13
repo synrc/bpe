@@ -167,7 +167,7 @@ handle_call(Command, _, Proc) ->
     {reply, {unknown, Command}, Proc}.
 
 init(Process) ->
-    Proc = bpe:load(Process#process.id, Process),
+    Proc = bpe_api:load(Process#process.id, Process),
     logger:notice("BPE: ~ts spawned as ~p",
                   [Proc#process.id, self()]),
     Till = bpe:till(calendar:local_time(),

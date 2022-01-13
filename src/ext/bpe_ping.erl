@@ -7,7 +7,7 @@ ping() -> application:get_env(bpe,ping,{0,0,30}).
 termination() -> application:get_env(bpe,boundary,{7,{0,0,0}}).
 ping(State=#process{timer=Timer,id=Id,modified = #ts{time=Time2}, events=_Events,notifications=_Pid}) ->
     case Timer of [] -> skip; _ -> erlang:cancel_timer(Timer) end,
-    case bpe:head(Id) of
+    case bpe_api:head(Id) of
         #hist{time=#ts{time=Time1}} ->
             {D1,Diff1} = calendar:time_difference(Time1,calendar:local_time()),
             {D2,Diff2} = calendar:time_difference(Time2,calendar:local_time()),

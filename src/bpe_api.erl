@@ -119,8 +119,6 @@ hist(ProcId, N) ->
         {error, _Reason} -> []
     end.
 
-docs(Proc) -> (head(Proc#process.id))#hist.docs.
-
 doc(R, Proc) ->
     {X, _} = bpe_env:find(env, Proc, R),
     X.

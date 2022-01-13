@@ -41,7 +41,7 @@ task_action(Module, Source, Target, Proc) ->
     {M, F, A} = proplists:get_value(flow_callback,
                                     Proc#process.etc,
                                     {bpe_task, move_doclink, [{Source, Target}, Proc]}),
-    case Module:action({request, Source, Target}, Proc) of
+    case Module:action({request, Source, Target}, bpe:load(Proc#process.id)) of
         {{reply, Message}, Task, State} ->
             apply(M, F, A),
             {reply, {{complete, Message}, Task}, State};

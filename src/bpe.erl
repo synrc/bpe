@@ -104,13 +104,12 @@ modify(X, Y, Z) -> ?API:modify(X, Y, Z).
 event(X, Y) -> ?API:event(X, Y).
 head(X) -> ?API:head(X).
 hist(X) -> ?API:hist(X).
-docs(X) -> ?API:docs(X).
 doc(X, Y) -> ?API:doc(X, Y).
 check_flow_condition(X, Y) -> ?API:check_flow_condition(X, Y).
 
 cleanup(P) ->
     [kvs:delete("/bpe/hist", Id)
-     || #hist{id = Id} <- bpe:hist(P)],
+     || #hist{id = Id} <- bpe_api:hist(P)],
     kvs:delete(writer, key("/bpe/hist/", P)),
     [kvs:delete("/bpe/flow", Id)
      || #sched{id = Id} <- sched(P)],
@@ -118,7 +117,7 @@ cleanup(P) ->
     kvs:delete("/bpe/proc", P).
 
 current_task(#process{id = Id} = Proc) ->
-    case bpe:head(Id) of
+    case bpe_api:head(Id) of
         [] -> {empty, bpe:first_task(Proc)};
         #hist{id = {step, H, _},
               task = #sequenceFlow{target = T}} ->
@@ -267,6 +266,8 @@ step(Proc, Name) ->
         [] -> #task{};
         E -> E
     end.
+
+docs(Proc) -> (head(Proc#process.id))#hist.docs.
 
 tasks(Proc) -> Proc#process.tasks.
 

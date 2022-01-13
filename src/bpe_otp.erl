@@ -36,7 +36,7 @@ init([]) ->
     {ok, {{one_for_one, 5, 10}, []}}.
 
 worker(#process{id = Id} = P) ->
-    case bpe:head(Id) of
+    case bpe_api:head(Id) of
         #hist{time = #ts{time = Time}} ->
             worker_do(calendar:time_difference(Time,
                                                calendar:local_time()),

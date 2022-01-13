@@ -10,7 +10,7 @@ event_action(Module, _Name, Event, Target, Proc) ->
     case Module:action({event,
                         Event#messageEvent.name,
                         Event#messageEvent.payload},
-                       Proc)
+                        bpe:load(Proc#process.id))
         of
         {reply, State} -> {reply, {complete, Target}, State};
         {reply, Task, State} -> {reply, {complete, Task}, State}
