@@ -169,43 +169,40 @@ check_flow_condition(#sequenceFlow{condition =
 
 % Record -> {RecName, Id, Feed}
 conv(Proc = #process{docs = Docs}) ->
-  logger:notice("CONV PROС", []),
-  Proc#process{docs = lists:map(fun conv_doc/1, Docs)};
+  logger:notice("CONV PROС ~p", [Proc#process.id]),
+  Proc#process{docs = conv_doc(Docs)};
 conv(Hist = #hist{docs = Docs}) ->
-  logger:notice("CONV HIST", []),
-  Hist#hist{docs = lists:map(fun conv_doc/1, Docs)};
+  logger:notice("CONV HIST ~p", [Hist#hist.id]),
+  Hist#hist{docs = conv_doc(Docs)};
 conv(X) -> X.
 
-conv_doc(D) ->
-  lists:foldl(fun (F, Acc) ->
-    El = kvs:field(D, F),
-    case is_rec(El) of
-      true ->
-        Feed = kvs:field(El, feed),
-        case Feed of F0 when not is_binary(F0); F0 == <<"">> -> Acc; _ -> kvs:setfield(Acc, F, {element(1, El), element(2, El), Feed}) end;
-      _ -> Acc
-    end
-  end, D, kvs:fields(element(1, D))).
+conv_doc(D) -> conv_doc(D, is_rec(D)).
+conv_doc(D, false) when is_list(D) -> lists:map(fun conv_doc/1, D);
+conv_doc(D, true) ->
+  case kvs:field(D, feed) of 
+    Feed when is_binary(Feed), Feed /= <<"">> -> {element(1, D), element(2, D), Feed};
+    _ -> lists:foldl(fun (F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F))) end, D, kvs:fields(element(1, D)))
+  end;
+conv_doc(D, _) -> D.
 
 is_rec(R) when is_tuple(R) ->
-  R0 = element(1, R),
-  is_atom(R0) andalso kvs:table(R0) /= false;
+  tuple_size(R) > 0 andalso is_atom(element(1, R)) andalso kvs:table(element(1, R)) /= false;
 is_rec(_) -> false.
 
 % {RecName, Id, Feed} -> Record
 deconv(Proc = #process{docs = Docs}) ->
-  logger:notice("DECONV PROC", []),
-  Proc#process{docs = lists:map(fun deconv_doc/1, Docs)};
+  logger:notice("DECONV PROC ~p", [Proc#process.id]),
+  Proc#process{docs = deconv_doc(Docs)};
 deconv(Hist = #hist{docs = Docs}) ->
   logger:notice("DECONV HIST", []),
-  Hist#hist{docs = lists:map(fun deconv_doc/1, Docs)};
-deconv(Proc) -> Proc.
+  Hist#hist{docs = deconv_doc(Docs)};
+deconv(X) -> X.
 
-deconv_doc(D) ->
-  lists:foldl(fun (F, Acc) ->
-    case kvs:field(D, F) of
-      {Name, Id, Feed} when is_atom(Name) and is_binary(Feed) ->
-        case kvs:get(Feed, Id) of {ok, V} -> kvs:setfield(Acc, F, V); _-> Acc end;
-      _ -> Acc
-    end
-  end, D, kvs:fields(element(1, D))).
+deconv_doc(D) -> deconv_doc(D, is_rec(D)).
+deconv_doc(D, false) when is_list(D) ->
+  lists:map(fun deconv_doc/1, D);
+deconv_doc({Name, Id, Feed} = D, true) when is_atom(Name), is_binary(Feed) ->
+  case kvs:get(Feed, Id) of {ok, V} -> V; _-> D end;
+deconv_doc(D, true) ->
+  lists:foldl(fun (F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F))) end, D, kvs:fields(element(1, D)));
+deconv_doc(D, _) -> D.

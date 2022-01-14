@@ -47,4 +47,4 @@ worker(P) -> logger:notice("BPE: Unknown ~p", [P]).
 
 worker_do({Days, _Time}, _) when Days >= 14 -> skip;
 worker_do({_, _}, #process{status = "deleted"}) -> skip;
-worker_do({_, _}, #process{docs = Docs} = P) -> bpe:start(P, Docs).
+worker_do({_, _}, #process{docs = Docs} = P) -> bpe_api:start(P, Docs).
