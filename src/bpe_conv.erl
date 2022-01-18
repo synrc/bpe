@@ -179,14 +179,20 @@ conv(X) -> X.
 conv_doc(D) -> conv_doc(D, is_rec(D)).
 conv_doc(D, false) when is_list(D) -> lists:map(fun conv_doc/1, D);
 conv_doc(D, true) ->
-  case kvs:field(D, feed) of 
+  case kvs:field(D, feed) of
     Feed when is_binary(Feed), Feed /= <<"">> -> {element(1, D), element(2, D), Feed};
-    _ -> lists:foldl(fun (F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F))) end, D, kvs:fields(element(1, D)))
+    _ ->
+      lists:foldl(fun
+        (signInfo = F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F), sign));
+        (F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F)))
+      end, D, kvs:fields(element(1, D)))
   end;
+conv_doc(D, sign) when is_list(D) -> lists:map(fun (El) -> conv_doc(El, sign) end, D);
+conv_doc({Signer, Date}, sign) when is_tuple(Signer) -> {conv_doc(Signer), Date};
 conv_doc(D, _) -> D.
 
 is_rec(R) when is_tuple(R) ->
-  tuple_size(R) > 0 andalso is_atom(element(1, R)) andalso kvs:table(element(1, R)) /= false;
+  tuple_size(R) > 0 andalso is_atom(element(1, R)) andalso length(kvs:fields(element(1, R))) == (tuple_size(R) - 1);
 is_rec(_) -> false.
 
 % {RecName, Id, Feed} -> Record
@@ -199,10 +205,14 @@ deconv(Hist = #hist{docs = Docs}) ->
 deconv(X) -> X.
 
 deconv_doc(D) -> deconv_doc(D, is_rec(D)).
-deconv_doc(D, false) when is_list(D) ->
-  lists:map(fun deconv_doc/1, D);
-deconv_doc({Name, Id, Feed} = D, true) when is_atom(Name), is_binary(Feed) ->
-  case kvs:get(Feed, Id) of {ok, V} -> V; _-> D end;
+deconv_doc(D, false) when is_list(D) -> lists:map(fun deconv_doc/1, D);
+deconv_doc({Name, Id, Feed} = D, false) when is_atom(Name), is_binary(Feed) ->
+  case kvs:get(Feed, Id) of {ok, V} -> deconv_doc(V); _-> D end;
 deconv_doc(D, true) ->
-  lists:foldl(fun (F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F))) end, D, kvs:fields(element(1, D)));
+  lists:foldl(fun
+    (signInfo = F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F), sign));
+    (F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F)))
+  end, D, kvs:fields(element(1, D)));
+deconv_doc(D, sign) when is_list(D) -> lists:map(fun (El) -> deconv_doc(El, sign) end, D);
+deconv_doc({Signer, Date}, sign) when is_tuple(Signer) -> {deconv_doc(Signer), Date};
 deconv_doc(D, _) -> D.
