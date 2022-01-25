@@ -58,7 +58,7 @@ start(#process{} = P, []) ->
     bpe:start(Proc, Docs, {[], #procRec{}});
 
 start(Proc0, Options) ->
-  bpe:start(conv(Proc0), lists:map(fun conv_doc/1, Options), {[], #procRec{}}).
+    bpe:start(conv(Proc0), conv_doc(Options), {[], #procRec{}}).
 
 proc(ProcId) ->
     bpe_api:start(bpe_api:load(ProcId), []),
@@ -129,7 +129,7 @@ head(ProcId) ->
     end.
 
 hist(#step{proc = ProcId, id = N}) -> hist(ProcId, N);
-hist(ProcId) -> lists:map(fun deconv/1, kvs:all(bpe:key("/bpe/hist/", ProcId))).
+hist(ProcId) -> deconv(kvs:all(bpe:key("/bpe/hist/", ProcId))).
 
 hist(ProcId, N) ->
     Key = case application:get_env(kvs, dba, kvs_mnesia) of
@@ -143,14 +143,14 @@ hist(ProcId, N) ->
 
 doc(R, Proc) ->
     {X, _} = bpe_env:find(env, Proc, R),
-    lists:map(fun deconv_doc/1, X).
+    deconv_doc(X).
 
 check_flow_condition(#sequenceFlow{condition = []},
-                     #process{}) ->
+                        #process{}) ->
     true;
 check_flow_condition(#sequenceFlow{condition =
-                                       {compare, BpeDocParam, Field, ConstCheckAgainst}},
-                     Proc) ->
+                                        {compare, BpeDocParam, Field, ConstCheckAgainst}},
+                        Proc) ->
     case doc(BpeDocParam, Proc) of
         [] ->
             bpe:add_error(Proc, "No such document", BpeDocParam),
@@ -159,21 +159,17 @@ check_flow_condition(#sequenceFlow{condition =
             element(Field, hd(Docs)) == ConstCheckAgainst
     end;
 check_flow_condition(#sequenceFlow{condition =
-                                       {service, Fun}},
-                     Proc = #process{module = Module}) ->
+                                        {service, Fun}},
+                        Proc = #process{module = Module}) ->
     Module:Fun(deconv(Proc));
 check_flow_condition(#sequenceFlow{condition =
-                                       {service, Fun, Module}},
-                     Proc) ->
+                                        {service, Fun, Module}},
+                        Proc) ->
     Module:Fun(deconv(Proc)).
 
 % Record -> {RecName, Id, Feed}
-conv(Proc = #process{docs = Docs}) ->
-  logger:notice("CONV PROС ~p", [Proc#process.id]),
-  Proc#process{docs = conv_doc(Docs)};
-conv(Hist = #hist{docs = Docs}) ->
-  logger:notice("CONV HIST ~p", [Hist#hist.id]),
-  Hist#hist{docs = conv_doc(Docs)};
+conv(Proc = #process{docs = Docs}) -> Proc#process{docs = conv_doc(Docs)};
+conv(Hist = #hist{docs = Docs}) -> Hist#hist{docs = conv_doc(Docs)};
 conv(X) -> X.
 
 conv_doc(D) -> conv_doc(D, is_rec(D)).
@@ -181,14 +177,8 @@ conv_doc(D, false) when is_list(D) -> lists:map(fun conv_doc/1, D);
 conv_doc(D, true) ->
   case kvs:field(D, feed) of
     Feed when is_binary(Feed), Feed /= <<"">> -> {element(1, D), element(2, D), Feed};
-    _ ->
-      lists:foldl(fun
-        (signInfo = F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F), sign));
-        (F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F)))
-      end, D, kvs:fields(element(1, D)))
+    _ -> lists:foldl(fun (F, Acc) -> kvs:setfield(Acc, F, conv_doc(kvs:field(D, F))) end, D, kvs:fields(element(1, D)))
   end;
-conv_doc(D, sign) when is_list(D) -> lists:map(fun (El) -> conv_doc(El, sign) end, D);
-conv_doc({Signer, Date}, sign) when is_tuple(Signer) -> {conv_doc(Signer), Date};
 conv_doc(D, _) -> D.
 
 is_rec(R) when is_tuple(R) ->
@@ -196,12 +186,8 @@ is_rec(R) when is_tuple(R) ->
 is_rec(_) -> false.
 
 % {RecName, Id, Feed} -> Record
-deconv(Proc = #process{docs = Docs}) ->
-  logger:notice("DECONV PROC ~p", [Proc#process.id]),
-  Proc#process{docs = deconv_doc(Docs)};
-deconv(Hist = #hist{docs = Docs}) ->
-  logger:notice("DECONV HIST", []),
-  Hist#hist{docs = deconv_doc(Docs)};
+deconv(Proc = #process{docs = Docs}) -> Proc#process{docs = deconv_doc(Docs)};
+deconv(Hist = #hist{docs = Docs}) -> Hist#hist{docs = deconv_doc(Docs)};
 deconv(X) -> X.
 
 deconv_doc(D) -> deconv_doc(D, is_rec(D)).
@@ -209,10 +195,5 @@ deconv_doc(D, false) when is_list(D) -> lists:map(fun deconv_doc/1, D);
 deconv_doc({Name, Id, Feed} = D, false) when is_atom(Name), is_binary(Feed) ->
   case kvs:get(Feed, Id) of {ok, V} -> deconv_doc(V); _-> D end;
 deconv_doc(D, true) ->
-  lists:foldl(fun
-    (signInfo = F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F), sign));
-    (F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F)))
-  end, D, kvs:fields(element(1, D)));
-deconv_doc(D, sign) when is_list(D) -> lists:map(fun (El) -> deconv_doc(El, sign) end, D);
-deconv_doc({Signer, Date}, sign) when is_tuple(Signer) -> {deconv_doc(Signer), Date};
+  lists:foldl(fun (F, Acc) -> kvs:setfield(Acc, F, deconv_doc(kvs:field(D, F))) end, D, kvs:fields(element(1, D)));
 deconv_doc(D, _) -> D.
