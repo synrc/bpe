@@ -129,7 +129,7 @@ head(ProcId) ->
     end.
 
 hist(#step{proc = ProcId, id = N}) -> hist(ProcId, N);
-hist(ProcId) -> deconv(kvs:all(bpe:key("/bpe/hist/", ProcId))).
+hist(ProcId) -> lists:map(fun deconv/1, kvs:all(bpe:key("/bpe/hist/", ProcId))).
 
 hist(ProcId, N) ->
     Key = case application:get_env(kvs, dba, kvs_mnesia) of
@@ -137,7 +137,7 @@ hist(ProcId, N) ->
                 kvs_mnesia -> hist
             end,
     case kvs:get(Key, bpe:key({step, N, ProcId})) of
-        {ok, Res} -> deconv(Res);
+        {ok, Res} -> lists:map(fun deconv/1, Res);
         {error, _Reason} -> []
     end.
 
