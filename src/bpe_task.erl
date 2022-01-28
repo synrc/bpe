@@ -42,20 +42,15 @@ task_action(Module, Source, Target, Proc) ->
                                     Proc#process.etc,
                                     {bpe_task, move_doclink, [{Source, Target}, Proc]}),
     case Module:action({request, Source, Target}, Proc) of
-        {{reply, Message}, Task, State} ->
+        #result{continue=C} = X when C =/= [] ->
+            X#result{opt={continue, C}};
+        #result{type=reply, reply=[]} = X ->
             apply(M, F, A),
-            {reply, {{complete, Message}, Task}, State};
-        {reply, Task, State} ->
+            X#result{reply={complete, Target}};
+        #result{type=reply} = X ->
             apply(M, F, A),
-            {reply, {complete, Task}, State};
-        {reply, State} ->
-            apply(M, F, A),
-            {reply, {complete, Target}, State};
-        {error, Message, Task, State} ->
-            {reply, {error, Message, Task}, State};
-        {continue, State, Continue} -> {reply, {complete, Target}, State, {continue, Continue}};
-        {stop, State} -> {stop, normal, State};
-        {stop, Reply, State} -> {stop, normal, Reply, State}
+            X;
+        X -> X
     end.
 
 handle_task(#beginEvent{}, CurrentTask, Target, Proc) ->

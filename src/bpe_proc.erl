@@ -21,8 +21,7 @@
 -export([debug/6,
          process_event/2,
          process_task/2,
-         process_task/3,
-         fix_reply/1]).
+         process_task/3]).
 
 start_link(Parameters) ->
     gen_server:start_link(?MODULE, Parameters, []).
@@ -63,7 +62,10 @@ process_event(Event, Proc) ->
           Target,
           Status,
           Reason),
-    fix_reply({Status, {Reason, Target}, ProcState}).
+    case Status of
+      stop -> {stop, Reason, Target, ProcState};
+      _ -> {Status, {Reason, Target}, ProcState}
+    end.
 
 process_task(Stage, Proc) ->
     process_task(Stage, Proc, false).
@@ -95,35 +97,12 @@ process_task(Stage, Proc, NoFlow) ->
                                                      Proc}
                                             end,
     case Status == stop orelse NoFlow == true of
-        true -> [];
+        true -> {stop, Reason, Target, ProcState};
         _ ->
             bpe:add_trace(ProcState, [], Target),
-            debug(ProcState, Curr, Targets, Target, Status, Reason)
-    end,
-    fix_reply({Status, {Reason, Target}, ProcState}).
-
-fix_reply({stop, {Reason, Reply}, State}) ->
-    {stop, Reason, Reply, State};
-fix_reply(P) -> P.
-fix_reply(continue, {reply, {{complete, _}, _}, State}, Acc, _) ->
-  {noreply, State, {continue, Acc}};
-fix_reply(continue, {reply, {complete, _}, State}, Acc, _) ->
-  {noreply, State, {continue, Acc}};
-fix_reply(continue, {reply, {complete, _}, State, {continue, Continue}}, Acc, _) ->
-  {noreply, State, {continue, Acc ++ Continue}};
-fix_reply(continue, {reply, {error, Message, _}, State}, _, _) ->
-  {stop, Message, State};
-fix_reply(continue, {reply, {unknown_task, Msg}, State}, _, _) ->
-  {stop, {error, {unknown_task, Msg}}, State};
-fix_reply(continue, {reply, _, State}, Acc, _) ->
-  {noreply, State, {continue, Acc}};
-fix_reply(continue, {stop, Reason, State}, _, _) ->
-  {stop, Reason, State};
-fix_reply(continue, {stop, Reason, _, State}, _, _) ->
-  {stop, Reason, State};
-fix_reply(continue, _, _, PrevState) ->
-  {stop, {error, unknown_reply}, PrevState};
-fix_reply(_, Reply, _, _) -> Reply.
+            debug(ProcState, Curr, Targets, Target, Status, Reason),
+            {Status, {Reason, Target}, ProcState}
+    end.
 
 convert_api_args(proc, [_ProcId]) -> {get};
 convert_api_args(update, [_ProcId, State]) -> {set, State};
@@ -196,9 +175,24 @@ handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #p
   spawn(fun() -> apply(Module, Fn, Args) end),
   {noreply, Proc, {continue, T}};
 handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) ->
-    try fix_reply(continue, handle_call(convert_api_args(Fn, Args), [], Proc), T, Proc)
-    catch
-      _X:_Y:Z -> {stop, {error, Z}, Proc}
+    Result = try handle_call(convert_api_args(Fn, Args), [], Proc)
+             catch
+               _X:_Y:Z -> {stop, {error, Z}, Proc}
+             end,
+    case Result of
+      {noreply, State} ->
+        {noreply, State, {continue, T}};
+      {reply, _, State, {continue, C}} ->
+        {noreply, State, {continue, T ++ C}};
+      {reply, _, State, _} ->
+        {noreply, State, {continue, T}};
+      {noreply, State, {continue, C}} ->
+        {noreply, State, {continue, T ++ C}};
+      {noreply, State, _} ->
+        {noreply, State, {continue, T}};
+      {reply, _, State} ->
+        {noreply, State, {continue, T}};
+      X -> X
     end;
 handle_continue([#continue{type=stop} | _], #process{} = Proc) ->
     {stop, normal, Proc};

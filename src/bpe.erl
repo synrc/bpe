@@ -439,19 +439,36 @@ unreg(Pool) ->
             erlang:erase({pool, Pool})
     end.
 
+constructResult(#result{type=reply, opt=[], reply=R, state=St}) ->
+  {reply, R, St};
+constructResult(#result{type=reply, opt=O, reply=R, state=St}) ->
+  {reply, R, St, O};
+constructResult(#result{type=noreply, opt=[], state=St}) ->
+  {noreply, St};
+constructResult(#result{type=noreply, opt=Opt, state=St}) ->
+  {noreply, St, Opt};
+constructResult(#result{type=stop, reply=[], reason=Reason, state=St}) ->
+  {stop, Reason, St};
+constructResult(#result{type=stop, reply=Reply, reason=Reason, state=St}) ->
+  {stop, Reason, Reply, St};
+constructResult(_) -> {stop, error, "Invalid return value", []}.
+
+
 processFlow(ForcedFlowId, #process{} = Proc) ->
     case flow(ForcedFlowId, Proc) of
         false ->
             add_error(Proc, "No such sequenceFlow", ForcedFlowId),
-            {reply,
-             {error, "No such sequenceFlow", ForcedFlowId},
-             Proc};
+            constructResult(#result{type=reply,
+                                    reply={error, "No such sequenceFlow", ForcedFlowId},
+                                    state=Proc});
         ForcedFlow ->
             Threads = (sched_head(Proc#process.id))#sched.state,
             case string:str(Threads, [ForcedFlowId]) of
                 0 ->
                     add_error(Proc, "Unavailable flow", ForcedFlow),
-                    {reply, {error, "Unavailable flow", ForcedFlow}, Proc};
+                    constructResult(#result{type=reply,
+                                            reply={error, "Unavailable flow", ForcedFlow},
+                                            state=Proc});
                 NewPointer ->
                     add_sched(Proc, NewPointer, Threads),
                     add_trace(Proc, "Forced Flow", ForcedFlow),
@@ -460,10 +477,10 @@ processFlow(ForcedFlowId, #process{} = Proc) ->
     end.
 
 processFlow(#process{} = Proc) ->
-    processSched(sched_head(Proc#process.id), Proc).
+    constructResult(processSched(sched_head(Proc#process.id), Proc)).
 
 processSched(#sched{state = []}, Proc) ->
-    {stop, normal, 'Final', Proc};
+    #result{type=stop, reason=normal, reply='Final', state=Proc};
 processSched(#sched{} = Sched, Proc) ->
     Flow = flow(flowId(Sched), Proc),
     SourceTask = lists:keyfind(Flow#sequenceFlow.source,
@@ -485,7 +502,7 @@ processSched(#sched{} = Sched, Proc) ->
 processAuthorized(false, SourceTask, _TargetTask, Flow,
                   _Sched, Proc) ->
     add_error(Proc, "Access denied", Flow),
-    {reply, {error, "Access denied", SourceTask}, Proc};
+    #result{type=reply, reply={error, "Access denied", SourceTask}, state=Proc};
 processAuthorized(true, _, Task, Flow,
                   #sched{id = SchedId, pointer = Pointer,
                          state = Threads},
@@ -502,24 +519,15 @@ processAuthorized(true, _, Task, Flow,
         true -> skip; % logger:notice("BPE: Flow ~p", [Flow]);
         false -> skip
     end,
-    Resp =
+    #result{state=State, reason=Reason, type=Status} = Res =
       bpe_task:task_action(Proc#process.module,
                            Src,
                            Dst,
                            Proc),
-    {Status, Reason, State} =
-      case Resp of
-        {Status2, {Reason2, _}, State2} ->
-          {Status2, Reason2, State2};
-        {Status2, {Reason2, _}, State2, _} ->
-          {Status2, Reason2, State2};
-        {Status2, _, {Reason2, _}, State2} ->
-          {Status2, Reason2, State2}
-      end,
     add_sched(Proc, NewPointer, NewThreads),
     add_trace(State, [], Flow),
     bpe_proc:debug(State, Next, Src, Dst, Status, Reason),
-    Resp.
+    Res.
 
 get_inserted(T, _, _, _)
     when [] == element(#task.output, T) ->

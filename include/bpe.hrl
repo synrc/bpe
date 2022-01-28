@@ -131,6 +131,13 @@
                         module = [] :: [] | atom(),
                         type = bpe :: atom() }).
 
+-record(result,    {    type      = reply :: atom(),
+                        reply     = [] :: term(),
+                        state     = [] :: term(),
+                        reason    = normal :: term(),
+                        continue  = [] :: term(),
+                        opt       = [] :: term() }).
+
 -record('Next', { id=[]   :: [] | binary() }).
 -record('Proc', { id=[]   :: [] | binary() }).
 -record('Load', { id=[]   :: [] | binary() }).
