@@ -13,6 +13,7 @@
 -export([init/1,
          handle_call/3,
          handle_cast/2,
+         handle_continue/2,
          handle_info/2,
          terminate/2,
          code_change/3]).
@@ -104,6 +105,31 @@ process_task(Stage, Proc, NoFlow) ->
 fix_reply({stop, {Reason, Reply}, State}) ->
     {stop, Reason, Reply, State};
 fix_reply(P) -> P.
+fix_reply(continue, {reply, {{complete, _}, _}, State}, Acc, _) ->
+  {noreply, State, {continue, Acc}};
+fix_reply(continue, {reply, {complete, _}, State}, Acc, _) ->
+  {noreply, State, {continue, Acc}};
+fix_reply(continue, {reply, {complete, _}, State, {continue, Continue}}, Acc, _) ->
+  {noreply, State, {continue, Acc ++ Continue}};
+fix_reply(continue, {reply, {error, Message, _}, State}, _, _) ->
+  {stop, Message, State};
+fix_reply(continue, {reply, {unknown_task, Msg}, State}, _, _) ->
+  {stop, {error, {unknown_task, Msg}}, State};
+fix_reply(continue, {reply, _, State}, Acc, _) ->
+  {noreply, State, {continue, Acc}};
+fix_reply(continue, {stop, Reason, State}, _, _) ->
+  {stop, Reason, State};
+fix_reply(continue, {stop, Reason, _, State}, _, _) ->
+  {stop, Reason, State};
+fix_reply(continue, _, _, PrevState) ->
+  {stop, {error, unknown_reply}, PrevState};
+fix_reply(_, Reply, _, _) -> Reply.
+
+convert_api_args(proc, [_ProcId]) -> {get};
+convert_api_args(update, [_ProcId, State]) -> {set, State};
+convert_api_args(assign, [_ProcId]) -> {ensure_mon};
+convert_api_args(Fn, [_ | Args]) ->
+  list_to_tuple([Fn | Args]).
 
 % BPMN 2.0 Инфотех
 handle_call({mon_link, MID}, _, Proc) ->
@@ -115,13 +141,17 @@ handle_call({ensure_mon}, _, Proc) ->
 handle_call({get}, _, Proc) -> {reply, Proc, Proc};
 handle_call({set, State}, _, Proc) ->
     {reply, Proc, State};
-handle_call({persist, State}, _, _Proc) ->
-    kvs:append(State, "/bpe/proc"),
+handle_call({persist, State}, _, #process{id=Id} = _Proc) ->
+    R = kvs:append(State, "/bpe/proc"),
+    logger:notice("BPE: ~ts PERSIST RESULT ~p for ~p", [R, Id, self()]),
     {reply, State, State};
-handle_call({next}, _, Proc) ->
-    try bpe:processFlow(Proc) catch
+handle_call({next}, _, #process{id=Id} = Proc) ->
+    logger:notice("BPE: ~ts NEXT START for ~p", [Id, self()]),
+    R = try bpe:processFlow(Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc}
-    end;
+    end,
+    logger:notice("BPE: ~ts NEXT RESULT ~p for ~p", [R, Id, self()]),
+    R;
 handle_call({next, Stage}, _, Proc) ->
     try bpe:processFlow(Stage, Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/2', Z}, Proc}
@@ -165,6 +195,19 @@ handle_call({modify, Form, remove}, _, Proc) ->
     end;
 handle_call(Command, _, Proc) ->
     {reply, {unknown, Command}, Proc}.
+
+handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{} = Proc) ->
+  spawn(fun() -> apply(Module, Fn, Args) end),
+  {noreply, Proc, {continue, T}};
+handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) ->
+    try fix_reply(continue, handle_call(convert_api_args(Fn, Args), [], Proc), T, Proc)
+    catch
+      _X:_Y:Z -> {stop, {error, Z}, Proc}
+    end;
+handle_continue([#continue{type=stop} | _], #process{} = Proc) ->
+    {stop, normal, Proc};
+handle_continue([], #process{} = Proc) ->
+    {noreply, Proc}.
 
 init(Process) ->
     Proc = bpe:load(Process#process.id, Process),
@@ -212,10 +255,6 @@ handle_info(Info, State = #process{}) ->
 terminate(Reason, #process{id = Id}) ->
     logger:notice("BPE: ~ts terminate Reason: ~p",
                   [Id, Reason]),
-    spawn(fun () ->
-      supervisor:terminate_child(bpe_otp, Id),
-      supervisor:delete_child(bpe_otp, Id)
-    end),
     bpe:cache({process, Id}, undefined),
     ok.
 

@@ -126,6 +126,11 @@
                         ogrName = [] :: list(),
                         status = [] :: term() }).
 
+-record(continue,  {    fn = [] :: atom(),
+                        args = [] :: [] | list(),
+                        module = [] :: [] | atom(),
+                        type = bpe :: atom() }).
+
 -record('Next', { id=[]   :: [] | binary() }).
 -record('Proc', { id=[]   :: [] | binary() }).
 -record('Load', { id=[]   :: [] | binary() }).
