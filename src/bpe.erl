@@ -167,8 +167,8 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
             add_sched(Proc, 1, [first_flow(Proc)]);
         _ -> skip
     end,
-    Restart = transient,
-    Shutdown = (?TIMEOUT),
+    Restart = temporary,
+    Shutdown = ?TIMEOUT,
     ChildSpec = {Id,
                  {bpe_proc, start_link, [Proc]},
                  Restart,
@@ -502,11 +502,20 @@ processAuthorized(true, _, Task, Flow,
         true -> skip; % logger:notice("BPE: Flow ~p", [Flow]);
         false -> skip
     end,
-    Resp = {Status, {Reason, _Reply}, State} =
-               bpe_task:task_action(Proc#process.module,
-                                    Src,
-                                    Dst,
-                                    Proc),
+    Resp =
+      bpe_task:task_action(Proc#process.module,
+                           Src,
+                           Dst,
+                           Proc),
+    {Status, Reason, State} =
+      case Resp of
+        {Status2, {Reason2, _}, State2} ->
+          {Status2, Reason2, State2};
+        {Status2, {Reason2, _}, State2, _} ->
+          {Status2, Reason2, State2};
+        {Status2, _, {Reason2, _}, State2} ->
+          {Status2, Reason2, State2}
+      end,
     add_sched(Proc, NewPointer, NewThreads),
     add_trace(State, [], Flow),
     bpe_proc:debug(State, Next, Src, Dst, Status, Reason),

@@ -41,7 +41,9 @@ task_action(Module, Source, Target, Proc) ->
     {M, F, A} = proplists:get_value(flow_callback,
                                     Proc#process.etc,
                                     {bpe_task, move_doclink, [{Source, Target}, Proc]}),
-    case Module:action({request, Source, Target}, Proc) of
+    R = Module:action({request, Source, Target}, Proc),
+    logger:notice("BPE: ~p TASK ACTION ~p", [self(), {Source, Target}]),
+    case R of
         {{reply, Message}, Task, State} ->
             apply(M, F, A),
             {reply, {{complete, Message}, Task}, State};
@@ -53,7 +55,9 @@ task_action(Module, Source, Target, Proc) ->
             {reply, {complete, Target}, State};
         {error, Message, Task, State} ->
             {reply, {error, Message, Task}, State};
-        {stop, Proc} -> {stop, {normal, Target}, Proc}
+        {continue, State, Continue} -> {reply, {complete, Target}, State, {continue, Continue}};
+        {stop, State} -> {stop, normal, State};
+        {stop, Reply, State} -> {stop, normal, Reply, State}
     end.
 
 handle_task(#beginEvent{}, CurrentTask, Target, Proc) ->
