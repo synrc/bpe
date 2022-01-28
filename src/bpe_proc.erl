@@ -141,17 +141,13 @@ handle_call({ensure_mon}, _, Proc) ->
 handle_call({get}, _, Proc) -> {reply, Proc, Proc};
 handle_call({set, State}, _, Proc) ->
     {reply, Proc, State};
-handle_call({persist, State}, _, #process{id=Id} = _Proc) ->
-    R = kvs:append(State, "/bpe/proc"),
-    logger:notice("BPE: ~ts PERSIST RESULT ~p for ~p", [R, Id, self()]),
+handle_call({persist, State}, _, #process{} = _Proc) ->
+    kvs:append(State, "/bpe/proc"),
     {reply, State, State};
-handle_call({next}, _, #process{id=Id} = Proc) ->
-    logger:notice("BPE: ~ts NEXT START for ~p", [Id, self()]),
-    R = try bpe:processFlow(Proc) catch
+handle_call({next}, _, #process{} = Proc) ->
+    try bpe:processFlow(Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc}
-    end,
-    logger:notice("BPE: ~ts NEXT RESULT ~p for ~p", [R, Id, self()]),
-    R;
+    end;
 handle_call({next, Stage}, _, Proc) ->
     try bpe:processFlow(Stage, Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/2', Z}, Proc}
