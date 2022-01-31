@@ -110,6 +110,25 @@ convert_api_args(assign, [_ProcId]) -> {ensure_mon};
 convert_api_args(Fn, [_ | Args]) ->
   list_to_tuple([Fn | Args]).
 
+handleContinue({noreply, State}, Continue) ->
+  {noreply, State, {continue, Continue}};
+handleContinue({reply, Reply, State, {continue, C}}, Continue) ->
+  {reply, Reply, State, {continue, Continue ++ C}};
+handleContinue({reply, Reply, State, _}, Continue) ->
+  {reply, Reply, State, {continue, Continue}};
+handleContinue({noreply, State, {continue, C}}, Continue) ->
+  {noreply, State, {continue, Continue ++ C}};
+handleContinue({noreply, State, _}, Continue) ->
+  {noreply, State, {continue, Continue}};
+handleContinue({reply, Reply, State}, Continue) ->
+  {reply, Reply, State, {continue, Continue}};
+handleContinue({stop, _, State}, Continue) ->
+  {noreply, State, {continue, Continue ++ [#continue{type=stop}]}};
+handleContinue({stop, _, Reply, State}, Continue) ->
+  {reply, Reply, State, {continue, Continue ++ [#continue{type=stop}]}};
+handleContinue(X, _) -> X.
+
+
 % BPMN 2.0 Инфотех
 handle_call({mon_link, MID}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
@@ -126,6 +145,10 @@ handle_call({persist, State}, _, #process{} = _Proc) ->
 handle_call({next}, _, #process{} = Proc) ->
     try bpe:processFlow(Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc}
+    end;
+handle_call({next, [#continue{} | _] = Continue}, _, #process{} = Proc) ->
+    try handleContinue(bpe:processFlow(Proc), Continue) catch
+        _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc, {continue, Continue}}
     end;
 handle_call({next, Stage}, _, Proc) ->
     try bpe:processFlow(Stage, Proc) catch
@@ -150,6 +173,10 @@ handle_call({complete}, _, Proc) ->
     try process_task([], Proc) catch
         _X:_Y:Z -> {reply, {error, 'complete/1', Z}, Proc}
     end;
+handle_call({complete, [#continue{} | _] = Continue}, _, Proc) ->
+    try handleContinue(process_task([], Proc), Continue) catch
+        _X:_Y:Z -> {reply, {error, 'complete/1', Z}, Proc, {continue, Continue}}
+    end;
 handle_call({complete, Stage}, _, Proc) ->
     try process_task(Stage, Proc) catch
         _X:_Y:Z -> {reply, {error, 'complete/2', Z}, Proc}
@@ -168,8 +195,57 @@ handle_call({modify, Form, remove}, _, Proc) ->
     catch
         _X:_Y:Z -> {reply, {error, 'remove/2', Z}, Proc}
     end;
+
+handle_call({mon_link, MID, Continue}, _, Proc) ->
+    ProcNew = Proc#process{monitor = MID},
+    {reply, ProcNew, ProcNew, {continue, Continue}};
+handle_call({ensure_mon, Continue}, _, Proc) ->
+    {Mon, ProcNew} = bpe:ensure_mon(Proc),
+    {reply, Mon, ProcNew, {continue, Continue}};
+handle_call({set, State, Continue}, _, Proc) ->
+    {reply, Proc, State, {continue, Continue}};
+handle_call({persist, State, Continue}, _, #process{} = _Proc) ->
+    kvs:append(State, "/bpe/proc"),
+    {reply, State, State, {continue, Continue}};
+handle_call({next, Stage, Continue}, _, Proc) ->
+    try handleContinue(bpe:processFlow(Stage, Proc), Continue) catch
+        _X:_Y:Z -> {reply, {error, 'next/2', Z}, Proc, {continue, Continue}}
+    end;
+handle_call({amend, Form, Continue}, _, Proc) ->
+    try handleContinue(bpe:processFlow(bpe_env:append(env, Proc, Form)), Continue)
+    catch
+        _X:_Y:Z -> {reply, {error, 'amend/2', Z}, Proc, {continue, Continue}}
+    end;
+handle_call({discard, Form, Continue}, _, Proc) ->
+    try handleContinue(bpe:processFlow(bpe_env:remove(env, Proc, Form)), Continue)
+    catch
+        _X:_Y:Z -> {reply, {error, 'discard/2', Z}, Proc, {continue, Continue}}
+    end;
+handle_call({event, Event, Continue}, _, Proc) ->
+    try handleContinue(process_event(Event, Proc), Continue) catch
+        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc, {continue, Continue}}
+    end;
+handle_call({complete, Stage, Continue}, _, Proc) ->
+    try handleContinue(process_task(Stage, Proc), Continue) catch
+        _X:_Y:Z -> {reply, {error, 'complete/2', Z}, Proc, {continue, Continue}}
+    end;
+handle_call({modify, Form, append, Continue}, _, Proc) ->
+    try handleContinue(process_task([],
+                     bpe_env:append(env, Proc, Form),
+                     true), Continue)
+    catch
+        _X:_Y:Z -> {reply, {error, 'append/2', Z}, Proc, {continue, Continue}}
+    end;
+handle_call({modify, Form, remove, Continue}, _, Proc) ->
+    try handleContinue(process_task([],
+                     bpe_env:remove(env, Proc, Form),
+                     true), Continue)
+    catch
+        _X:_Y:Z -> {reply, {error, 'remove/2', Z}, Proc, {continue, Continue}}
+    end;
 handle_call(Command, _, Proc) ->
     {reply, {unknown, Command}, Proc}.
+
 
 handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{} = Proc) ->
   spawn(fun() -> apply(Module, Fn, Args) end),
@@ -192,10 +268,19 @@ handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) 
         {noreply, State, {continue, T}};
       {reply, _, State} ->
         {noreply, State, {continue, T}};
+      {stop, _, State} ->
+        {noreply, State, {continue, T ++ [#continue{type=stop}]}};
+      {stop, _, _, State} ->
+        {noreply, State, {continue, T ++ [#continue{type=stop}]}};
       X -> X
     end;
-handle_continue([#continue{type=stop} | _], #process{} = Proc) ->
+handle_continue([#continue{type=stop}], #process{} = Proc) ->
     {stop, normal, Proc};
+handle_continue([#continue{type=stop} = X | T], #process{} = Proc) ->
+    case lists:member(#continue{type=stop}, T) of
+      true -> {noreply, Proc, {continue, T}};
+      _ -> {noreply, Proc, {continue, T ++ [X]}}
+    end;
 handle_continue([], #process{} = Proc) ->
     {noreply, Proc}.
 
@@ -223,9 +308,11 @@ handle_cast(Msg, State) ->
 handle_info({timer, ping},
             State = #process{timer = _Timer, id = _Id,
                              events = _Events, notifications = _Pid}) ->
-    (application:get_env(bpe,
-                         ping_discipline,
-                         bpe_ping)):ping(State);
+    case application:get_env(bpe, ping_discipline, bpe_ping) of
+      undefined -> {noreply, State};
+      M -> M:ping(State)
+    end;
+
 handle_info({'DOWN',
              _MonitorRef,
              _Type,

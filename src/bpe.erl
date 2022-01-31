@@ -52,12 +52,21 @@
 -export([assign/1,
          complete/1,
          next/1,
+         event/2,
+         assign/2,
          complete/2,
          next/2,
          amend/2,
          discard/2,
+         complete/3,
+         next/3,
+         amend/3,
+         discard/3,
          modify/3,
-         event/2,
+         event/3,
+         update/3,
+         persist/3,
+         modify/4,
          first_flow/1,
          first_task/1]).
 
@@ -231,23 +240,49 @@ update(ProcId, State) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {set, State}, ?TIMEOUT).
 
+update(ProcId, State, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {set, State, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
 persist(ProcId, State) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId),
                     {persist, State},
                     ?TIMEOUT).
 
+persist(ProcId, State, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId),
+                    {persist, State, Continue},
+                    ?TIMEOUT)
+    catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
+
 assign(ProcId) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {ensure_mon}, ?TIMEOUT).
+
+assign(ProcId, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {ensure_mon, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
 
 complete(ProcId) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {complete}, ?TIMEOUT).
 
-next(ProcId) ->
+complete(ProcId, [#continue{} | _] = Continue) ->
     start(load(ProcId), []),
-    gen_server:call(pid(ProcId), {next}, ?TIMEOUT).
+    try gen_server:call(pid(ProcId), {complete, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end;
 
 complete(ProcId, Stage) ->
     start(load(ProcId), []),
@@ -255,17 +290,59 @@ complete(ProcId, Stage) ->
                     {complete, Stage},
                     ?TIMEOUT).
 
+complete(ProcId, Stage, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId),
+                    {complete, Stage, Continue},
+                    ?TIMEOUT)
+    catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
+
+next(ProcId) ->
+    start(load(ProcId), []),
+    gen_server:call(pid(ProcId), {next}, ?TIMEOUT).
+
+next(ProcId, [#continue{} | _] = Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {next, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end;
+
 next(ProcId, Stage) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {next, Stage}, ?TIMEOUT).
+
+next(ProcId, Stage, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {next, Stage, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
 
 amend(ProcId, Form) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {amend, Form}, ?TIMEOUT).
 
+amend(ProcId, Form, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {amend, Form, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
+
 discard(ProcId, Form) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {discard, Form}, ?TIMEOUT).
+
+discard(ProcId, Form, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {discard, Form, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
 
 modify(ProcId, Form, Arg) ->
     start(load(ProcId), []),
@@ -273,9 +350,26 @@ modify(ProcId, Form, Arg) ->
                     {modify, Form, Arg},
                     ?TIMEOUT).
 
+modify(ProcId, Form, Arg, Continue) ->
+    start(load(ProcId), []),
+    try  gen_server:call(pid(ProcId),
+                    {modify, Form, Arg, Continue},
+                    ?TIMEOUT)
+    catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
+
 event(ProcId, Event) ->
     start(load(ProcId), []),
     gen_server:call(pid(ProcId), {event, Event}, ?TIMEOUT).
+
+event(ProcId, Event, Continue) ->
+    start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {event, Event, Continue}, ?TIMEOUT) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
 
 first_flow(#process{beginEvent = BeginEvent,
                     flows = Flows}) ->
