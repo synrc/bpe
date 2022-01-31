@@ -113,19 +113,19 @@ convert_api_args(Fn, [_ | Args]) ->
 handleContinue({noreply, State}, Continue) ->
   {noreply, State, {continue, Continue}};
 handleContinue({reply, Reply, State, {continue, C}}, Continue) ->
-  {noreply, State, {continue, Continue ++ C}};
+  {reply, Reply, State, {continue, Continue ++ C}};
 handleContinue({reply, Reply, State, _}, Continue) ->
-  {noreply, State, {continue, Continue}};
+  {reply, Reply, State, {continue, Continue}};
 handleContinue({noreply, State, {continue, C}}, Continue) ->
   {noreply, State, {continue, Continue ++ C}};
 handleContinue({noreply, State, _}, Continue) ->
   {noreply, State, {continue, Continue}};
 handleContinue({reply, Reply, State}, Continue) ->
-  {noreply, State, {continue, Continue}};
+  {reply, Reply, State, {continue, Continue}};
 handleContinue({stop, _, State}, Continue) ->
   {noreply, State, {continue, Continue ++ [#continue{type=stop}]}};
 handleContinue({stop, _, Reply, State}, Continue) ->
-  {noreply, State, {continue, Continue ++ [#continue{type=stop}]}};
+  {reply, Reply, State, {continue, Continue ++ [#continue{type=stop}]}};
 handleContinue(X, _) -> X.
 
 
@@ -146,12 +146,10 @@ handle_call({next}, _, #process{} = Proc) ->
     try bpe:processFlow(Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc}
     end;
-handle_call({next, [#continue{} | _] = Continue}, _, #process{id=Id} = Proc) ->
-    Res = try handleContinue(bpe:processFlow(Proc), Continue) catch
+handle_call({next, [#continue{} | _] = Continue}, _, #process{} = Proc) ->
+    try handleContinue(bpe:processFlow(Proc), Continue) catch
         _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc, {continue, Continue}}
-    end,
-    logger:notice("BPE NEXT CONTINUE: ~ts ~tp", [Id, Res]),
-    Res;
+    end;
 handle_call({next, Stage}, _, Proc) ->
     try bpe:processFlow(Stage, Proc) catch
         _X:_Y:Z -> {reply, {error, 'next/2', Z}, Proc}
@@ -252,12 +250,11 @@ handle_call(Command, _, Proc) ->
 handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{} = Proc) ->
   spawn(fun() -> apply(Module, Fn, Args) end),
   {noreply, Proc, {continue, T}};
-handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T] = A, #process{id=Id} = Proc) ->
+handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) ->
     Result = try handle_call(convert_api_args(Fn, Args), [], Proc)
              catch
                _X:_Y:Z -> {stop, {error, Z}, Proc}
              end,
-    logger:notice("BPE HANDLE CONTINUE 1: ~ts ~tp ~tp", [Id, Result, A]),
     case Result of
       {noreply, State} ->
         {noreply, State, {continue, T}};
@@ -277,11 +274,9 @@ handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T] = A, #process{id=Id}
         {noreply, State, {continue, T ++ [#continue{type=stop}]}};
       X -> X
     end;
-handle_continue([#continue{type=stop}] = T, #process{id=Id} = Proc) ->
-    logger:notice("BPE HANDLE CONTINUE 3: ~ts ~tp", [Id, T]),
+handle_continue([#continue{type=stop}], #process{} = Proc) ->
     {stop, normal, Proc};
-handle_continue([#continue{type=stop} = X | T] = A, #process{id=Id} = Proc) ->
-    logger:notice("BPE HANDLE CONTINUE 4: ~ts ~tp", [Id, A]),
+handle_continue([#continue{type=stop} = X | T], #process{} = Proc) ->
     case lists:member(#continue{type=stop}, T) of
       true -> {noreply, Proc, {continue, T}};
       _ -> {noreply, Proc, {continue, T ++ [X]}}
