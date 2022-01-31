@@ -4,7 +4,7 @@ defmodule Test.Sample do
 
   def def(), do: xml("/priv/sample.bpmn")
   def auth(_), do: true
-  def action(_message,state), do: {:reply,state}
+  def action(_message,state), do: BPE.result(state: state)
 
   def test() do
     {:ok, pid} = :bpe.start def(), []

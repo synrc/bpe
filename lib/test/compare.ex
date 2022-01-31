@@ -4,7 +4,7 @@ defmodule Test.Compare do
 
   def def(), do: xml("/priv/compare.bpmn")
   def auth(_), do: true
-  def action(_message,state), do: {:reply,state}
+  def action(_message,state), do: BPE.result(state: state)
 
   @doc_type :direction
 
