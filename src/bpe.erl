@@ -41,6 +41,7 @@
          processSched/2,
          processFlow/1,
          processFlow/2,
+         constructResult/1,
          reg/1,
          reg/2,
          unreg/1,

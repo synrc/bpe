@@ -7,10 +7,10 @@
 -include("bpe.hrl").
 
 event_action(Module, _Name, Event, Target, Proc) ->
-    case Module:action({event,
+    case bpe:constructResult(Module:action({event,
                         Event#messageEvent.name,
                         Event#messageEvent.payload},
-                       Proc)
+                       Proc))
         of
         {reply, State} -> {reply, {complete, Target}, State};
         {reply, Task, State} -> {reply, {complete, Task}, State}
