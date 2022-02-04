@@ -53,6 +53,7 @@
 -export([assign/1,
          complete/1,
          next/1,
+         messageEvent/2,
          event/2,
          assign/2,
          complete/2,
@@ -64,6 +65,7 @@
          amend/3,
          discard/3,
          modify/3,
+         messageEvent/3,
          event/3,
          update/3,
          persist/3,
@@ -323,8 +325,7 @@ next(ProcId, Stage, Continue) ->
       _X:_Y:Z -> {error, Z}
     end.
 
-amend(ProcId, Form) ->
-    start(load(ProcId), []),
+amend(ProcId, Form) ->    start(load(ProcId), []),
     gen_server:call(pid(ProcId), {amend, Form}, ?TIMEOUT).
 
 amend(ProcId, Form, Continue) ->
@@ -357,6 +358,17 @@ modify(ProcId, Form, Arg, Continue) ->
                     {modify, Form, Arg, Continue},
                     ?TIMEOUT)
     catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+    end.
+
+messageEvent(ProcId, Event) ->
+  start(load(ProcId), []),
+  gen_server:call(pid(ProcId), {messageEvent, Event}, ?TIMEOUT).
+
+messageEvent(ProcId, Event, Continue) ->
+  start(load(ProcId), []),
+    try gen_server:call(pid(ProcId), {messageEvent, Event, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.

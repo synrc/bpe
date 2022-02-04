@@ -39,6 +39,15 @@ debug(Proc, Name, Targets, Target, Status, Reason) ->
         false -> skip
     end.
 
+process_messageEvent(#messageEvent{name=Name, payload=Payload}, #process{module=Module} = Proc) ->
+  #result{type=T} = Res = Module:action({messageEvent,Name,Payload},Proc),
+  debug(Proc, "messageEvent", "", Name, T, ""),
+  case Res of
+    #result{continue=C} = X when C =/= [] ->
+      bpe:constructResult(X#result{opt={continue, C}});
+    X -> bpe:constructResult(X)
+  end.
+
 process_event(Event, Proc) ->
     EventName = element(#messageEvent.id, Event),
     Targets = bpe_task:targets(EventName, Proc),
@@ -166,6 +175,14 @@ handle_call({discard, Form}, _, Proc) ->
     end;
 handle_call({event, Event}, _, Proc) ->
     try process_event(Event, Proc) catch
+        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
+    end;
+handle_call({messageEvent, Event}, _, Proc) ->
+    try process_messageEvent(Event, Proc) catch
+        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
+    end;
+handle_call({messageEvent, Event, [#continue{} | _] = Continue}, _, Proc) ->
+    try handleContinue(process_messageEvent(Event, Proc), Continue) catch
         _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
     end;
 % BPMN 1.0 ПриватБанк
