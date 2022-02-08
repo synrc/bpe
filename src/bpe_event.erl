@@ -6,7 +6,7 @@
 
 -include("bpe.hrl").
 
-event_action(Module, _Name, Event, Target, Proc) ->
+event_action(Module, _Name, Event, _Target, Proc) ->
     bpe:constructResult(Module:action({event,
                         Event#messageEvent.name,
                         Event#messageEvent.payload},
