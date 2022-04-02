@@ -120,21 +120,21 @@ convert_api_args(Fn, [_ | Args]) ->
   list_to_tuple([Fn | Args]).
 
 handleContinue({noreply, State}, Continue) ->
-  {noreply, State, {continue, Continue}};
+  {noreply, State, {continue, lists:flatten(Continue)}};
 handleContinue({reply, Reply, State, {continue, C}}, Continue) ->
-  {reply, Reply, State, {continue, Continue ++ C}};
+  {reply, Reply, State, {continue, lists:flatten(Continue) ++ C}};
 handleContinue({reply, Reply, State, _}, Continue) ->
-  {reply, Reply, State, {continue, Continue}};
+  {reply, Reply, State, {continue, lists:flatten(Continue)}};
 handleContinue({noreply, State, {continue, C}}, Continue) ->
-  {noreply, State, {continue, Continue ++ C}};
+  {noreply, State, {continue, lists:flatten(Continue) ++ C}};
 handleContinue({noreply, State, _}, Continue) ->
-  {noreply, State, {continue, Continue}};
+  {noreply, State, {continue, lists:flatten(Continue)}};
 handleContinue({reply, Reply, State}, Continue) ->
-  {reply, Reply, State, {continue, Continue}};
+  {reply, Reply, State, {continue, lists:flatten(Continue)}};
 handleContinue({stop, _, State}, Continue) ->
-  {noreply, State, {continue, Continue ++ [#continue{type=stop}]}};
+  {noreply, State, {continue, lists:flatten(Continue) ++ [#continue{type=stop}]}};
 handleContinue({stop, _, Reply, State}, Continue) ->
-  {reply, Reply, State, {continue, Continue ++ [#continue{type=stop}]}};
+  {reply, Reply, State, {continue, lists:flatten(Continue) ++ [#continue{type=stop}]}};
 handleContinue(X, _) -> X.
 
 

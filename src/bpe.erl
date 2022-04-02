@@ -583,17 +583,19 @@ unreg(Pool) ->
 constructResult(#result{type=reply, opt=[], reply=R, state=St}) ->
   {reply, R, St};
 constructResult(#result{type=reply, opt=O, reply=R, state=St}) ->
-  {reply, R, St, O};
+  {reply, R, St, flattenOpt(O)};
 constructResult(#result{type=noreply, opt=[], state=St}) ->
   {noreply, St};
 constructResult(#result{type=noreply, opt=Opt, state=St}) ->
-  {noreply, St, Opt};
+  {noreply, St, flattenOpt(Opt)};
 constructResult(#result{type=stop, reply=[], reason=Reason, state=St}) ->
   {stop, Reason, St};
 constructResult(#result{type=stop, reply=Reply, reason=Reason, state=St}) ->
-  {stop, Reason, Reply, St};
+  {stop, Reason, Reply, flattenOpt(St)};
 constructResult(_) -> {stop, error, "Invalid return value", []}.
 
+flattenOpt({continue, C}) -> {continue, lists:flatten(C)};
+flattenOpt(X) -> X.
 
 processFlow(ForcedFlowId, #process{} = Proc) ->
     case flow(ForcedFlowId, Proc) of
