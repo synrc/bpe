@@ -4,7 +4,6 @@ BPE: Business Process Engine
 [![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Build Status](https://travis-ci.com/synrc/bpe.svg?branch=master)](https://travis-ci.com/synrc/bpe)
 [![Hex pm](http://img.shields.io/hexpm/v/bpe.svg?style=flat)](https://hex.pm/packages/bpe)
-[![Support me on Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3D5HT%26type%3Dpatrons&style=flat)](https://patreon.com/5HT)
 
 Overview
 --------
