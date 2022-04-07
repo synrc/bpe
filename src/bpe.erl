@@ -237,7 +237,7 @@ mon_feed(#monitor{id = Id, parent = PId}, Acc) ->
         {ok, X}    -> mon_feed(X, key("/", key(Id, Acc)))
     end.
 
-mon_children(MID) -> kvs:all(key("/bpe/mon/", MID)).
+mon_children(MID) -> kvs:all(mon_feed(MID)).
 
 pid(Id) -> bpe:cache({process, iolist_to_binary([Id])}).
 
