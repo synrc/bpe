@@ -3,7 +3,7 @@ BPE: Business Process Engine
 
 [![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Build Status](https://travis-ci.com/synrc/bpe.svg?branch=master)](https://travis-ci.com/synrc/bpe)
-[![Hex pm](https://img.shields.io/badge/hex-v7.3.0-blue)](https://hex.pm/packages/bpe)
+[![Hex pm](https://img.shields.io/badge/hex-v7.4.0-blue)](https://hex.pm/packages/bpe)
 
 Overview
 --------
@@ -272,7 +272,7 @@ Credits
 -------
 
 * Maxim Sokhatsky
-* Oleksandr Palchikovsky
 * Oleksandr Naumov
+* Ivan Kulyk
 
 OM A HUM
