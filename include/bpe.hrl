@@ -126,7 +126,8 @@
                         roles   = [] :: list(#role{}),
                         ogrName = [] :: list(),
                         status  = [] :: term(),
-                        parent  = [] :: [] | integer() }).
+                        parent  = [] :: [] | integer(),
+                        feed    = [] :: [] | list() }).
 
 -record(continue,  {    fn = [] :: atom(),
                         args = [] :: [] | list(),

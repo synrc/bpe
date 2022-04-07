@@ -210,7 +210,7 @@ mon_link(#monitor{parent = []} = M, #process{parentMonitor = PMID} = P, PR, E) w
 mon_link(#monitor{id = MID, parent = PMID} = Monitor, Proc, ProcRec,
          Embedded) ->
     Key = mon_feed(Monitor),
-    kvs:append(Monitor, "/bpe/monitors"),
+    kvs:append(Monitor#monitor{feed = Key}, "/bpe/monitors"),
     ProcId = Proc#process.id,
     MemoProc = case Embedded of
                    false -> gen_server:call(pid(ProcId), {mon_link, MID});
@@ -224,17 +224,15 @@ mon_link(#monitor{id = MID, parent = PMID} = Monitor, Proc, ProcRec,
         true -> P
      end.
 
-mon_feed(#monitor{} = X) -> key("/bpe/mon", mon_feed(X, ""));
+mon_feed(#monitor{id = MID, parent = PMID}) ->
+    case kvs:get("/bpe/monitors", PMID) of
+        {error, _} -> key("/bpe/mon/", MID);
+        {ok, #monitor{feed = Feed}} -> key(key(Feed, "/"), MID)
+    end;
 mon_feed(MID) ->
     case kvs:get("/bpe/monitors", MID) of
-      {error, _} -> key("/bpe/mon/", MID);
-      {ok, X} -> mon_feed(X)
-    end.
-mon_feed(#monitor{id = Id, parent = []}, Acc) -> key("/", key(Id, Acc));
-mon_feed(#monitor{id = Id, parent = PId}, Acc) ->
-    case kvs:get("/bpe/monitors", PId) of
-        {error, _} -> key("/", key(Id, Acc));
-        {ok, X}    -> mon_feed(X, key("/", key(Id, Acc)))
+        {error, _} -> key("/bpe/mon/", MID);
+        {ok, X}    -> mon_feed(X)
     end.
 
 mon_children(MID) -> kvs:all(mon_feed(MID)).
