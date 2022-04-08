@@ -73,7 +73,7 @@ reduce([{'bpmn:sequenceFlow',Body,Attrs}|T],#process{flows=Flows} = Process) ->
     reduce(T,Process#process{flows=[Flow|Flows]});
 
 reduce([{'bpmn:conditionExpression',Body,_Attrs}|T],#sequenceFlow{} = Flow) ->
-    reduce(T,Flow#sequenceFlow{condition = parse(hd(Body))});
+    reduce(T, parseExpression(Flow, parse(hd(Body))));
 
 reduce([{'bpmn:parallelGateway',_Body,Attrs}|T],#process{tasks=Tasks} = Process) ->
     Id = proplists:get_value(id,Attrs),
@@ -118,6 +118,22 @@ reduce([{SkipType,_Body,_Attrs}|T],#process{} = Process)
          SkipType == 'bpmn:extensionElements' ->
     skip,
     reduce(T,Process).
+
+parseExpression(#sequenceFlow{callbacks = C} = Flow, [X | T]) when is_tuple(X) ->
+    case expressionType(X) of
+        callback -> parseExpression(Flow#sequenceFlow{callbacks = C ++ [X]}, T);
+        condition -> parseExpression(Flow#sequenceFlow{condition = X}, T);
+        _ -> parseExpression(Flow, T)
+    end;
+parseExpression(Flow, X) when is_tuple(X) -> parseExpression(Flow, [X]);
+parseExpression(Flow, _) -> Flow.
+
+expressionType(X) when is_tuple(X) ->
+    case erlang:element(1, X) of
+      callback -> callback;
+      T -> case lists:member(T, ?CONDITION_TYPES) of true -> condition; false -> unknown end
+    end;
+expressionType(_) -> unknown.
 
 fillInOut(Tasks, []) -> Tasks;
 fillInOut(Tasks, [#sequenceFlow{id=Name,source=Source,target=Target}|Flows]) ->

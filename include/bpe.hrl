@@ -24,17 +24,23 @@
                         timeDuration=[] :: [] | binary(),
                         timeCycle=[] :: [] | binary() ).
 
+-define(CONDITION_TYPES, [service, compare]).
+
 -record(timeout,      { spec= [] :: term() }).
 
 -type condition() :: {compare,BpeDocParam :: {atom(),term()},Field :: integer(), ConstCheckAgainst :: term()}
                    | {service,atom(),atom()}
                    | {service,atom()}.
 
+-type callback() :: {callback,atom(),atom()} | {callback,atom()}.
+
+
 -record(sequenceFlow, { id=[] :: list(),
                         name=[] :: list() | binary(),
                         condition=[] :: [] | condition() | binary(),
                         source=[] :: list(),
-                        target=[] :: list(integer()) | list(list()) }).
+                        target=[] :: list(integer()) | list(list()),
+                        callbacks = [] :: [] | list(callback()) }).
 
 -record(beginEvent ,  { ?TASK }).
 -record(endEvent,     { ?TASK }).
@@ -63,13 +69,20 @@
                  pointer = -1 :: integer(),
                  state = [] :: list(list()) }).
 
--record(hist,         { id = [] :: [] | #step{},
-                        prev=[] :: [] | integer(),
-                        next=[] :: [] | integer(),
-                        name=[] :: [] | binary() | list(),
-                        task=[] :: [] | atom() | list() | #task{} | #sequenceFlow{} | condition(),
-                        docs=[] :: list(tuple()),
-                        time=[] :: [] | #ts{} }).
+-record(executor, { id       = [] :: [] | term(),
+                    object   = [] :: [] | tuple(),
+                    received = [] :: [] | #ts{},
+                    started  = [] :: [] | #ts{},
+                    executed = [] :: [] | #ts{} }).
+
+-record(hist,         { id        = [] :: [] | #step{},
+                        prev      = [] :: [] | integer(),
+                        next      = [] :: [] | integer(),
+                        name      = [] :: [] | binary() | list(),
+                        task      = [] :: [] | atom() | list() | #task{} | #sequenceFlow{} | condition(),
+                        docs      = [] :: list(tuple()),
+                        time      = [] :: [] | #ts{},
+                        executors = [] :: [] | list(#executor{}) }).
 
 -record(process,      { id            = [] :: procId(),
                         prev          = [] :: [] | integer(),
@@ -108,7 +121,8 @@
                         params        = [] :: term(),
                         filters       = [] :: term(),
                         etc           = [] :: term(),
-                        flags         = [] :: term()
+                        flags         = [] :: term(),
+                        executors     = [] :: list(#executor{})
                          }).
 
 -record(subProcess,   { name=[] :: [] | atom(),
@@ -139,7 +153,8 @@
                         state     = [] :: term(),
                         reason    = normal :: term(),
                         continue  = [] :: term(),
-                        opt       = [] :: term() }).
+                        opt       = [] :: term(),
+                        executed  = [] :: list(#executor{}) }).
 
 -record('Next', { id=[]   :: [] | binary() }).
 -record('Proc', { id=[]   :: [] | binary() }).
