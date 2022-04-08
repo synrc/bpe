@@ -686,10 +686,21 @@ processAuthorized(true, _, Task, Flow,
     add_sched(Proc, NewPointer, NewThreads),
     #process{executors = Executors} = State,
     NewState = State#process{executors = handleExecutors(Executors)},
+    NewResult = Res#result{state = NewState},
+    flow_callback(Flow, NewResult, Proc),
     add_trace(NewState, [], Flow),
     bpe_proc:debug(NewState, Next, Src, Dst, Status, Reason),
     kvs:append(NewState, "/bpe/proc"),
-    Res#result{state = NewState}.
+    NewResult.
+
+flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun} | T]} = Flow, Result, #process{module = Module} = PrevState) ->
+    NewRes = Module:Fun({callback, Src, Target}, Result, PrevState),
+    flow_callback(Flow#sequenceFlow{callbacks = T}, NewRes, PrevState);
+flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun, Module} | T]} = Flow, Result, PrevState) ->
+    NewRes = Module:Fun({callback, Src, Target}, Result, PrevState),
+    flow_callback(Flow#sequenceFlow{callbacks = T}, NewRes, PrevState);
+flow_callback(#sequenceFlow{callbacks = []}, R, _) -> R;
+flow_callback(_, R, _) -> R.
 
 add_executed(#process{id = Id, executors = PrevExecutors}, Executed) ->
     Key = key("/bpe/hist/", Id),
@@ -701,7 +712,7 @@ add_executed(#process{id = Id, executors = PrevExecutors}, Executed) ->
                 false -> R
             end
         end, PrevExecutors),
-    case kvs:get(Key, key({step, Writer#writer.count, Id})) of
+    case kvs:get(Key, key({step, Writer#writer.count - 1, Id})) of
         {error, _} -> [];
         {ok, #hist{} = Hist} -> kvs:append(Hist#hist{executors = NewExecuted}, Key)
     end.
@@ -772,9 +783,6 @@ first_matched_flow([H | Flows], Proc) ->
         false -> first_matched_flow(Flows, Proc)
     end.
 
-check_flow_condition(#sequenceFlow{condition = []},
-                     #process{}) ->
-    true;
 check_flow_condition(#sequenceFlow{condition =
                                        {compare, BpeDocParam, Field, ConstCheckAgainst}},
                      Proc) ->
@@ -792,7 +800,12 @@ check_flow_condition(#sequenceFlow{condition =
 check_flow_condition(#sequenceFlow{condition =
                                        {service, Fun, Module}},
                      Proc) ->
-    Module:Fun(Proc).
+    Module:Fun(Proc);
+
+check_flow_condition(#sequenceFlow{condition = []},
+                     #process{}) ->
+    true.
+
 
 % temp
 key({step, N, [208 | _] = Pid}) ->

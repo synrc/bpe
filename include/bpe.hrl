@@ -24,17 +24,23 @@
                         timeDuration=[] :: [] | binary(),
                         timeCycle=[] :: [] | binary() ).
 
+-define(CONDITION_TYPES, [service, compare]).
+
 -record(timeout,      { spec= [] :: term() }).
 
 -type condition() :: {compare,BpeDocParam :: {atom(),term()},Field :: integer(), ConstCheckAgainst :: term()}
                    | {service,atom(),atom()}
                    | {service,atom()}.
 
+-type callback() :: {callback,atom(),atom()} | {callback,atom()}.
+
+
 -record(sequenceFlow, { id=[] :: list(),
                         name=[] :: list() | binary(),
                         condition=[] :: [] | condition() | binary(),
                         source=[] :: list(),
-                        target=[] :: list(integer()) | list(list()) }).
+                        target=[] :: list(integer()) | list(list()),
+                        callbacks = [] :: [] | list(callback()) }).
 
 -record(beginEvent ,  { ?TASK }).
 -record(endEvent,     { ?TASK }).
