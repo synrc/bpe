@@ -140,12 +140,12 @@ add_error(Proc, Name, Task) ->
     Key = key("/bpe/error/", Proc#process.id),
     add_hist(Key, Proc, Name, Task).
 
-add_hist(Key, Proc, Name, Task) ->
+add_hist(Key, #process{executors = Executors} = Proc, Name, Task) ->
     Writer = kvs:writer(Key),
     kvs:append(#hist{id =
                          key({step, Writer#writer.count, Proc#process.id}),
                      name = Name, time = #ts{time = calendar:local_time()},
-                     docs = Proc#process.docs, task = Task},
+                     docs = Proc#process.docs, task = Task, executors = Executors},
                Key).
 
 add_sched(Proc, Pointer, State) ->
@@ -606,7 +606,7 @@ constructResult(#result{type=noreply, opt=Opt, state=St}) ->
 constructResult(#result{type=stop, reply=[], reason=Reason, state=St}) ->
   {stop, Reason, St};
 constructResult(#result{type=stop, reply=Reply, reason=Reason, state=St}) ->
-  {stop, Reason, Reply, flattenOpt(St)};
+  {stop, Reason, Reply, St};
 constructResult(_) -> {stop, error, "Invalid return value", []}.
 
 flattenOpt({continue, C}) -> {continue, lists:flatten(C)};
@@ -677,15 +677,37 @@ processAuthorized(true, _, Task, Flow,
         true -> skip; % logger:notice("BPE: Flow ~p", [Flow]);
         false -> skip
     end,
-    #result{state=State, reason=Reason, type=Status} = Res =
+    #result{state=State, reason=Reason, type=Status, executed = Executed} = Res =
       bpe_task:task_action(Proc#process.module,
                            Src,
                            Dst,
                            Proc),
+    add_executed(Proc, Executed),
     add_sched(Proc, NewPointer, NewThreads),
-    add_trace(State, [], Flow),
-    bpe_proc:debug(State, Next, Src, Dst, Status, Reason),
-    Res.
+    #process{executors = Executors} = State,
+    NewState = State#process{executors = handleExecutors(Executors)},
+    add_trace(NewState, [], Flow),
+    bpe_proc:debug(NewState, Next, Src, Dst, Status, Reason),
+    kvs:append(NewState, "/bpe/proc"),
+    Res#result{state = NewState}.
+
+add_executed(#process{id = Id, executors = PrevExecutors}, Executed) ->
+    Key = key("/bpe/hist/", Id),
+    Writer = kvs:writer(Key),
+    NewExecuted =
+        lists:map(fun (#executor{id = EId} = R) ->
+            case lists:keyfind(EId, 2, Executed) of
+                #executor{} -> R#executor{executed = #ts{time = calendar:local_time()}};
+                false -> R
+            end
+        end, PrevExecutors),
+    case kvs:get(Key, key({step, Writer#writer.count, Id})) of
+        {error, _} -> [];
+        {ok, #hist{} = Hist} -> kvs:append(Hist#hist{executors = NewExecuted}, Key)
+    end.
+
+handleExecutors(Executors) ->
+    lists:map(fun (#executor{} = R) -> R#executor{received = #ts{time = calendar:local_time()}} end, Executors).
 
 get_inserted(T, _, _, _)
     when [] == element(#task.output, T) ->
