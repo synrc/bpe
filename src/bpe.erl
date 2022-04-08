@@ -694,11 +694,9 @@ processAuthorized(true, _, Task, Flow,
     NewResult.
 
 flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun} | T]} = Flow, Result, #process{module = Module} = PrevState) ->
-    NewRes = Module:Fun({callback, Src, Target}, Result, PrevState),
-    flow_callback(Flow#sequenceFlow{callbacks = T}, NewRes, PrevState);
+    spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState) end);
 flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun, Module} | T]} = Flow, Result, PrevState) ->
-    NewRes = Module:Fun({callback, Src, Target}, Result, PrevState),
-    flow_callback(Flow#sequenceFlow{callbacks = T}, NewRes, PrevState);
+    spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState) end);
 flow_callback(#sequenceFlow{callbacks = []}, R, _) -> R;
 flow_callback(_, R, _) -> R.
 
