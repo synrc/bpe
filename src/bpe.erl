@@ -682,11 +682,11 @@ processAuthorized(true, _, Task, Flow,
                            Src,
                            Dst,
                            Proc),
-    add_executed(Proc, Executed),
+    NewExecuted = add_executed(Proc, Executed),
     add_sched(Proc, NewPointer, NewThreads),
     #process{executors = Executors} = State,
     NewState = State#process{executors = handleExecutors(Executors)},
-    NewResult = Res#result{state = NewState},
+    NewResult = Res#result{state = NewState, executed = NewExecuted},
     flow_callback(Flow, NewResult, Proc),
     add_trace(NewState, [], Flow),
     bpe_proc:debug(NewState, Next, Src, Dst, Status, Reason),
@@ -700,20 +700,25 @@ flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callbac
 flow_callback(#sequenceFlow{callbacks = []}, R, _) -> R;
 flow_callback(_, R, _) -> R.
 
-add_executed(#process{id = Id, executors = PrevExecutors}, Executed) ->
+add_executed(#process{id = Id, executors = PrevExecutors}, Executed0) ->
     Key = key("/bpe/hist/", Id),
     Writer = kvs:writer(Key),
+    Time = calendar:local_time(),
+    Executed =
+        lists:map(fun (#executor{executed = []} = X) -> X#executor{executed = #ts{time = Time}};
+                      (X) -> X end, Executed0),
     NewExecuted =
-        lists:map(fun (#executor{id = EId} = R) ->
+        lists:map(fun (#executor{id = EId, executed = E} = R) ->
             case lists:keyfind(EId, 2, Executed) of
-                #executor{} -> R#executor{executed = #ts{time = calendar:local_time()}};
+                #executor{executed = X} when E == [] -> R#executor{executed = X};
                 false -> R
             end
         end, PrevExecutors),
     case kvs:get(Key, key({step, Writer#writer.count - 1, Id})) of
         {error, _} -> [];
         {ok, #hist{} = Hist} -> kvs:append(Hist#hist{executors = NewExecuted}, Key)
-    end.
+    end,
+    Executed.
 
 handleExecutors(Executors) ->
     lists:map(fun (#executor{} = R) -> R#executor{received = #ts{time = calendar:local_time()}} end, Executors).
