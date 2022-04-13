@@ -697,6 +697,8 @@ flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callbac
     spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState) end);
 flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun, Module} | T]} = Flow, Result, PrevState) ->
     spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState) end);
+flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun, Module, Arg} | T]} = Flow, Result, PrevState) ->
+    spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, Arg), PrevState) end);
 flow_callback(#sequenceFlow{callbacks = []}, R, _) -> R;
 flow_callback(_, R, _) -> R.
 
