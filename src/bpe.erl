@@ -687,18 +687,18 @@ processAuthorized(true, _, Task, Flow,
     #process{executors = Executors} = State,
     NewState = State#process{executors = handleExecutors(Executors)},
     NewResult = Res#result{state = NewState, executed = NewExecuted},
-    flow_callback(Flow, NewResult, Proc),
     add_trace(NewState, [], Flow),
     bpe_proc:debug(NewState, Next, Src, Dst, Status, Reason),
     kvs:append(NewState, "/bpe/proc"),
+    flow_callback(Flow, NewResult, Proc),
     NewResult.
 
 flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun} | T]} = Flow, Result, #process{module = Module} = PrevState) ->
-    spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState) end);
+    flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState);
 flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun, Module} | T]} = Flow, Result, PrevState) ->
-    spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState) end);
+    flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, PrevState), PrevState);
 flow_callback(#sequenceFlow{source = Src, target = Target, callbacks = [{callback, Fun, Module, Arg} | T]} = Flow, Result, PrevState) ->
-    spawn(fun () -> flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, Arg), PrevState) end);
+    flow_callback(Flow#sequenceFlow{callbacks = T}, Module:Fun({callback, Src, Target}, Result, Arg), PrevState);
 flow_callback(#sequenceFlow{callbacks = []}, R, _) -> R;
 flow_callback(_, R, _) -> R.
 
