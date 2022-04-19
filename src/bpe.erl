@@ -206,7 +206,7 @@ mon_link(Mon, Proc, ProcRec) ->
 mon_link([], Proc, _, _) ->
     kvs:append(Proc, "/bpe/proc");
 mon_link(#monitor{parent = []} = M, #process{parentMonitor = PMID} = P, PR, E) when PMID /= [] ->
-    mon_link(M#monitor{parent = parentMonitor}, P, PR, E);
+    mon_link(M#monitor{parent = PMID}, P, PR, E);
 mon_link(#monitor{id = MID, parent = PMID} = Monitor, Proc, ProcRec,
          Embedded) ->
     Key = mon_feed(Monitor),
