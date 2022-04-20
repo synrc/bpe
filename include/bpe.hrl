@@ -141,7 +141,7 @@
                         ogrName = [] :: list(),
                         status  = [] :: term(),
                         parent  = [] :: [] | integer(),
-                        feed    = [] :: [] | list() }).
+                        childs    = [] :: [] | list() }).
 
 -record(continue,  {    fn = [] :: atom(),
                         args = [] :: [] | list(),
