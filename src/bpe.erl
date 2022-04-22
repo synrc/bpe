@@ -224,10 +224,10 @@ mon_link(#monitor{id = MID, parent = PMID} = Monitor, Proc, ProcRec,
         true -> P
      end.
 
-update_parent_monitor(#monitor{id = MID, parent = PMID}) ->
-  case kvs:get("/bpe/monitors", PMID) of
-    {ok, #monitor{children = T} = X} -> kvs:append(X#monitor{children = [MID | T]}, "/bpe/monitors");
-    {error, _} -> []
+update_parent_monitor(#monitor{id = MID, parent = PMID} = X) ->
+  case kvs:get(key("/bpe/submonitors/", PMID), MID) of
+    {error, _} -> kvs:append(X, key("/bpe/submonitors/", PMID));
+    _ -> []
   end.
 
 mon_children(MID) -> kvs:all(key("/bpe/mon/", MID)).
