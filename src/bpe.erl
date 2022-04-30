@@ -94,6 +94,12 @@
 -define(DRIVER,
         application:get_env(bpe, driver, exclusive)).
 
+id(RecordName) ->
+  case application:get_env(kvs, dba_seq, kvs_rocks) of
+    kvs_rocks -> kvs:seq([], []);
+    _ -> kvs:seq(RecordName, 1)
+  end.
+
 load(Id) -> load(Id, []).
 
 load(Id, Def) ->
@@ -162,7 +168,7 @@ start(Proc0, Options) ->
 
 start(Proc0, Options, {Monitor, ProcRec}) ->
     Id = iolist_to_binary([case Proc0#process.id of
-                               [] -> kvs:seq([], []);
+                               [] -> id(process);
                                X -> X
                            end]),
     {Hist, Task} = current_task(Proc0#process{id = Id}),
@@ -235,7 +241,7 @@ mon_children(MID) -> kvs:all(key("/bpe/mon/", MID)).
 pid(Id) -> bpe:cache({process, iolist_to_binary([Id])}).
 
 ensure_mon(#process{monitor = [], id = Id} = Proc) ->
-    Mon = #monitor{id = kvs:seq([], [])},
+    Mon = #monitor{id = id(monitor)},
     ProcRec = #procRec{id = []},
     {Mon,
      mon_link(Mon, Proc, ProcRec#procRec{id = Id}, true)};
