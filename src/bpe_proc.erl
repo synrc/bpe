@@ -40,8 +40,9 @@ debug(Proc, Name, Targets, Target, Status, Reason) ->
     end.
 
 process_messageEvent(#messageEvent{name=Name, payload=Payload}, #process{module=Module} = Proc) ->
-  #result{type=T} = Res = Module:action({messageEvent,Name,Payload},Proc),
+  #result{type=T, state = NewProc} = Res = Module:action({messageEvent,Name,Payload},Proc),
   debug(Proc, "messageEvent", "", Name, T, ""),
+  kvs:append(NewProc, "/bpe/proc"),
   case Res of
     #result{continue=C} = X when C =/= [] ->
       bpe:constructResult(X#result{opt={continue, C}});
