@@ -818,4 +818,4 @@ key({step, N, [208 | _] = Pid}) ->
     {step, N, list_to_binary(Pid)};
 key(Pid) -> Pid.
 
-key(Prefix, Pid) -> iolist_to_binary([Prefix, Pid, "/"]).
+key(Prefix, Pid) -> iolist_to_binary([Prefix, Pid]).
