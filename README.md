@@ -100,8 +100,8 @@ values from Erlang messages being sent to BPE process.
 ```
 
 During execution of the process, all steps are being written to the persistent storage,
-by which execution logic is restorable and reproducable. The process definition is actually
-diagram or graph where points represented by `task` and egdes by `sequenceFlow`.
+by which execution logic is restorable and reproducible. The process definition is actually
+diagram or graph where points represented by `task` and edges by `sequenceFlow`.
 
 Tasks and Flows
 ---------------
