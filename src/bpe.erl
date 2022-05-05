@@ -736,7 +736,7 @@ get_inserted(#gateway{id = Name, type = exclusive,
         [] ->
             add_error(Proc,
                       "All conditions evaluate to false in "
-                      "exclusive gateway without default",
+                      "exlusive gateway without default",
                       Name),
             [];
         X -> X
