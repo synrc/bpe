@@ -69,11 +69,15 @@
                  pointer = -1 :: integer(),
                  state = [] :: list(list()) }).
 
+-record(status  , { id    = [] :: [] | atom(),
+                    state = [] :: [] | term() }).
+
 -record(executor, { id       = [] :: [] | term(),
                     object   = [] :: [] | tuple(),
                     received = [] :: [] | #ts{},
                     started  = [] :: [] | #ts{},
-                    executed = [] :: [] | #ts{} }).
+                    executed = [] :: [] | #ts{},
+                    status   = [] :: [] | #status{} }).
 
 -record(hist,         { id        = [] :: [] | #step{},
                         prev      = [] :: [] | integer(),
