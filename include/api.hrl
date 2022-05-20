@@ -11,7 +11,7 @@
 -spec amend(term(),any()) -> {complete,any()}.
 -spec discard(term(),any()) -> {complete,any()}.
 -spec modify(term(),any(),append|remove) -> {complete,any()}.
--spec event(term(),any()) -> {complete,any()}.
+-spec messageEvent(term(),any()) -> {complete,any()}.
 -spec hist(term()) -> list(#hist{}) | #hist{}.
 
 % find task or document in process

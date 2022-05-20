@@ -19,7 +19,6 @@
          code_change/3]).
 
 -export([debug/6,
-         process_event/2,
          process_task/2,
          process_task/3]).
 
@@ -48,34 +47,6 @@ process_messageEvent(#messageEvent{name=Name, payload=Payload}, #process{module=
       bpe:constructResult(X#result{opt={continue, C}});
     X -> bpe:constructResult(X)
   end.
-
-process_event(Event, Proc) ->
-    EventName = element(#messageEvent.id, Event),
-    Targets = bpe_task:targets(EventName, Proc),
-    Target0 = bpe_task:find_flow(EventName, Targets),
-    Target1 = case Target0 of
-                  [] -> EventName;
-                  T -> T
-              end,
-    {Status, {Reason, Target}, ProcState} =
-        bpe_event:handle_event(Event, Target1, Proc),
-    bpe:add_trace(ProcState,
-                  [],
-                  Target), %It will be better always use EventName instead of Target
-    #sched{pointer = Pointer, state = ScheduledFlows} =
-        bpe:sched_head(ProcState#process.id),
-    bpe:add_sched(ProcState, Pointer, ScheduledFlows),
-    kvs:append(ProcState, "/bpe/proc"),
-    debug(ProcState,
-          EventName,
-          Targets,
-          Target,
-          Status,
-          Reason),
-    case Status of
-      stop -> {stop, Reason, Target, ProcState};
-      _ -> {Status, {Reason, Target}, ProcState}
-    end.
 
 process_task(Stage, Proc) ->
     process_task(Stage, Proc, false).
@@ -174,10 +145,6 @@ handle_call({discard, Form}, _, Proc) ->
     catch
         _X:_Y:Z -> {reply, {error, 'discard/2', Z}, Proc}
     end;
-handle_call({event, Event}, _, Proc) ->
-    try process_event(Event, Proc) catch
-        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
-    end;
 handle_call({messageEvent, Event}, _, Proc) ->
     try process_messageEvent(Event, Proc) catch
         _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
@@ -238,10 +205,6 @@ handle_call({discard, Form, Continue}, _, Proc) ->
     try handleContinue(bpe:processFlow(bpe_env:remove(env, Proc, Form)), Continue)
     catch
         _X:_Y:Z -> {reply, {error, 'discard/2', Z}, Proc, {continue, Continue}}
-    end;
-handle_call({event, Event, Continue}, _, Proc) ->
-    try handleContinue(process_event(Event, Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc, {continue, Continue}}
     end;
 handle_call({complete, Stage, Continue}, _, Proc) ->
     try handleContinue(process_task(Stage, Proc), Continue) catch

@@ -50,10 +50,27 @@
 -record(receiveTask,  { ?TASK, reader=[] :: #reader{} }).
 -record(sendTask,     { ?TASK, writer=[] :: #writer{} }).
 -record(gateway,      { ?TASK, type= parallel :: gate(), def=[] :: list() }).
--record(messageEvent, { ?EVENT }).
 -record(messageBeginEvent, { ?EVENT }).
 -record(boundaryEvent,{ ?EVENT, ?CYCLIC }).
 -record(timeoutEvent, { ?EVENT, ?CYCLIC }).
+
+-record(messageEvent,   { id      = [] :: [] | list() | binary(),
+                          timeout = [] :: [] | #timeout{},
+                          name    = [] :: [] | term(),
+                          payload = [] :: [] | term() }).
+
+-record(asyncEvent,     { name    = [] :: [] | term(),
+                          payload = [] :: [] | term() }).
+
+-record(broadcastEvent, { id      = [] :: [] | list() | binary(),
+                          from    = [] :: [] | list() | binary(),
+                          type    = immediate :: delayed,
+                          name    = [] :: [] | term(),
+                          payload = [] :: [] | term() }).
+
+-record(subscription,   { who     = [] :: [] | list() | binary(),
+                          topic   = [] :: [] | list() | binary() }).
+
 
 -type tasks()  :: #task{} | #serviceTask{} | #userTask{} | #receiveTask{} | #sendTask{} | #beginEvent{} | #endEvent{}.
 -type events() :: #messageEvent{} | #boundaryEvent{} | #timeoutEvent{}.

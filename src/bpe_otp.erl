@@ -5,6 +5,7 @@
 -include("bpe.hrl").
 
 -include_lib("kvs/include/cursors.hrl").
+-include_lib("kvs/include/kvs.hrl").
 
 -behaviour(application).
 
@@ -28,6 +29,7 @@ start(_, _) ->
                                    [bpe_account, bpe])],
     logger:add_handlers(bpe),
     kvs:join(),
+    kvs:join([], #kvs{mod=kvs_mnesia}),
     kvs:ensure(kvs:writer("/bpe/proc")),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
