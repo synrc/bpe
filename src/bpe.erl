@@ -53,8 +53,9 @@
 -export([assign/1,
          complete/1,
          next/1,
+         broadcast/1,
          messageEvent/2,
-         event/2,
+         asyncEvent/2,
          assign/2,
          complete/2,
          next/2,
@@ -66,7 +67,7 @@
          discard/3,
          modify/3,
          messageEvent/3,
-         event/3,
+         asyncEvent/3,
          update/3,
          persist/3,
          modify/4,
@@ -420,18 +421,53 @@ messageEvent(ProcId, Event, Continue) ->
       _X:_Y:Z -> {error, Z}
     end.
 
-event(ProcId, Event) ->
-    start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {event, Event}, ?TIMEOUT) catch
+asyncEvent(ProcId, Event) ->
+  start(load(ProcId), []),
+  try gen_server:cast(pid(ProcId), {asyncEvent, Event}) catch
+      exit:{normal, _}:_Z -> {exit, normal};
+      _X:_Y:Z -> {error, Z}
+  end.
+
+asyncEvent(ProcId, Event, Continue) ->
+  start(load(ProcId), []),
+    try gen_server:cast(pid(ProcId), {asyncEvent, Event, Continue}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
-event(ProcId, Event, Continue) ->
-    start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {event, Event, Continue}, ?TIMEOUT) catch
+broadcast(#broadcastEvent{from=F, name=N, type=immediate=T} = Ev) ->
+  lists:foreach(fun ({Pid, _}) ->
+    kvs:append(Ev#broadcastEvent{id=kvs:seq([], [])}, key("/bpe/messages/", Pid)),
+    start(load(Pid), []),
+    try gen_server:cast(pid(Pid), {broadcastEvent, Ev}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
+    end
+  end, syn:members({broadcastPool, F, N, T}));
+broadcast(#broadcastEvent{from=F, name=N, type=delayed=T} = Ev) ->
+  lists:foreach(fun ({Pid, _}) ->
+    kvs:append(Ev#broadcastEvent{id=kvs:seq([], [])}, key("/bpe/messages/", Pid))
+  end, syn:members({broadcastPool, F, N, T})).
+
+send(Pool, Message) ->
+    syn:publish(term_to_binary(Pool), Message).
+
+reg(Pool) -> reg(Pool, undefined).
+
+reg(Pool, Value) ->
+    case get({pool, Pool}) of
+        undefined ->
+            syn:join(term_to_binary(Pool), self()),
+            erlang:put({pool, Pool}, Pool);
+        _Defined -> skip
+    end.
+
+unreg(Pool) ->
+    case get({pool, Pool}) of
+        undefined -> skip;
+        _Defined ->
+            syn:leave(Pool, self()),
+            erlang:erase({pool, Pool})
     end.
 
 first_flow(#process{beginEvent = BeginEvent,
@@ -572,28 +608,6 @@ reload(Module) ->
     case code:load_binary(Module, Filename, Binary) of
         {module, Module} -> {reloaded, Module};
         {error, Reason} -> {load_error, Module, Reason}
-    end.
-
-send(Pool, Message) ->
-    syn:publish(term_to_binary(Pool), Message).
-
-reg(Pool) -> reg(Pool, undefined).
-
-reg(Pool, Value) ->
-    case get({pool, Pool}) of
-        undefined ->
-            syn:register(term_to_binary(Pool), self(), Value),
-            syn:join(term_to_binary(Pool), self()),
-            erlang:put({pool, Pool}, Pool);
-        _Defined -> skip
-    end.
-
-unreg(Pool) ->
-    case get({pool, Pool}) of
-        undefined -> skip;
-        _Defined ->
-            syn:leave(Pool, self()),
-            erlang:erase({pool, Pool})
     end.
 
 constructResult(#result{type=reply, opt=[], reply=R, state=St}) ->
