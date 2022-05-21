@@ -441,7 +441,7 @@ asyncEvent(ProcId, Event, Continue) ->
 broadcastEvent(Topic, #broadcastEvent{type=immediate} = Ev) ->
   lists:foreach(fun (#subscription{who = Pid}) ->
     NewEv = Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic},
-    kvs:append(NewEv, key("/bpe/messages/", Pid)),
+    kvs:append(NewEv, key("/bpe/messages/queue/", Pid)),
     start(load(Pid), []),
     try gen_server:cast(pid(Pid), {broadcastEvent, NewEv}) catch
       exit:{normal, _}:_Z -> {exit, normal};
@@ -450,7 +450,7 @@ broadcastEvent(Topic, #broadcastEvent{type=immediate} = Ev) ->
   end, kvs:index(subscription, topic, Topic, #kvs{mod = kvs_mnesia}));
 broadcastEvent(Topic, #broadcastEvent{} = Ev) ->
   lists:foreach(fun (#subscription{who = Pid}) ->
-    kvs:append(Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic}, key("/bpe/messages/", Pid))
+    kvs:append(Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic}, key("/bpe/messages/queue/", Pid))
   end, kvs:index(subscription, topic, Topic, #kvs{mod = kvs_mnesia})).
 
 subscribe(Pid, Topic) ->

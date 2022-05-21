@@ -38,10 +38,17 @@ debug(Proc, Name, Targets, Target, Status, Reason) ->
         false -> skip
     end.
 
-process_messageEvent(#messageEvent{name=Name, payload=Payload}, #process{module=Module} = Proc) ->
-  #result{type=T, state = NewProc} = Res = Module:action({messageEvent,Name,Payload},Proc),
-  debug(Proc, "messageEvent", "", Name, T, ""),
+process_event(EventType, Event, #process{id=Pid, module=Module} = Proc) ->
+  Name = kvs:field(Event, name),
+  #result{type=T, state = NewProc} = Res =
+    case Module:action(Event, Proc) of
+      #result{} = R when EventType == async -> R#result{type = noreply, reply = []};
+      R -> R
+    end,
+  debug(Proc, atom_to_list(element(1, Event)), "", Name, T, ""),
   kvs:append(NewProc, "/bpe/proc"),
+  kvs:remove(Event, bpe:key("/bpe/messages/queue/", Pid)),
+  kvs:append(Event, bpe:key("/bpe/messages/hist/", Pid)),
   case Res of
     #result{continue=C} = X when C =/= [] ->
       bpe:constructResult(X#result{opt={continue, C}});
@@ -146,12 +153,12 @@ handle_call({discard, Form}, _, Proc) ->
         _X:_Y:Z -> {reply, {error, 'discard/2', Z}, Proc}
     end;
 handle_call({messageEvent, Event}, _, Proc) ->
-    try process_messageEvent(Event, Proc) catch
-        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
+    try process_event(sync, Event, Proc) catch
+        _X:_Y:Z -> {reply, {error, 'messageEvent/2', Z}, Proc}
     end;
 handle_call({messageEvent, Event, [#continue{} | _] = Continue}, _, Proc) ->
-    try handleContinue(process_messageEvent(Event, Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'event/2', Z}, Proc}
+    try handleContinue(process_event(sync, Event, Proc), Continue) catch
+        _X:_Y:Z -> {reply, {error, 'messageEvent/3', Z}, Proc}
     end;
 % BPMN 1.0 ПриватБанк
 handle_call({complete}, _, Proc) ->
@@ -282,13 +289,31 @@ init(Process) ->
                                         self(),
                                         {timer, ping})}}.
 
+handle_cast({asyncEvent, Event}, Proc) ->
+    try process_event(async, Event, Proc) catch
+        _X:_Y:Z -> {stop, {error, 'asyncEvent/2', Z}, Proc}
+    end;
+handle_cast({asyncEvent, Event, [#continue{} | _] = Continue}, Proc) ->
+    try handleContinue(process_event(async, Event, Proc), Continue) catch
+        _X:_Y:Z -> {stop, {error, 'asyncEvent/3', Z}, Proc}
+    end;
+handle_cast({broadcastEvent, Event}, Proc) ->
+    try process_event(async, Event, Proc) catch
+        _X:_Y:Z -> {stop, {error, 'broadcastEvent/2', Z}, Proc}
+    end;
+
 handle_cast(Msg, State) ->
     logger:notice("BPE: Unknown API async: ~p.", [Msg]),
     {stop, {error, {unknown_cast, Msg}}, State}.
 
 handle_info({timer, ping},
-            State = #process{timer = _Timer, id = _Id,
+            State = #process{timer = _Timer, id = Id,
                              events = _Events, notifications = _Pid}) ->
+    lists:foreach(fun (Event) ->
+      try process_event(async, Event, State) catch
+        _X:_Y:Z -> Z
+      end
+    end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
     case application:get_env(bpe, ping_discipline, bpe_ping) of
       undefined -> {noreply, State};
       M -> M:ping(State)
@@ -310,7 +335,12 @@ handle_info(Info, State = #process{}) ->
     logger:notice("BPE: Unrecognized info: ~p", [Info]),
     {noreply, State}.
 
-terminate(Reason, #process{id = Id}) ->
+terminate(Reason, #process{id = Id} = Proc) ->
+    lists:foreach(fun (Event) ->
+      try process_event(async, Event, Proc) catch
+        _X:_Y:Z -> Z
+      end
+    end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
     logger:notice("BPE: ~ts terminate Reason: ~p",
                   [Id, Reason]),
     bpe:cache({process, Id}, undefined),
