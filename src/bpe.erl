@@ -7,6 +7,7 @@
 -include_lib("bpe/include/api.hrl").
 
 -include_lib("kvs/include/cursors.hrl").
+-include_lib("kvs/include/kvs.hrl").
 
 -export([load/1,
          load/2,
@@ -53,9 +54,11 @@
 -export([assign/1,
          complete/1,
          next/1,
-         broadcast/1,
+         subscribe/2,
+         unsubscribe/2,
          messageEvent/2,
          asyncEvent/2,
+         broadcastEvent/2,
          assign/2,
          complete/2,
          next/2,
@@ -435,19 +438,28 @@ asyncEvent(ProcId, Event, Continue) ->
       _X:_Y:Z -> {error, Z}
     end.
 
-broadcast(#broadcastEvent{from=F, name=N, type=immediate=T} = Ev) ->
-  lists:foreach(fun ({Pid, _}) ->
-    kvs:append(Ev#broadcastEvent{id=kvs:seq([], [])}, key("/bpe/messages/", Pid)),
+broadcastEvent(Topic, #broadcastEvent{type=immediate} = Ev) ->
+  lists:foreach(fun (#subscription{who = Pid}) ->
+    NewEv = Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic},
+    kvs:append(NewEv, key("/bpe/messages/", Pid)),
     start(load(Pid), []),
-    try gen_server:cast(pid(Pid), {broadcastEvent, Ev}) catch
+    try gen_server:cast(pid(Pid), {broadcastEvent, NewEv}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end
-  end, syn:members({broadcastPool, F, N, T}));
-broadcast(#broadcastEvent{from=F, name=N, type=delayed=T} = Ev) ->
-  lists:foreach(fun ({Pid, _}) ->
-    kvs:append(Ev#broadcastEvent{id=kvs:seq([], [])}, key("/bpe/messages/", Pid))
-  end, syn:members({broadcastPool, F, N, T})).
+  end, kvs:index(subscription, topic, Topic, #kvs{mod = kvs_mnesia}));
+broadcastEvent(Topic, #broadcastEvent{} = Ev) ->
+  lists:foreach(fun (#subscription{who = Pid}) ->
+    kvs:append(Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic}, key("/bpe/messages/", Pid))
+  end, kvs:index(subscription, topic, Topic, #kvs{mod = kvs_mnesia})).
+
+subscribe(Pid, Topic) ->
+    kvs:put(#subscription{id = kvs:seq([], []), who = Pid, topic = Topic}, #kvs{mod = kvs_mnesia}).
+
+unsubscribe(Pid, Topic) ->
+  lists:foreach(fun (#subscription{id = Id}) ->
+    kvs:delete(subscription, Id, #kvs{mod = kvs_mnesia})
+  end, kvs:index_match(#subscription{id = '_', who = Pid, topic = Topic}, who, #kvs{mod = kvs_mnesia})).
 
 send(Pool, Message) ->
     syn:publish(term_to_binary(Pool), Message).

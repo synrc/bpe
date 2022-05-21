@@ -63,12 +63,13 @@
                           payload = [] :: [] | term() }).
 
 -record(broadcastEvent, { id      = [] :: [] | list() | binary(),
-                          from    = [] :: [] | list() | binary(),
+                          topic   = [] :: [] | list() | binary(),
                           type    = immediate :: delayed,
                           name    = [] :: [] | term(),
                           payload = [] :: [] | term() }).
 
--record(subscription,   { who     = [] :: [] | list() | binary(),
+-record(subscription,   { id      = [] :: [] | list() | binary(),
+                          who     = [] :: [] | list() | binary(),
                           topic   = [] :: [] | list() | binary() }).
 
 
