@@ -48,7 +48,7 @@ process_event(EventType, Event, #process{id=Pid, module=Module} = Proc) ->
   debug(Proc, atom_to_list(element(1, Event)), "", Name, T, ""),
   kvs:append(NewProc, "/bpe/proc"),
   kvs:remove(Event, bpe:key("/bpe/messages/queue/", Pid)),
-  kvs:append(Event, bpe:key("/bpe/messages/hist/", Pid)),
+  kvs:append(erlang:setelement(2, Event, kvs:seq([], [])), bpe:key("/bpe/messages/hist/", Pid)),
   case Res of
     #result{continue=C} = X when C =/= [] ->
       bpe:constructResult(X#result{opt={continue, C}});
