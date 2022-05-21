@@ -55,11 +55,14 @@
 -record(timeoutEvent, { ?EVENT, ?CYCLIC }).
 
 -record(messageEvent,   { id      = [] :: [] | list() | binary(),
+                          topic   = [] :: [] | list() | binary(),
                           timeout = [] :: [] | #timeout{},
                           name    = [] :: [] | term(),
                           payload = [] :: [] | term() }).
 
--record(asyncEvent,     { name    = [] :: [] | term(),
+-record(asyncEvent,     { id      = [] :: [] | list() | binary(),
+                          topic   = [] :: [] | list() | binary(),
+                          name    = [] :: [] | term(),
                           payload = [] :: [] | term() }).
 
 -record(broadcastEvent, { id      = [] :: [] | list() | binary(),
