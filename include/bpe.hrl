@@ -56,16 +56,19 @@
 
 -record(messageEvent,   { id      = [] :: [] | list() | binary(),
                           topic   = [] :: [] | list() | binary(),
+                          sender  = [] :: [] | term(),
                           timeout = [] :: [] | #timeout{},
                           name    = [] :: [] | term(),
                           payload = [] :: [] | term() }).
 
 -record(asyncEvent,     { id      = [] :: [] | list() | binary(),
+                          sender  = [] :: [] | term(),
                           topic   = [] :: [] | list() | binary(),
                           name    = [] :: [] | term(),
                           payload = [] :: [] | term() }).
 
 -record(broadcastEvent, { id      = [] :: [] | list() | binary(),
+                          sender  = [] :: [] | term(),
                           topic   = [] :: [] | list() | binary(),
                           type    = immediate :: delayed,
                           name    = [] :: [] | term(),
