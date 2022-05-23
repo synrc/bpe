@@ -197,6 +197,9 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
                  Shutdown,
                  worker,
                  [bpe_proc]},
+    try gen_server:stop(pid(Id)) catch
+      _X:_Y:_Z -> ok
+    end,
     case supervisor:start_child(bpe_otp, ChildSpec) of
         {ok, _} ->
             mon_link(Monitor, Proc, ProcRec),
@@ -440,10 +443,8 @@ asyncEvent(ProcId, Event, Continue) ->
 
 broadcastEvent(Topic, #broadcastEvent{type=immediate} = Ev) ->
   lists:foreach(fun (#subscription{who = Pid}) ->
-    NewEv = Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic},
-    kvs:append(NewEv, key("/bpe/messages/queue/", Pid)),
     start(load(Pid), []),
-    try gen_server:cast(pid(Pid), {broadcastEvent, NewEv}) catch
+    try gen_server:cast(pid(Pid), {broadcastEvent, Ev#broadcastEvent{id=kvs:seq([], []),topic=Topic}}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end
