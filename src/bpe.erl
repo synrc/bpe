@@ -219,12 +219,11 @@ mon_link([], Proc, _, _) ->
     kvs:append(Proc, "/bpe/proc");
 mon_link(#monitor{parent = []} = M, #process{parentMonitor = PMID} = P, PR, E) when PMID /= [] ->
     mon_link(M#monitor{parent = PMID}, P, PR, E);
-mon_link(#monitor{id = MID, parent = PMID} = Monitor, Proc, ProcRec,
+mon_link(#monitor{id = MID, parent = PMID} = Monitor, #process{id = ProcId} = Proc, ProcRec,
          Embedded) ->
     Key = key("/bpe/mon/", MID),
-    kvs:append(Monitor, "/bpe/monitors"),
-    update_parent_monitor(Monitor),
-    ProcId = Proc#process.id,
+    kvs:append(Monitor#monitor{creator = ProcId}, "/bpe/monitors"),
+    update_parent_monitor(Monitor#monitor{creator = ProcId}),
     MemoProc = case Embedded of
                    false -> gen_server:call(pid(ProcId), {mon_link, MID});
                    true -> Proc

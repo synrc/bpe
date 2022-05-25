@@ -164,7 +164,7 @@
 -record(monitor,  {     id      = [] :: procId(),
                         prev    = [] :: [] | integer(),
                         next    = [] :: [] | integer(),
-                        name    = [] :: list(),
+                        creator = [] :: list(),
                         roles   = [] :: list(#role{}),
                         ogrName = [] :: list(),
                         status  = [] :: term(),
