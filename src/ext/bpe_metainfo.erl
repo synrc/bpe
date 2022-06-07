@@ -10,6 +10,7 @@ metainfo() ->
           #table{name = procRec, fields=record_info(fields, procRec), instance = #procRec{}},
           #table{name = hist, fields=record_info(fields, hist), instance = #hist{}},
           #table{name = sched, fields=record_info(fields, sched), instance = #sched{}},
-          #table{name = subscription, fields=record_info(fields, subscription), instance = #subscription{}, keys=record_info(fields, subscription)}
+          #table{name = subscription, fields=record_info(fields, subscription), instance = #subscription{}, keys=record_info(fields, subscription)},
+          #table{name = gw_block, fields=record_info(fields, gw_block), instance = #gw_block{}, keys=record_info(fields, gw_block)}
          ]}.
 
