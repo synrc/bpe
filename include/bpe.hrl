@@ -93,6 +93,11 @@
                  pointer = -1 :: integer(),
                  state = [] :: list(list()) }).
 
+-record(gw_block  , { id      = [] :: [] | atom(),
+                      pid     = [] :: [] | term(),
+                      gw      = [] :: [] | term(),
+                      subject = [] :: [] | term() }).
+
 -record(status  , { id    = [] :: [] | atom(),
                     state = [] :: [] | term() }).
 

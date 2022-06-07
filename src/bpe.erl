@@ -54,6 +54,8 @@
 -export([assign/1,
          complete/1,
          next/1,
+         gw_block/3,
+         gw_unblock/3,
          subscribe/2,
          unsubscribe/2,
          messageEvent/2,
@@ -453,6 +455,13 @@ broadcastEvent(Topic, #broadcastEvent{} = Ev) ->
     kvs:append(Ev#broadcastEvent{id = kvs:seq([], []), topic = Topic}, key("/bpe/messages/queue/", Pid))
   end, kvs:index(subscription, topic, Topic, #kvs{mod = kvs_mnesia})).
 
+gw_block(Pid, GW, Subject) ->
+    kvs:put(#gw_block{id = kvs:seq([], []), pid = Pid, subject = Subject, gw = GW}, #kvs{mod = kvs_mnesia}).
+gw_unblock(Pid, GW, Subject) ->
+    lists:foreach(fun (#gw_block{id = Id}) ->
+      kvs:delete(gw_block, Id, #kvs{mod = kvs_mnesia})
+    end, kvs:index_match(#gw_block{id = '_', pid = Pid, subject = Subject, gw = GW}, subject, #kvs{mod = kvs_mnesia})).
+
 subscribe(Pid, Topic) ->
     kvs:put(#subscription{id = kvs:seq([], []), who = Pid, topic = Topic}, #kvs{mod = kvs_mnesia}).
 
@@ -825,6 +834,10 @@ check_flow_condition(#sequenceFlow{condition =
         Docs when is_list(Docs) ->
             element(Field, hd(Docs)) == ConstCheckAgainst
     end;
+check_flow_condition(#sequenceFlow{source = GW,
+                                   condition = {service, gw_block}},
+                     #process{id = Pid}) ->
+    kvs:index_match(#gw_block{id = '_', gw = GW, subject = Pid, pid = '_'}, subject, #kvs{mod = kvs_mnesia}) == [];
 check_flow_condition(#sequenceFlow{condition =
                                        {service, Fun}},
                      Proc = #process{module = Module}) ->
