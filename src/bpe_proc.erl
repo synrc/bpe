@@ -126,7 +126,7 @@ handle_call({ensure_mon}, _, Proc) ->
     {stop, normal, Mon, ProcNew};
 handle_call({get}, _, Proc) -> {stop, normal, Proc, Proc};
 handle_call({set, State}, _, Proc) ->
-    {stop, normal, Proc, State};
+    {reply, Proc, State};
 handle_call({persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
     {stop, normal, State, State};
