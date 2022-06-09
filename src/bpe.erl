@@ -457,6 +457,10 @@ broadcastEvent(Topic, #broadcastEvent{} = Ev) ->
 
 gw_block(Pid, GW, Subject) ->
     kvs:put(#gw_block{id = kvs:seq([], []), pid = Pid, subject = Subject, gw = GW}, #kvs{mod = kvs_mnesia}).
+gw_unblock(Pid, GW) ->
+    lists:foreach(fun (#gw_block{id = Id}) ->
+      kvs:delete(gw_block, Id, #kvs{mod = kvs_mnesia})
+    end, kvs:index_match(#gw_block{id = '_', pid = Pid, subject = '_', gw = GW}, pid, #kvs{mod = kvs_mnesia})).
 gw_unblock(Pid, GW, Subject) ->
     lists:foreach(fun (#gw_block{id = Id}) ->
       kvs:delete(gw_block, Id, #kvs{mod = kvs_mnesia})
