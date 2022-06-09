@@ -120,19 +120,19 @@ handleContinue(X, _) -> X.
 % BPMN 2.0 Инфотех
 handle_call({mon_link, MID}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
-    {reply, ProcNew, ProcNew};
+    {stop, normal, ProcNew, ProcNew};
 handle_call({ensure_mon}, _, Proc) ->
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
-    {reply, Mon, ProcNew};
-handle_call({get}, _, Proc) -> {reply, Proc, Proc};
+    {stop, normal, Mon, ProcNew};
+handle_call({get}, _, Proc) -> {stop, normal, Proc, Proc};
 handle_call({set, State}, _, Proc) ->
-    {reply, Proc, State};
+    {stop, normal, Proc, State};
 handle_call({persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
-    {reply, State, State};
+    {stop, normal, State, State};
 handle_call({next}, _, #process{} = Proc) ->
     try bpe:processFlow(Proc) catch
-        _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'next/1', Z}, {error, 'next/1', Z}, Proc}
     end;
 handle_call({next, [#continue{} | _] = Continue}, _, #process{} = Proc) ->
     try handleContinue(bpe:processFlow(Proc), Continue) catch
@@ -140,52 +140,52 @@ handle_call({next, [#continue{} | _] = Continue}, _, #process{} = Proc) ->
     end;
 handle_call({next, Stage}, _, Proc) ->
     try bpe:processFlow(Stage, Proc) catch
-        _X:_Y:Z -> {reply, {error, 'next/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'next/2', Z}, {error, 'next/2', Z}, Proc}
     end;
 handle_call({amend, Form}, _, Proc) ->
     try bpe:processFlow(bpe_env:append(env, Proc, Form))
     catch
-        _X:_Y:Z -> {reply, {error, 'amend/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'amend/2', Z}, {error, 'amend/2', Z}, Proc}
     end;
 handle_call({discard, Form}, _, Proc) ->
     try bpe:processFlow(bpe_env:remove(env, Proc, Form))
     catch
-        _X:_Y:Z -> {reply, {error, 'discard/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'amend/2', Z}, {error, 'discard/2', Z}, Proc}
     end;
 handle_call({messageEvent, Event}, _, Proc) ->
     try process_event(sync, Event, Proc) catch
-        _X:_Y:Z -> {reply, {error, 'messageEvent/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'messageEvent/2', Z}, {error, 'messageEvent/2', Z}, Proc}
     end;
 handle_call({messageEvent, Event, [#continue{} | _] = Continue}, _, Proc) ->
     try handleContinue(process_event(sync, Event, Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'messageEvent/3', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'messageEvent/3', Z}, {error, 'messageEvent/3', Z}, Proc}
     end;
 % BPMN 1.0 ПриватБанк
 handle_call({complete}, _, Proc) ->
     try process_task([], Proc) catch
-        _X:_Y:Z -> {reply, {error, 'complete/1', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'complete/1', Z}, {error, 'complete/1', Z}, Proc}
     end;
 handle_call({complete, [#continue{} | _] = Continue}, _, Proc) ->
     try handleContinue(process_task([], Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'complete/1', Z}, Proc, {continue, Continue}}
+        _X:_Y:Z -> {reply, {error, 'complete/2', Z}, Proc, {continue, Continue}}
     end;
 handle_call({complete, Stage}, _, Proc) ->
     try process_task(Stage, Proc) catch
-        _X:_Y:Z -> {reply, {error, 'complete/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'complete/2', Z}, {error, 'complete/2', Z}, Proc}
     end;
 handle_call({modify, Form, append}, _, Proc) ->
     try process_task([],
                      bpe_env:append(env, Proc, Form),
                      true)
     catch
-        _X:_Y:Z -> {reply, {error, 'append/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'append/2', Z}, {error, 'append/2', Z}, Proc}
     end;
 handle_call({modify, Form, remove}, _, Proc) ->
     try process_task([],
                      bpe_env:remove(env, Proc, Form),
                      true)
     catch
-        _X:_Y:Z -> {reply, {error, 'remove/2', Z}, Proc}
+        _X:_Y:Z -> {stop, {error, 'remove/2', Z}, {error, 'remove/2', Z}, Proc}
     end;
 
 handle_call({mon_link, MID, Continue}, _, Proc) ->
@@ -232,7 +232,7 @@ handle_call({modify, Form, remove, Continue}, _, Proc) ->
         _X:_Y:Z -> {reply, {error, 'remove/2', Z}, Proc, {continue, Continue}}
     end;
 handle_call(Command, _, Proc) ->
-    {reply, {unknown, Command}, Proc}.
+    {stop, unknown, {unknown, Command}, Proc}.
 
 
 handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{} = Proc) ->
@@ -315,7 +315,7 @@ handle_info({timer, ping},
       end
     end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
     case application:get_env(bpe, ping_discipline, bpe_ping) of
-      undefined -> {noreply, State};
+      undefined -> {stop, normal, State};
       M -> M:ping(State)
     end;
 
@@ -333,7 +333,7 @@ handle_info({'DOWN',
     {stop, normal, State};
 handle_info(Info, State = #process{}) ->
     logger:notice("BPE: Unrecognized info: ~p", [Info]),
-    {noreply, State}.
+    {stop, unknown_info, State}.
 
 terminate(Reason, #process{id = Id} = Proc) ->
     lists:foreach(fun (Event) ->
