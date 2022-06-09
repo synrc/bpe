@@ -54,6 +54,7 @@
 -export([assign/1,
          complete/1,
          next/1,
+         gw_unblock/1,
          gw_block/3,
          gw_unblock/3,
          subscribe/2,
@@ -93,6 +94,9 @@
          flowId/1]).
 
 -export([cache/1, cache/2, cache/3]).
+
+-define(SHUTDOWN_TIMEOUT,
+        application:get_env(bpe, shutdown_timeout, 5000)).
 
 -define(TIMEOUT,
         application:get_env(bpe, timeout, 6000)).
@@ -192,14 +196,14 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
         _ -> skip
     end,
     Restart = temporary,
-    Shutdown = ?TIMEOUT,
+    Shutdown = ?SHUTDOWN_TIMEOUT,
     ChildSpec = {Id,
                  {bpe_proc, start_link, [Proc]},
                  Restart,
                  Shutdown,
                  worker,
                  [bpe_proc]},
-    try gen_server:stop(pid(Id)) catch
+    try gen_server:stop(pid(Id), normal, ?TIMEOUT) catch
       _X:_Y:_Z -> ok
     end,
     case supervisor:start_child(bpe_otp, ChildSpec) of
@@ -457,10 +461,10 @@ broadcastEvent(Topic, #broadcastEvent{} = Ev) ->
 
 gw_block(Pid, GW, Subject) ->
     kvs:put(#gw_block{id = kvs:seq([], []), pid = Pid, subject = Subject, gw = GW}, #kvs{mod = kvs_mnesia}).
-gw_unblock(Pid, GW) ->
+gw_unblock(Pid) ->
     lists:foreach(fun (#gw_block{id = Id}) ->
       kvs:delete(gw_block, Id, #kvs{mod = kvs_mnesia})
-    end, kvs:index_match(#gw_block{id = '_', pid = Pid, subject = '_', gw = GW}, pid, #kvs{mod = kvs_mnesia})).
+    end, kvs:index_match(#gw_block{id = '_', pid = Pid, subject = '_', gw = '_'}, pid, #kvs{mod = kvs_mnesia})).
 gw_unblock(Pid, GW, Subject) ->
     lists:foreach(fun (#gw_block{id = Id}) ->
       kvs:delete(gw_block, Id, #kvs{mod = kvs_mnesia})
@@ -479,7 +483,7 @@ send(Pool, Message) ->
 
 reg(Pool) -> reg(Pool, undefined).
 
-reg(Pool, Value) ->
+reg(Pool, _Value) ->
     case get({pool, Pool}) of
         undefined ->
             syn:join(term_to_binary(Pool), self()),
