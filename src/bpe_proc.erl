@@ -120,13 +120,13 @@ handleContinue(X, _) -> X.
 % BPMN 2.0 Инфотех
 handle_call({mon_link, MID}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
-    {stop, normal, ProcNew, ProcNew};
+    {reply, ProcNew, ProcNew};
 handle_call({ensure_mon}, _, Proc) ->
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
     {stop, normal, Mon, ProcNew};
 handle_call({get}, _, Proc) -> {stop, normal, Proc, Proc};
 handle_call({set, State}, _, Proc) ->
-    {stop, normal, Proc, State};
+    {reply, Proc, State};
 handle_call({persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
     {stop, normal, State, State};
