@@ -471,7 +471,10 @@ gw_unblock(Pid, GW, Subject) ->
     end, kvs:index_match(#gw_block{id = '_', pid = Pid, subject = Subject, gw = GW}, subject, #kvs{mod = kvs_mnesia})).
 
 subscribe(Pid, Topic) ->
-    kvs:put(#subscription{id = kvs:seq([], []), who = Pid, topic = Topic}, #kvs{mod = kvs_mnesia}).
+    case kvs:index_match(#subscription{id = '_', who = Pid, topic = Topic}, who, #kvs{mod = kvs_mnesia}) of
+      [] -> kvs:put(#subscription{id = kvs:seq([], []), who = Pid, topic = Topic}, #kvs{mod = kvs_mnesia});
+      _ -> exists
+    end.
 
 unsubscribe(Pid, Topic) ->
   lists:foreach(fun (#subscription{id = Id}) ->
