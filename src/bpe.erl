@@ -242,9 +242,10 @@ mon_link(#monitor{id = MID, parent = PMID} = Monitor, #process{id = ProcId} = Pr
         true -> P
      end.
 
-update_parent_monitor(#monitor{id = MID, parent = PMID} = X) ->
-  case kvs:get(key("/bpe/submonitors/", PMID), MID) of
-    {error, _} -> kvs:append(X, key("/bpe/submonitors/", PMID));
+update_parent_monitor(#monitor{parent = PMID, creator = C} = X) ->
+  Cr = case C of [] -> "default"; C -> C end,
+  case kvs:get("/bpe/monitors", PMID) of
+    {ok, #monitor{}} -> kvs:append(X, key(key(key("/bpe/submonitors/", PMID), "/"), Cr));
     _ -> []
   end.
 
@@ -460,7 +461,10 @@ broadcastEvent(Topic, #broadcastEvent{} = Ev) ->
   end, kvs:index(subscription, topic, Topic, #kvs{mod = kvs_mnesia})).
 
 gw_block(Pid, GW, Subject) ->
-    kvs:put(#gw_block{id = kvs:seq([], []), pid = Pid, subject = Subject, gw = GW}, #kvs{mod = kvs_mnesia}).
+    case kvs:index_match(#gw_block{id = '_', pid = Pid, subject = Subject, gw = GW}, pid, #kvs{mod = kvs_mnesia}) of
+      [] -> kvs:put(#gw_block{id = kvs:seq([], []), pid = Pid, subject = Subject, gw = GW}, #kvs{mod = kvs_mnesia});
+      _ -> exist
+    end.
 gw_unblock(Pid) ->
     lists:foreach(fun (#gw_block{id = Id}) ->
       kvs:delete(gw_block, Id, #kvs{mod = kvs_mnesia})
@@ -473,7 +477,7 @@ gw_unblock(Pid, GW, Subject) ->
 subscribe(Pid, Topic) ->
     case kvs:index_match(#subscription{id = '_', who = Pid, topic = Topic}, who, #kvs{mod = kvs_mnesia}) of
       [] -> kvs:put(#subscription{id = kvs:seq([], []), who = Pid, topic = Topic}, #kvs{mod = kvs_mnesia});
-      _ -> exists
+      _ -> exist
     end.
 
 unsubscribe(Pid, Topic) ->
