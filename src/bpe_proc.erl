@@ -129,7 +129,7 @@ handle_call({set, State}, _, Proc) ->
     {reply, Proc, State};
 handle_call({persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
-    {stop, normal, State, State};
+    {reply, State, State};
 handle_call({next}, _, #process{} = Proc) ->
     try bpe:processFlow(Proc) catch
         _X:_Y:Z -> {stop, {error, 'next/1', Z}, {error, 'next/1', Z}, Proc}
@@ -273,6 +273,7 @@ handle_continue([], #process{} = Proc) ->
     {noreply, Proc}.
 
 init(Process) ->
+    process_flag(trap_exit, true),
     Proc = bpe:load(Process#process.id, Process),
     logger:notice("BPE: ~ts spawned as ~p",
                   [Proc#process.id, self()]),
@@ -315,7 +316,7 @@ handle_info({timer, ping},
       end
     end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
     case application:get_env(bpe, ping_discipline, bpe_ping) of
-      undefined -> {stop, normal, State};
+      undefined -> {noreply, State};
       M -> M:ping(State)
     end;
 
