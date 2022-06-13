@@ -195,7 +195,7 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
             add_sched(Proc, 1, [first_flow(Proc)]);
         _ -> skip
     end,
-    Restart = temporary,
+    Restart = transient,
     Shutdown = ?SHUTDOWN_TIMEOUT,
     ChildSpec = {Id,
                  {bpe_proc, start_link, [Proc]},
@@ -203,16 +203,10 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
                  Shutdown,
                  worker,
                  [bpe_proc]},
-    try gen_server:stop(pid(Id), normal, ?TIMEOUT) catch
-      _X:_Y:_Z -> ok
-    end,
     case supervisor:start_child(bpe_otp, ChildSpec) of
-        {ok, _} ->
-            mon_link(Monitor, Proc, ProcRec),
-            {ok, Id};
-        {ok, _, _} ->
-            mon_link(Monitor, Proc, ProcRec),
-            {ok, Id};
+        {ok, _} -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
+        {ok, _, _} -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
+        {error, already_present} -> supervisor:restart_child(bpe_otp, Id), {ok, Id};
         {error, Reason} -> {error, Reason}
     end.
 
