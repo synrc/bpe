@@ -176,7 +176,8 @@
                         parent  = [] :: [] | integer(),
                         children    = [] :: [] | list() }).
 
--record(continue,  {    fn = [] :: atom(),
+-record(continue,  {    id = [] :: list() | binary(),
+                        fn = [] :: atom(),
                         args = [] :: [] | list(),
                         module = [] :: [] | atom(),
                         type = bpe :: atom() }).
@@ -188,6 +189,10 @@
                         continue  = [] :: term(),
                         opt       = [] :: term(),
                         executed  = [] :: list(#executor{}) }).
+
+-record(terminateLock,  { id        = [] :: list() | binary(),
+                          limit     = 50 :: integer(),
+                          counter   = 0  :: integer() }).
 
 -record('Next', { id=[]   :: [] | binary() }).
 -record('Proc', { id=[]   :: [] | binary() }).

@@ -92,154 +92,170 @@ process_task(Stage, Proc, NoFlow) ->
             {Status, {Reason, Target}, ProcState}
     end.
 
-convert_api_args(proc, [_ProcId]) -> {get};
-convert_api_args(update, [_ProcId, State]) -> {set, State};
-convert_api_args(assign, [_ProcId]) -> {ensure_mon};
-convert_api_args(Fn, [_ | Args]) ->
-  list_to_tuple([Fn | Args]).
+convert_api_args(proc, [Id, _ProcId]) -> {Id, get};
+convert_api_args(update, [Id, _ProcId, State]) -> {Id, set, State};
+convert_api_args(assign, [Id, _ProcId]) -> {Id, ensure_mon};
+convert_api_args(Fn, [Id, _ | Args]) ->
+  list_to_tuple([Id, Fn | Args]).
 
-handleContinue({noreply, State}, Continue) ->
-  {noreply, State, {continue, lists:flatten(Continue)}};
-handleContinue({reply, Reply, State, {continue, C}}, Continue) ->
-  {reply, Reply, State, {continue, lists:flatten(Continue) ++ C}};
-handleContinue({reply, Reply, State, _}, Continue) ->
-  {reply, Reply, State, {continue, lists:flatten(Continue)}};
-handleContinue({noreply, State, {continue, C}}, Continue) ->
-  {noreply, State, {continue, lists:flatten(Continue) ++ C}};
-handleContinue({noreply, State, _}, Continue) ->
-  {noreply, State, {continue, lists:flatten(Continue)}};
-handleContinue({reply, Reply, State}, Continue) ->
-  {reply, Reply, State, {continue, lists:flatten(Continue)}};
-handleContinue({stop, _, State}, Continue) ->
-  {noreply, State, {continue, lists:flatten(Continue) ++ [#continue{type=stop}]}};
-handleContinue({stop, _, Reply, State}, Continue) ->
-  {reply, Reply, State, {continue, lists:flatten(Continue) ++ [#continue{type=stop}]}};
-handleContinue(X, _) -> X.
+continueId([#continue{} | _] = X, Id) ->
+  lists:map(fun (C) -> C#continue{id = Id} end, X);
+continueId(_, _) -> [].
+
+terminate_check(Id, X, #process{id = Pid} = DefState) ->
+  terminate_check(Id, X, bpe:cache(terminateLocks, {terminateLock, Pid}), DefState).
+terminate_check(Id, X, #terminateLock{id = I}, #process{id = Pid}) when Id == I ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
+  X;
+terminate_check(_, X, #terminateLock{limit = L, counter = C}, DefState) when C >= L ->
+  {stop, normal, DefState};
+terminate_check(_, {stop, normal, S}, #terminateLock{}, _) ->
+  {noreply, S};
+terminate_check(_, {stop, normal, Reply, S}, #terminateLock{}, _) ->
+  {reply, Reply, S};
+terminate_check(_, X, _, _) -> X.
+
+handleContinue({noreply, State}, Continue, Id) ->
+  {noreply, State, {continue, continueId(lists:flatten(Continue), Id)}};
+handleContinue({reply, Reply, State, {continue, C}}, Continue, Id) ->
+  {reply, Reply, State, {continue, continueId(lists:flatten(Continue) ++ C, Id)}};
+handleContinue({reply, Reply, State, _}, Continue, Id) ->
+  {reply, Reply, State, {continue, continueId(lists:flatten(Continue), Id)}};
+handleContinue({noreply, State, {continue, C}}, Continue, Id) ->
+  {noreply, State, {continue, continueId(lists:flatten(Continue) ++ C, Id)}};
+handleContinue({noreply, State, _}, Continue, Id) ->
+  {noreply, State, {continue, continueId(lists:flatten(Continue), Id)}};
+handleContinue({reply, Reply, State}, Continue, Id) ->
+  {reply, Reply, State, {continue, continueId(lists:flatten(Continue), Id)}};
+handleContinue({stop, _, State}, Continue, Id) ->
+  {noreply, State, {continue, continueId(lists:flatten(Continue) ++ [#continue{type=stop}], Id)}};
+handleContinue({stop, _, Reply, State}, Continue, Id) ->
+  {reply, Reply, State, {continue, continueId(lists:flatten(Continue) ++ [#continue{type=stop}], Id)}};
+handleContinue(X, _, _) -> X.
 
 
 % BPMN 2.0 Инфотех
-handle_call({mon_link, MID}, _, Proc) ->
+handle_call({_, mon_link, MID}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
     {reply, ProcNew, ProcNew};
-handle_call({ensure_mon}, _, Proc) ->
+handle_call({Id, ensure_mon}, _, Proc) ->
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
-    {stop, normal, Mon, ProcNew};
-handle_call({get}, _, Proc) -> {stop, normal, Proc, Proc};
-handle_call({set, State}, _, Proc) ->
+    terminate_check(Id, {stop, normal, Mon, ProcNew}, Proc);
+handle_call({Id, get}, _, Proc) -> terminate_check(Id, {stop, normal, Proc, Proc}, Proc);
+handle_call({_, set, State}, _, Proc) ->
     {reply, Proc, State};
-handle_call({persist, State}, _, #process{} = _Proc) ->
+handle_call({_, persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
     {reply, State, State};
-handle_call({next}, _, #process{} = Proc) ->
-    try bpe:processFlow(Proc) catch
+handle_call({Id, next}, _, #process{} = Proc) ->
+    try terminate_check(Id, bpe:processFlow(Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'next/1', Z}, {error, 'next/1', Z}, Proc}
     end;
-handle_call({next, [#continue{} | _] = Continue}, _, #process{} = Proc) ->
-    try handleContinue(bpe:processFlow(Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'next/1', Z}, Proc, {continue, Continue}}
+handle_call({Id, next, [#continue{} | _] = Continue}, _, #process{} = Proc) ->
+    try handleContinue(bpe:processFlow(Proc), Continue, Id) catch
+        _X:_Y:Z -> {stop, {error, 'next/1', Z}, {error, 'next/1'}, Proc}
     end;
-handle_call({next, Stage}, _, Proc) ->
-    try bpe:processFlow(Stage, Proc) catch
+handle_call({Id, next, Stage}, _, Proc) ->
+    try terminate_check(Id, bpe:processFlow(Stage, Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'next/2', Z}, {error, 'next/2', Z}, Proc}
     end;
-handle_call({amend, Form}, _, Proc) ->
-    try bpe:processFlow(bpe_env:append(env, Proc, Form))
+handle_call({Id, amend, Form}, _, Proc) ->
+    try terminate_check(Id, bpe:processFlow(bpe_env:append(env, Proc, Form)), Proc)
     catch
         _X:_Y:Z -> {stop, {error, 'amend/2', Z}, {error, 'amend/2', Z}, Proc}
     end;
-handle_call({discard, Form}, _, Proc) ->
-    try bpe:processFlow(bpe_env:remove(env, Proc, Form))
+handle_call({Id, discard, Form}, _, Proc) ->
+    try terminate_check(Id, bpe:processFlow(bpe_env:remove(env, Proc, Form)), Proc)
     catch
         _X:_Y:Z -> {stop, {error, 'amend/2', Z}, {error, 'discard/2', Z}, Proc}
     end;
-handle_call({messageEvent, Event}, _, Proc) ->
-    try process_event(sync, Event, Proc) catch
+handle_call({Id, messageEvent, Event}, _, Proc) ->
+    try terminate_check(Id, process_event(sync, Event, Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'messageEvent/2', Z}, {error, 'messageEvent/2', Z}, Proc}
     end;
-handle_call({messageEvent, Event, [#continue{} | _] = Continue}, _, Proc) ->
-    try handleContinue(process_event(sync, Event, Proc), Continue) catch
+handle_call({Id, messageEvent, Event, [#continue{} | _] = Continue}, _, Proc) ->
+    try handleContinue(process_event(sync, Event, Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'messageEvent/3', Z}, {error, 'messageEvent/3', Z}, Proc}
     end;
 % BPMN 1.0 ПриватБанк
-handle_call({complete}, _, Proc) ->
-    try process_task([], Proc) catch
+handle_call({Id, complete}, _, Proc) ->
+    try terminate_check(Id, process_task([], Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'complete/1', Z}, {error, 'complete/1', Z}, Proc}
     end;
-handle_call({complete, [#continue{} | _] = Continue}, _, Proc) ->
-    try handleContinue(process_task([], Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'complete/2', Z}, Proc, {continue, Continue}}
-    end;
-handle_call({complete, Stage}, _, Proc) ->
-    try process_task(Stage, Proc) catch
+handle_call({Id, complete, [#continue{} | _] = Continue}, _, Proc) ->
+    try handleContinue(process_task([], Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'complete/2', Z}, {error, 'complete/2', Z}, Proc}
     end;
-handle_call({modify, Form, append}, _, Proc) ->
-    try process_task([],
+handle_call({Id, complete, Stage}, _, Proc) ->
+    try terminate_check(Id, process_task(Stage, Proc), Proc) catch
+        _X:_Y:Z -> {stop, {error, 'complete/2', Z}, {error, 'complete/2', Z}, Proc}
+    end;
+handle_call({Id, modify, Form, append}, _, Proc) ->
+    try terminate_check(Id, process_task([],
                      bpe_env:append(env, Proc, Form),
-                     true)
+                     true), Proc)
     catch
         _X:_Y:Z -> {stop, {error, 'append/2', Z}, {error, 'append/2', Z}, Proc}
     end;
-handle_call({modify, Form, remove}, _, Proc) ->
-    try process_task([],
+handle_call({Id, modify, Form, remove}, _, Proc) ->
+    try terminate_check(Id, process_task([],
                      bpe_env:remove(env, Proc, Form),
-                     true)
+                     true), Proc)
     catch
         _X:_Y:Z -> {stop, {error, 'remove/2', Z}, {error, 'remove/2', Z}, Proc}
     end;
 
-handle_call({mon_link, MID, Continue}, _, Proc) ->
+handle_call({Id, mon_link, MID, Continue}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
-    {reply, ProcNew, ProcNew, {continue, Continue}};
-handle_call({ensure_mon, Continue}, _, Proc) ->
+    handleContinue({reply, ProcNew, ProcNew}, Continue, Id);
+handle_call({Id, ensure_mon, Continue}, _, Proc) ->
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
-    {reply, Mon, ProcNew, {continue, Continue}};
-handle_call({set, State, Continue}, _, Proc) ->
-    {reply, Proc, State, {continue, Continue}};
-handle_call({persist, State, Continue}, _, #process{} = _Proc) ->
+    handleContinue({reply, Mon, ProcNew}, Continue, Id);
+handle_call({Id, set, State, Continue}, _, Proc) ->
+    handleContinue({reply, Proc, State}, Continue, Id);
+handle_call({Id, persist, State, Continue}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
-    {reply, State, State, {continue, Continue}};
-handle_call({next, Stage, Continue}, _, Proc) ->
-    try handleContinue(bpe:processFlow(Stage, Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'next/2', Z}, Proc, {continue, Continue}}
+    handleContinue({reply, State, State}, Continue, Id);
+handle_call({Id, next, Stage, Continue}, _, Proc) ->
+    try handleContinue(bpe:processFlow(Stage, Proc), Continue, Id) catch
+        _X:_Y:Z -> {stop, {error, 'next/2', Z}, {error, 'next/2', Z}, Proc}
     end;
-handle_call({amend, Form, Continue}, _, Proc) ->
-    try handleContinue(bpe:processFlow(bpe_env:append(env, Proc, Form)), Continue)
+handle_call({Id, amend, Form, Continue}, _, Proc) ->
+    try handleContinue(bpe:processFlow(bpe_env:append(env, Proc, Form)), Continue, Id)
     catch
-        _X:_Y:Z -> {reply, {error, 'amend/2', Z}, Proc, {continue, Continue}}
+        _X:_Y:Z -> {stop, {error, 'amend/2', Z}, {error, 'amend/2', Z}, Proc}
     end;
-handle_call({discard, Form, Continue}, _, Proc) ->
-    try handleContinue(bpe:processFlow(bpe_env:remove(env, Proc, Form)), Continue)
+handle_call({Id, discard, Form, Continue}, _, Proc) ->
+    try handleContinue(bpe:processFlow(bpe_env:remove(env, Proc, Form)), Continue, Id)
     catch
-        _X:_Y:Z -> {reply, {error, 'discard/2', Z}, Proc, {continue, Continue}}
+        _X:_Y:Z -> {stop, {error, 'discard/2', Z}, {error, 'discard/2', Z}, Proc}
     end;
-handle_call({complete, Stage, Continue}, _, Proc) ->
-    try handleContinue(process_task(Stage, Proc), Continue) catch
-        _X:_Y:Z -> {reply, {error, 'complete/2', Z}, Proc, {continue, Continue}}
+handle_call({Id, complete, Stage, Continue}, _, Proc) ->
+    try handleContinue(process_task(Stage, Proc), Continue, Id) catch
+        _X:_Y:Z -> {stop, {error, 'complete/2', Z}, {error, 'complete/2', Z}, Proc}
     end;
-handle_call({modify, Form, append, Continue}, _, Proc) ->
+handle_call({Id, modify, Form, append, Continue}, _, Proc) ->
     try handleContinue(process_task([],
                      bpe_env:append(env, Proc, Form),
-                     true), Continue)
+                     true), Continue, Id)
     catch
-        _X:_Y:Z -> {reply, {error, 'append/2', Z}, Proc, {continue, Continue}}
+        _X:_Y:Z -> {stop, {error, 'append/2', Z}, {error, 'append/2', Z}, Proc}
     end;
-handle_call({modify, Form, remove, Continue}, _, Proc) ->
+handle_call({Id, modify, Form, remove, Continue}, _, Proc) ->
     try handleContinue(process_task([],
                      bpe_env:remove(env, Proc, Form),
-                     true), Continue)
+                     true), Continue, Id)
     catch
-        _X:_Y:Z -> {reply, {error, 'remove/2', Z}, Proc, {continue, Continue}}
+        _X:_Y:Z -> {stop, {error, 'remove/2', Z}, {error, 'remove/2', Z}, Proc}
     end;
 handle_call(Command, _, Proc) ->
     {stop, unknown, {unknown, Command}, Proc}.
 
-
 handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{} = Proc) ->
   spawn(fun() -> apply(Module, Fn, Args) end),
   {noreply, Proc, {continue, T}};
-handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) ->
-    Result = try handle_call(convert_api_args(Fn, Args), [], Proc)
+handle_continue([#continue{id = Id, type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) ->
+    Result = try handle_call(convert_api_args(Fn, [Id | Args]), [], Proc)
              catch
                _X:_Y:Z -> {stop, {error, Z}, Proc}
              end,
@@ -262,8 +278,8 @@ handle_continue([#continue{type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) 
         {noreply, State, {continue, T ++ [#continue{type=stop}]}};
       X -> X
     end;
-handle_continue([#continue{type=stop}], #process{} = Proc) ->
-    {stop, normal, Proc};
+handle_continue([#continue{id=Id, type=stop}], #process{} = Proc) ->
+    terminate_check(Id, {stop, normal, Proc}, Proc);
 handle_continue([#continue{type=stop} = X | T], #process{} = Proc) ->
     case lists:member(#continue{type=stop}, T) of
       true -> {noreply, Proc, {continue, T}};
@@ -279,7 +295,7 @@ init(Process) ->
                   [Proc#process.id, self()]),
     Till = bpe:till(calendar:local_time(),
                     application:get_env(bpe, ttl, 24 * 60 * 60)),
-    bpe:cache({process, Proc#process.id}, self(), Till),
+    bpe:cache(processes, {process, Proc#process.id}, self(), Till),
     [bpe:reg({messageEvent,
               element(1, EventRec),
               Proc#process.id})
@@ -290,16 +306,16 @@ init(Process) ->
                                         self(),
                                         {timer, ping})}}.
 
-handle_cast({asyncEvent, Event}, Proc) ->
-    try process_event(async, Event, Proc) catch
+handle_cast({Id, asyncEvent, Event}, Proc) ->
+    try terminate_check(Id, process_event(async, Event, Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/2', Z}, Proc}
     end;
-handle_cast({asyncEvent, Event, [#continue{} | _] = Continue}, Proc) ->
-    try handleContinue(process_event(async, Event, Proc), Continue) catch
+handle_cast({Id, asyncEvent, Event, [#continue{} | _] = Continue}, Proc) ->
+    try handleContinue(process_event(async, Event, Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/3', Z}, Proc}
     end;
-handle_cast({broadcastEvent, Event}, Proc) ->
-    try process_event(async, Event, Proc) catch
+handle_cast({Id, broadcastEvent, Event}, Proc) ->
+    try terminate_check(Id, process_event(async, Event, Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'broadcastEvent/2', Z}, Proc}
     end;
 
@@ -330,7 +346,8 @@ handle_info({'DOWN',
     logger:notice("BPE: Connection closed, shutting down "
                   "session: ~p.",
                   [Msg]),
-    bpe:cache({process, Id}, undefined),
+    bpe:cache(terminateLocks, {terminateLock, Id}, undefined),
+    bpe:cache(processes, {process, Id}, undefined),
     {stop, normal, State};
 handle_info(Info, State = #process{}) ->
     logger:notice("BPE: Unrecognized info: ~p", [Info]),
@@ -344,7 +361,8 @@ terminate(Reason, #process{id = Id} = Proc) ->
     end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
     logger:notice("BPE: ~ts terminate Reason: ~p",
                   [Id, Reason]),
-    bpe:cache({process, Id}, undefined),
+    bpe:cache(terminateLocks, {terminateLock, Id}, undefined),
+    bpe:cache(processes, {process, Id}, undefined),
     ok.
 
 code_change(_OldVsn, State, _Extra) -> {ok, State}.

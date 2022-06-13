@@ -93,7 +93,7 @@
          flow/2,
          flowId/1]).
 
--export([cache/1, cache/2, cache/3]).
+-export([cache/2, cache/3, cache/4]).
 
 -define(SHUTDOWN_TIMEOUT,
         application:get_env(bpe, shutdown_timeout, 5000)).
@@ -210,6 +210,16 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
         {error, Reason} -> {error, Reason}
     end.
 
+terminateLock(Pid, MsgId) ->
+  Key = {terminateLock, iolist_to_binary([Pid])},
+  Till = bpe:till(calendar:local_time(),
+                  application:get_env(bpe, ttl, 24 * 60 * 60)),
+  case bpe:cache(terminateLocks, Key) of
+    #terminateLock{limit = L, counter = C} ->
+      bpe:cache(terminateLocks, Key, #terminateLock{id = MsgId, limit = L, counter = C + 1}, Till);
+    _ -> bpe:cache(terminateLocks, Key, #terminateLock{id = MsgId, counter = 1}, Till)
+  end.
+
 % monitors
 
 mon_link(Mon, Proc, ProcRec) ->
@@ -225,14 +235,14 @@ mon_link(#monitor{id = MID, parent = PMID} = Monitor, #process{id = ProcId} = Pr
     kvs:append(Monitor, "/bpe/monitors"),
     update_parent_monitor(Monitor),
     MemoProc = case Embedded of
-                   false -> gen_server:call(pid(ProcId), {mon_link, MID});
+                   false -> gen_server:call(pid(ProcId), {kvs:seq([], []), mon_link, MID});
                    true -> Proc
                end,
     kvs:append(MemoProc#process{monitor = MID, parentMonitor = PMID}, "/bpe/proc"),
     kvs:append(ProcRec#procRec{id = ProcId}, Key),
     P = MemoProc#process{monitor = MID, parentMonitor = PMID},
     case Embedded of
-        false -> gen_server:call(pid(ProcId), {set, P}), P;
+        false -> gen_server:call(pid(ProcId), {kvs:seq([], []), set, P}), P;
         true -> P
      end.
 
@@ -245,7 +255,7 @@ update_parent_monitor(#monitor{parent = PMID, creator = C} = X) ->
 
 mon_children(MID) -> kvs:all(key("/bpe/mon/", MID)).
 
-pid(Id) -> bpe:cache({process, iolist_to_binary([Id])}).
+pid(Id) -> bpe:cache(processes, {process, iolist_to_binary([Id])}).
 
 ensure_mon(#process{monitor = [], id = Id} = Proc) ->
     Mon = #monitor{id = id(monitor)},
@@ -259,36 +269,46 @@ ensure_mon(#process{monitor = MID} = Proc) ->
     end.
 
 proc(ProcId) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {get}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, get}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 update(ProcId, State) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {set, State}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, set, State}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 update(ProcId, State, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {set, State, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, set, State, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 persist(ProcId, State) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {persist, State}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, persist, State}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 persist(ProcId, State, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
+    terminateLock(ProcId, Id),
     try gen_server:call(pid(ProcId),
-                    {persist, State, Continue},
+                    {Id, persist, State, Continue},
                     ?TIMEOUT)
     catch
       exit:{normal, _}:_Z -> {exit, normal};
@@ -296,44 +316,56 @@ persist(ProcId, State, Continue) ->
     end.
 
 assign(ProcId) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {ensure_mon}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, ensure_mon}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 assign(ProcId, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {ensure_mon, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, ensure_mon, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 complete(ProcId) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {complete}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, complete}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 complete(ProcId, [#continue{} | _] = Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {complete, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, complete, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end;
 
 complete(ProcId, Stage) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {complete, Stage}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, complete, Stage}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 complete(ProcId, Stage, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
+    terminateLock(ProcId, Id),
     try gen_server:call(pid(ProcId),
-                    {complete, Stage, Continue},
+                    {Id, complete, Stage, Continue},
                     ?TIMEOUT)
     catch
       exit:{normal, _}:_Z -> {exit, normal};
@@ -341,72 +373,92 @@ complete(ProcId, Stage, Continue) ->
     end.
 
 next(ProcId) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {next}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, next}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 next(ProcId, [#continue{} | _] = Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {next, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, next, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end;
 
 next(ProcId, Stage) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {next, Stage}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, next, Stage}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 next(ProcId, Stage, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {next, Stage, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, next, Stage, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 amend(ProcId, Form) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {amend, Form}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, amend, Form}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 amend(ProcId, Form, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {amend, Form, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, amend, Form, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 discard(ProcId, Form) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {discard, Form}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, discard, Form}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 discard(ProcId, Form, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {discard, Form, Continue}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, discard, Form, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 modify(ProcId, Form, Arg) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {modify, Form, Arg}, ?TIMEOUT) catch
+    terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, modify, Form, Arg}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 modify(ProcId, Form, Arg, Continue) ->
+    Id = kvs:seq([], []),
     start(load(ProcId), []),
+    terminateLock(ProcId, Id),
     try gen_server:call(pid(ProcId),
-                    {modify, Form, Arg, Continue},
+                    {Id, modify, Form, Arg, Continue},
                     ?TIMEOUT)
     catch
       exit:{normal, _}:_Z -> {exit, normal};
@@ -414,37 +466,47 @@ modify(ProcId, Form, Arg, Continue) ->
     end.
 
 messageEvent(ProcId, Event) ->
+  Id = kvs:seq([], []),
   start(load(ProcId), []),
-  try gen_server:call(pid(ProcId), {messageEvent, Event}, ?TIMEOUT) catch
+  terminateLock(ProcId, Id),
+  try gen_server:call(pid(ProcId), {Id, messageEvent, Event}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
   end.
 
 messageEvent(ProcId, Event, Continue) ->
+  Id = kvs:seq([], []),
   start(load(ProcId), []),
-    try gen_server:call(pid(ProcId), {messageEvent, Event, Continue}, ?TIMEOUT) catch
+  terminateLock(ProcId, Id),
+    try gen_server:call(pid(ProcId), {Id, messageEvent, Event, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 asyncEvent(ProcId, Event) ->
+  Id = kvs:seq([], []),
   start(load(ProcId), []),
-  try gen_server:cast(pid(ProcId), {asyncEvent, Event}) catch
+  terminateLock(ProcId, Id),
+  try gen_server:cast(pid(ProcId), {Id, asyncEvent, Event}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
   end.
 
 asyncEvent(ProcId, Event, Continue) ->
-  start(load(ProcId), []),
-    try gen_server:cast(pid(ProcId), {asyncEvent, Event, Continue}) catch
+    Id = kvs:seq([], []),
+    start(load(ProcId), []),
+    terminateLock(ProcId, Id),
+    try gen_server:cast(pid(ProcId), {Id, asyncEvent, Event, Continue}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 
 broadcastEvent(Topic, #broadcastEvent{type=immediate} = Ev) ->
   lists:foreach(fun (#subscription{who = Pid}) ->
+    Id = kvs:seq([], []),
     start(load(Pid), []),
-    try gen_server:cast(pid(Pid), {broadcastEvent, Ev#broadcastEvent{id=kvs:seq([], []),topic=Topic}}) catch
+    terminateLock(Pid, Id),
+    try gen_server:cast(pid(Pid), {Id, broadcastEvent, Ev#broadcastEvent{id=kvs:seq([], []),topic=Topic}}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end
@@ -593,18 +655,18 @@ flow(FlowId, _Proc = #process{flows = Flows}) ->
 flowId(#sched{state = Flows, pointer = N}) ->
     lists:nth(N, Flows).
 
-cache(Key, undefined) -> ets:delete(processes, Key);
-cache(Key, Value) ->
-    ets:insert(processes,
+cache(Table, Key, undefined) -> ets:delete(Table, Key);
+cache(Table, Key, Value) ->
+    ets:insert(Table,
                {Key, till(calendar:local_time(), ttl()), Value}),
     Value.
 
-cache(Key, Value, Till) ->
-    ets:insert(processes, {Key, Till, Value}),
+cache(Table, Key, Value, Till) ->
+    ets:insert(Table, {Key, Till, Value}),
     Value.
 
-cache(Key) ->
-    Res = ets:lookup(processes, Key),
+cache(Table, Key) ->
+    Res = ets:lookup(Table, Key),
     Val = case Res of
               [] -> undefined;
               [Value] -> Value;
@@ -616,7 +678,7 @@ cache(Key) ->
         {_, Expire, X} ->
             case Expire < calendar:local_time() of
                 true ->
-                    ets:delete(processes, Key),
+                    ets:delete(Table, Key),
                     undefined;
                 false -> X
             end

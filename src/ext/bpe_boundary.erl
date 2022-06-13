@@ -37,5 +37,5 @@ ping(State=#process{timer=Timer,id=Id,events=Events,notifications=Pid}) ->
             case is_pid(Pid) of
                 true -> Pid ! {direct,{bpe,terminate,{Name,{Days,Pattern}}}};
                 false -> skip end,
-            bpe:cache({process,Id},undefined),
+            bpe:cache(processes, {process,Id},undefined),
             {stop,normal,State} end.
