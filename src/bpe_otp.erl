@@ -34,7 +34,7 @@ start(_, _) ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    [ets:new(T, opt()) || T <- [processes]],
+    [ets:new(T, opt()) || T <- [processes, terminateLocks]],
     {ok, {{one_for_one, 5, 10}, []}}.
 
 worker(#process{id = Id} = P) ->
