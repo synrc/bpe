@@ -143,10 +143,10 @@ handle_call({Id, ensure_mon}, _, Proc) ->
     terminate_check(Id, {stop, normal, Mon, ProcNew}, Proc);
 handle_call({Id, get}, _, Proc) -> terminate_check(Id, {stop, normal, Proc, Proc}, Proc);
 handle_call({_, set, State}, _, Proc) ->
-    {reply, Proc, State};
+    {stop, normal, Proc, State};
 handle_call({_, persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
-    {reply, State, State};
+    {stop, normal, State, State};
 handle_call({Id, next}, _, #process{} = Proc) ->
     try terminate_check(Id, bpe:processFlow(Proc), Proc) catch
         _X:_Y:Z -> {stop, {error, 'next/1', Z}, {error, 'next/1', Z}, Proc}
@@ -207,15 +207,15 @@ handle_call({Id, modify, Form, remove}, _, Proc) ->
 
 handle_call({Id, mon_link, MID, Continue}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
-    handleContinue({reply, ProcNew, ProcNew}, Continue, Id);
+    handleContinue({stop, normal, ProcNew, ProcNew}, Continue, Id);
 handle_call({Id, ensure_mon, Continue}, _, Proc) ->
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
-    handleContinue({reply, Mon, ProcNew}, Continue, Id);
+    handleContinue({stop, normal, Mon, ProcNew}, Continue, Id);
 handle_call({Id, set, State, Continue}, _, Proc) ->
-    handleContinue({reply, Proc, State}, Continue, Id);
+    handleContinue({stop, normal, Proc, State}, Continue, Id);
 handle_call({Id, persist, State, Continue}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
-    handleContinue({reply, State, State}, Continue, Id);
+    handleContinue({stop, normal, State, State}, Continue, Id);
 handle_call({Id, next, Stage, Continue}, _, Proc) ->
     try handleContinue(bpe:processFlow(Stage, Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'next/2', Z}, {error, 'next/2', Z}, Proc}

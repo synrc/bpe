@@ -235,14 +235,20 @@ mon_link(#monitor{id = MID, parent = PMID} = Monitor, #process{id = ProcId} = Pr
     kvs:append(Monitor, "/bpe/monitors"),
     update_parent_monitor(Monitor),
     MemoProc = case Embedded of
-                   false -> gen_server:call(pid(ProcId), {kvs:seq([], []), mon_link, MID});
+                   false ->
+                     MsgId1 = kvs:seq([], []),
+                     terminateLock(ProcId, MsgId1),
+                     gen_server:call(pid(ProcId), {MsgId1, mon_link, MID});
                    true -> Proc
                end,
     kvs:append(MemoProc#process{monitor = MID, parentMonitor = PMID}, "/bpe/proc"),
     kvs:append(ProcRec#procRec{id = ProcId}, Key),
     P = MemoProc#process{monitor = MID, parentMonitor = PMID},
     case Embedded of
-        false -> gen_server:call(pid(ProcId), {kvs:seq([], []), set, P}), P;
+        false ->
+          MsgId2 = kvs:seq([], []),
+          terminateLock(ProcId, MsgId2),
+          gen_server:call(pid(ProcId), {MsgId2, set, P}), P;
         true -> P
      end.
 
