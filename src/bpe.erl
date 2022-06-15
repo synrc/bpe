@@ -276,8 +276,8 @@ ensure_mon(#process{monitor = MID} = Proc) ->
 
 proc(ProcId) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, get}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -285,8 +285,8 @@ proc(ProcId) ->
 
 update(ProcId, State) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, set, State}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -294,16 +294,16 @@ update(ProcId, State) ->
 
 update(ProcId, State, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, set, State, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
     end.
 persist(ProcId, State) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, persist, State}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -311,8 +311,8 @@ persist(ProcId, State) ->
 
 persist(ProcId, State, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId),
                     {Id, persist, State, Continue},
                     ?TIMEOUT)
@@ -323,8 +323,8 @@ persist(ProcId, State, Continue) ->
 
 assign(ProcId) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, ensure_mon}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -332,8 +332,8 @@ assign(ProcId) ->
 
 assign(ProcId, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, ensure_mon, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -341,8 +341,8 @@ assign(ProcId, Continue) ->
 
 complete(ProcId) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, complete}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -350,8 +350,8 @@ complete(ProcId) ->
 
 complete(ProcId, [#continue{} | _] = Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, complete, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -359,8 +359,8 @@ complete(ProcId, [#continue{} | _] = Continue) ->
 
 complete(ProcId, Stage) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, complete, Stage}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -368,8 +368,8 @@ complete(ProcId, Stage) ->
 
 complete(ProcId, Stage, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId),
                     {Id, complete, Stage, Continue},
                     ?TIMEOUT)
@@ -380,8 +380,8 @@ complete(ProcId, Stage, Continue) ->
 
 next(ProcId) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, next}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -389,8 +389,8 @@ next(ProcId) ->
 
 next(ProcId, [#continue{} | _] = Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, next, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -398,8 +398,8 @@ next(ProcId, [#continue{} | _] = Continue) ->
 
 next(ProcId, Stage) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, next, Stage}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -407,8 +407,8 @@ next(ProcId, Stage) ->
 
 next(ProcId, Stage, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, next, Stage, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -416,8 +416,8 @@ next(ProcId, Stage, Continue) ->
 
 amend(ProcId, Form) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, amend, Form}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -425,8 +425,8 @@ amend(ProcId, Form) ->
 
 amend(ProcId, Form, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, amend, Form, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -434,8 +434,8 @@ amend(ProcId, Form, Continue) ->
 
 discard(ProcId, Form) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, discard, Form}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -443,8 +443,8 @@ discard(ProcId, Form) ->
 
 discard(ProcId, Form, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, discard, Form, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -452,8 +452,8 @@ discard(ProcId, Form, Continue) ->
 
 modify(ProcId, Form, Arg) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, modify, Form, Arg}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -461,8 +461,8 @@ modify(ProcId, Form, Arg) ->
 
 modify(ProcId, Form, Arg, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:call(pid(ProcId),
                     {Id, modify, Form, Arg, Continue},
                     ?TIMEOUT)
@@ -473,8 +473,11 @@ modify(ProcId, Form, Arg, Continue) ->
 
 messageEvent(ProcId, Event) ->
   Id = kvs:seq([], []),
-  start(load(ProcId), []),
+  logger:notice("MESSAGE EVENT 1 ~tp ~tp ~tp", [ProcId, Id, Event]),
   terminateLock(ProcId, Id),
+  logger:notice("MESSAGE EVENT 2 ~tp ~tp ~tp", [ProcId, Id, Event]),
+  start(load(ProcId), []),
+  logger:notice("MESSAGE EVENT 3 ~tp ~tp ~tp", [ProcId, Id, Event]),
   try gen_server:call(pid(ProcId), {Id, messageEvent, Event}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -482,8 +485,8 @@ messageEvent(ProcId, Event) ->
 
 messageEvent(ProcId, Event, Continue) ->
   Id = kvs:seq([], []),
-  start(load(ProcId), []),
   terminateLock(ProcId, Id),
+  start(load(ProcId), []),
     try gen_server:call(pid(ProcId), {Id, messageEvent, Event, Continue}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -491,8 +494,8 @@ messageEvent(ProcId, Event, Continue) ->
 
 asyncEvent(ProcId, Event) ->
   Id = kvs:seq([], []),
-  start(load(ProcId), []),
   terminateLock(ProcId, Id),
+  start(load(ProcId), []),
   try gen_server:cast(pid(ProcId), {Id, asyncEvent, Event}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -500,8 +503,8 @@ asyncEvent(ProcId, Event) ->
 
 asyncEvent(ProcId, Event, Continue) ->
     Id = kvs:seq([], []),
-    start(load(ProcId), []),
     terminateLock(ProcId, Id),
+    start(load(ProcId), []),
     try gen_server:cast(pid(ProcId), {Id, asyncEvent, Event, Continue}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
@@ -510,8 +513,8 @@ asyncEvent(ProcId, Event, Continue) ->
 broadcastEvent(Topic, #broadcastEvent{type=immediate} = Ev) ->
   lists:foreach(fun (#subscription{who = Pid}) ->
     Id = kvs:seq([], []),
-    start(load(Pid), []),
     terminateLock(Pid, Id),
+    start(load(Pid), []),
     try gen_server:cast(pid(Pid), {Id, broadcastEvent, Ev#broadcastEvent{id=kvs:seq([], []),topic=Topic}}) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
