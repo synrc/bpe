@@ -203,6 +203,10 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
                  Shutdown,
                  worker,
                  [bpe_proc]},
+    case is_pid(pid(Id)) of
+      false -> supervisor:terminate_child(bpe_otp, Id);
+      _ -> []
+    end,
     case supervisor:start_child(bpe_otp, ChildSpec) of
         {ok, _} -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
         {ok, _, _} -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
@@ -473,11 +477,8 @@ modify(ProcId, Form, Arg, Continue) ->
 
 messageEvent(ProcId, Event) ->
   Id = kvs:seq([], []),
-  logger:notice("MESSAGE EVENT 1 ~tp ~tp ~tp", [ProcId, Id, Event]),
   terminateLock(ProcId, Id),
-  logger:notice("MESSAGE EVENT 2 ~tp ~tp ~tp", [ProcId, Id, Event]),
   start(load(ProcId), []),
-  logger:notice("MESSAGE EVENT 3 ~tp ~tp ~tp", [ProcId, Id, Event]),
   try gen_server:call(pid(ProcId), {Id, messageEvent, Event}, ?TIMEOUT) catch
       exit:{normal, _}:_Z -> {exit, normal};
       _X:_Y:Z -> {error, Z}
