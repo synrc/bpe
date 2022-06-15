@@ -104,11 +104,15 @@ continueId(_, _) -> [].
 
 terminate_check(Id, X, #process{id = Pid} = DefState) ->
   terminate_check(Id, X, bpe:cache(terminateLocks, {terminateLock, Pid}), DefState).
+terminate_check(_, X, #terminateLock{limit = L, counter = C}, DefState) when C >= L ->
+  {stop, normal, DefState};
+terminate_check(Id, {reply, _, _, {continue, _}} = X, #terminateLock{id = I}, _) when Id == I ->
+  X;
+terminate_check(Id, {noreply, _, {continue, _}} = X, #terminateLock{id = I}, _) when Id == I ->
+  X;
 terminate_check(Id, X, #terminateLock{id = I}, #process{id = Pid}) when Id == I ->
   bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
   X;
-terminate_check(_, X, #terminateLock{limit = L, counter = C}, DefState) when C >= L ->
-  {stop, normal, DefState};
 terminate_check(_, {stop, normal, S}, #terminateLock{}, _) ->
   {noreply, S};
 terminate_check(_, {stop, normal, Reply, S}, #terminateLock{}, _) ->
@@ -170,9 +174,16 @@ handle_call({Id, discard, Form}, _, Proc) ->
         _X:_Y:Z -> {stop, {error, 'amend/2', Z}, {error, 'discard/2', Z}, Proc}
     end;
 handle_call({Id, messageEvent, Event}, _, Proc) ->
-    try terminate_check(Id, process_event(sync, Event, Proc), Proc) catch
+    logger:notice("HANDLE CALL MESSAGE EVENT 0: ~tp ~tp", [Proc#process.id, Id]),
+    X1 = process_event(sync, Event, Proc),
+    logger:notice("HANDLE CALL MESSAGE EVENT 1: ~tp ~tp ~tp", [Proc#process.id, Id, X1]),
+    X2 = handleContinue(X1, [], Id),
+    logger:notice("HANDLE CALL MESSAGE EVENT 2: ~tp ~tp ~tp", [Proc#process.id, Id, X2]),
+    X = try terminate_check(Id, X2, Proc) catch
         _X:_Y:Z -> {stop, {error, 'messageEvent/2', Z}, {error, 'messageEvent/2', Z}, Proc}
-    end;
+    end,
+    logger:notice("HANDLE CALL MESSAGE EVENT 3: ~tp ~tp ~tp", [Proc#process.id, Id, X]),
+    X;
 handle_call({Id, messageEvent, Event, [#continue{} | _] = Continue}, _, Proc) ->
     try handleContinue(process_event(sync, Event, Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'messageEvent/3', Z}, {error, 'messageEvent/3', Z}, Proc}
@@ -251,41 +262,51 @@ handle_call({Id, modify, Form, remove, Continue}, _, Proc) ->
 handle_call(Command, _, Proc) ->
     {stop, unknown, {unknown, Command}, Proc}.
 
-handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{} = Proc) ->
+handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], #process{id = Pid} = Proc) ->
+  logger:notice("HANDLE CONTINUE 6 ~tp ~tp", [Pid, bpe:cache(terminateLocks, {terminateLock, Pid})]),
   spawn(fun() -> apply(Module, Fn, Args) end),
   {noreply, Proc, {continue, T}};
-handle_continue([#continue{id = Id, type=bpe, fn=Fn, args=Args} | T], #process{} = Proc) ->
+handle_continue([#continue{id = Id, type=bpe, fn=Fn, args=Args} | T], #process{id = Pid} = Proc) ->
+    logger:notice("HANDLE CONTINUE 1 ~tp ~tp ~tp", [Id, Pid, convert_api_args(Fn, [Id | Args])]),
     Result = try handle_call(convert_api_args(Fn, [Id | Args]), [], Proc)
              catch
                _X:_Y:Z -> {stop, {error, Z}, Proc}
              end,
-    case Result of
+    logger:notice("HANDLE CONTINUE 2 ~tp ~tp ~tp", [Id, Pid, Result]),
+    R = case Result of
       {noreply, State} ->
         {noreply, State, {continue, T}};
       {reply, _, State, {continue, C}} ->
-        {noreply, State, {continue, T ++ C}};
+        {noreply, State, {continue, T ++ continueId(C, Id)}};
       {reply, _, State, _} ->
         {noreply, State, {continue, T}};
       {noreply, State, {continue, C}} ->
-        {noreply, State, {continue, T ++ C}};
+        {noreply, State, {continue, T ++ continueId(C, Id)}};
       {noreply, State, _} ->
         {noreply, State, {continue, T}};
       {reply, _, State} ->
         {noreply, State, {continue, T}};
       {stop, _, State} ->
-        {noreply, State, {continue, T ++ [#continue{type=stop}]}};
+        {noreply, State, {continue, T ++ [#continue{id = Id, type=stop}]}};
       {stop, _, _, State} ->
-        {noreply, State, {continue, T ++ [#continue{type=stop}]}};
+        {noreply, State, {continue, T ++ [#continue{id = Id, type=stop}]}};
       X -> X
-    end;
-handle_continue([#continue{id=Id, type=stop}], #process{} = Proc) ->
-    terminate_check(Id, {stop, normal, Proc}, Proc);
-handle_continue([#continue{type=stop} = X | T], #process{} = Proc) ->
-    case lists:member(#continue{type=stop}, T) of
+    end,
+    logger:notice("HANDLE CONTINUE 3 ~tp ~tp ~tp", [Id, Pid, setelement(2, R, [])]),
+    R;
+handle_continue([#continue{id=Id, type=stop}], #process{id = Pid} = Proc) ->
+    logger:notice("HANDLE CONTINUE STOP 1 ~tp ~tp ~tp", [Id, Pid, bpe:cache(terminateLocks, {terminateLock, Pid})]),
+    X = terminate_check(Id, {stop, normal, Proc}, Proc),
+    logger:notice("HANDLE CONTINUE STOP 2 ~tp ~tp ~tp ~tp", [Id, Pid, bpe:cache(terminateLocks, {terminateLock, Pid}), X]),
+    X;
+handle_continue([#continue{type=stop} = X | T], #process{id = Pid} = Proc) ->
+    logger:notice("HANDLE CONTINUE 4 ~tp ~tp ~tp", [Pid, bpe:cache(terminateLocks, {terminateLock, Pid}), T]),
+    case lists:filter(fun (#continue{type=Type}) -> Type == stop end, T) =/= [] of
       true -> {noreply, Proc, {continue, T}};
       _ -> {noreply, Proc, {continue, T ++ [X]}}
     end;
-handle_continue([], #process{} = Proc) ->
+handle_continue([], #process{id = Pid} = Proc) ->
+    logger:notice("HANDLE CONTINUE 5 ~tp ~tp", [Pid, bpe:cache(terminateLocks, {terminateLock, Pid})]),
     {noreply, Proc}.
 
 init(Process) ->
@@ -346,9 +367,10 @@ handle_info({'DOWN',
     logger:notice("BPE: Connection closed, shutting down "
                   "session: ~p.",
                   [Msg]),
-    bpe:cache(terminateLocks, {terminateLock, Id}, undefined),
-    bpe:cache(processes, {process, Id}, undefined),
-    {stop, normal, State};
+    terminate_check(kvs:seq([], []), {stop, normal, State}, State);
+handle_info({'EXIT', _, Reason} = Msg, State = #process{id = Id}) ->
+    logger:notice("BPE EXIT: ~p.", [Msg]),
+    terminate_check(kvs:seq([], []), {stop, Reason, State}, State);
 handle_info(Info, State = #process{}) ->
     logger:notice("BPE: Unrecognized info: ~p", [Info]),
     {stop, unknown_info, State}.
