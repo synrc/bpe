@@ -42,7 +42,8 @@ process_event(EventType, Event, #process{id=Pid, module=Module} = Proc) ->
   Name = kvs:field(Event, name),
   #result{type=T, state = NewProc} = Res =
     case Module:action(Event, Proc) of
-      #result{} = R when EventType == async -> R#result{type = noreply, reply = []};
+      #result{type = reply} = R when EventType == async -> R#result{type = noreply, reply = []};
+      #result{} = R when EventType == async -> R#result{reply = []};
       R -> R
     end,
   debug(Proc, atom_to_list(element(1, Event)), "", Name, T, ""),
