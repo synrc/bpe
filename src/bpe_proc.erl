@@ -103,35 +103,23 @@ continueId([#continue{} | _] = X, Id) ->
   lists:map(fun (C) -> C#continue{id = Id} end, X);
 continueId(_, _) -> [].
 
+delete_lock(Id, #terminateLock{messages = M} = L, Pid) ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, L#terminateLock{messages = lists:filter(fun(X) -> X =/= Id end, M)}).
+
 terminate_check(Id, X, #process{id = Pid} = DefState) ->
   terminate_check(Id, X, bpe:cache(terminateLocks, {terminateLock, Pid}), DefState).
 terminate_check(_, _, #terminateLock{limit = L, counter = C}, #process{id = Pid} = DefState) when C >= L ->
-  bpe:cache(terminateLocks, {terminate, Pid}, true),
-  {stop, normal, DefState};
-terminate_check(Id, {stop, _, _} = X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
-  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
-  bpe:cache(terminateLocks, {terminate, Pid}, true),
-  X;
-terminate_check(Id, {stop, _, _, _} = X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
-  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
-  bpe:cache(terminateLocks, {terminate, Pid}, true),
-  X;
+  bpe:cache(terminateLocks, {terminate, Pid}, true), {stop, normal, DefState};
 terminate_check(Id, X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
   bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
+  bpe:cache(terminateLocks, {terminate, Pid}, erlang:element(1, X) == stop),
   X;
-terminate_check(Id, {stop, normal, S}, #terminateLock{messages = M} = L, #process{id = Pid}) ->
-  bpe:cache(terminateLocks, {terminateLock, Pid}, L#terminateLock{messages = lists:filter(fun(X) -> X =/= Id end, M)}),
-  {noreply, S};
-terminate_check(Id, {stop, normal, Reply, S}, #terminateLock{messages = M} = L, #process{id = Pid}) ->
-  bpe:cache(terminateLocks, {terminateLock, Pid}, L#terminateLock{messages = lists:filter(fun(X) -> X =/= Id end, M)}),
-  {reply, Reply, S};
-terminate_check(_, {stop, _, _} = X, _, #process{id = Pid}) ->
-  bpe:cache(terminateLocks, {terminate, Pid}, true),
-  X;
-terminate_check(_, {stop, _, _, _} = X, _, #process{id = Pid}) ->
-  bpe:cache(terminateLocks, {terminate, Pid}, true),
-  X;
-terminate_check(_, X, _, _) -> X.
+terminate_check(Id, {stop, normal, S}, #terminateLock{} = L, #process{id = Pid}) ->
+  delete_lock(Id, L, Pid), {noreply, S};
+terminate_check(Id, {stop, normal, Reply, S}, #terminateLock{} = L, #process{id = Pid}) ->
+  delete_lock(Id, L, Pid), {reply, Reply, S};
+terminate_check(_, X, _, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminate, Pid}, erlang:element(1, X) == stop), X.
 
 handleContinue({noreply, State}, Continue, Id) ->
   {noreply, State, {continue, continueId(lists:flatten(Continue), Id)}};
