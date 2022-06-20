@@ -313,10 +313,9 @@ init(Process) ->
                                         {timer, ping})}}.
 
 handle_cast({Id, asyncEvent, Event}, Proc) ->
-    X = try terminate_check(Id, handleContinue(process_event(async, Event, Proc), [], Id), Proc) catch
+    try terminate_check(Id, handleContinue(process_event(async, Event, Proc), [], Id), Proc) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/2', Z}, Proc}
-    end,
-    X;
+    end;
 handle_cast({Id, asyncEvent, Event, [#continue{} | _] = Continue}, Proc) ->
     try handleContinue(process_event(async, Event, Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/3', Z}, Proc}
