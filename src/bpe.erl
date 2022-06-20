@@ -203,8 +203,8 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
                  Shutdown,
                  worker,
                  [bpe_proc]},
-    case is_pid(pid(Id)) of
-      false -> supervisor:terminate_child(bpe_otp, Id);
+    case bpe:cache(terminateLocks, {terminate, Id}) of
+      true -> supervisor:terminate_child(bpe_otp, Id);
       _ -> []
     end,
     case supervisor:start_child(bpe_otp, ChildSpec) of
@@ -216,12 +216,10 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
 
 terminateLock(Pid, MsgId) ->
   Key = {terminateLock, iolist_to_binary([Pid])},
-  Till = bpe:till(calendar:local_time(),
-                  application:get_env(bpe, ttl, 24 * 60 * 60)),
   case bpe:cache(terminateLocks, Key) of
-    #terminateLock{limit = L, counter = C} ->
-      bpe:cache(terminateLocks, Key, #terminateLock{id = MsgId, limit = L, counter = C + 1}, Till);
-    _ -> bpe:cache(terminateLocks, Key, #terminateLock{id = MsgId, counter = 1}, Till)
+    #terminateLock{messages = T, counter = C} = X ->
+      bpe:cache(terminateLocks, Key, X#terminateLock{messages = [MsgId | T], counter = C + 1});
+    _ -> bpe:cache(terminateLocks, Key, #terminateLock{messages = [MsgId], counter = 1})
   end.
 
 % monitors

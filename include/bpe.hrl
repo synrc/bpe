@@ -190,7 +190,7 @@
                         opt       = [] :: term(),
                         executed  = [] :: list(#executor{}) }).
 
--record(terminateLock,  { id        = [] :: list() | binary(),
+-record(terminateLock,  { messages        = [] :: list() | binary(),
                           limit     = 50 :: integer(),
                           counter   = 0  :: integer() }).
 

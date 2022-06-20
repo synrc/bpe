@@ -105,14 +105,32 @@ continueId(_, _) -> [].
 
 terminate_check(Id, X, #process{id = Pid} = DefState) ->
   terminate_check(Id, X, bpe:cache(terminateLocks, {terminateLock, Pid}), DefState).
-terminate_check(_, _, #terminateLock{limit = L, counter = C}, DefState) when C >= L ->
+terminate_check(_, _, #terminateLock{limit = L, counter = C}, #process{id = Pid} = DefState) when C >= L ->
+  bpe:cache(terminateLocks, {terminate, Pid}, true),
   {stop, normal, DefState};
-terminate_check(Id, X, #terminateLock{id = I}, _) when Id == I ->
+terminate_check(Id, {stop, _, _} = X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
+  bpe:cache(terminateLocks, {terminate, Pid}, true),
   X;
-terminate_check(_, {stop, normal, S}, #terminateLock{}, _) ->
+terminate_check(Id, {stop, _, _, _} = X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
+  bpe:cache(terminateLocks, {terminate, Pid}, true),
+  X;
+terminate_check(Id, X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
+  X;
+terminate_check(Id, {stop, normal, S}, #terminateLock{messages = M} = L, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, L#terminateLock{messages = lists:filter(fun(X) -> X =/= Id end, M)}),
   {noreply, S};
-terminate_check(_, {stop, normal, Reply, S}, #terminateLock{}, _) ->
+terminate_check(Id, {stop, normal, Reply, S}, #terminateLock{messages = M} = L, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminateLock, Pid}, L#terminateLock{messages = lists:filter(fun(X) -> X =/= Id end, M)}),
   {reply, Reply, S};
+terminate_check(_, {stop, _, _} = X, _, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminate, Pid}, true),
+  X;
+terminate_check(_, {stop, _, _, _} = X, _, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminate, Pid}, true),
+  X;
 terminate_check(_, X, _, _) -> X.
 
 handleContinue({noreply, State}, Continue, Id) ->
@@ -135,18 +153,18 @@ handleContinue(X, _, _) -> X.
 
 
 % BPMN 2.0 Инфотех
-handle_call({_, mon_link, MID}, _, Proc) ->
+handle_call({Id, mon_link, MID}, _, Proc) ->
     ProcNew = Proc#process{monitor = MID},
-    {reply, ProcNew, ProcNew};
+    terminate_check(Id, {reply, ProcNew, ProcNew}, Proc);
 handle_call({Id, ensure_mon}, _, Proc) ->
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
     terminate_check(Id, {stop, normal, Mon, ProcNew}, Proc);
 handle_call({Id, get}, _, Proc) -> terminate_check(Id, {stop, normal, Proc, Proc}, Proc);
-handle_call({_, set, State}, _, Proc) ->
-    {stop, normal, Proc, State};
-handle_call({_, persist, State}, _, #process{} = _Proc) ->
+handle_call({Id, set, State}, _, Proc) ->
+    terminate_check(Id, {stop, normal, Proc, State}, State);
+handle_call({Id, persist, State}, _, #process{} = _Proc) ->
     kvs:append(State, "/bpe/proc"),
-    {stop, normal, State, State};
+    terminate_check(Id, {stop, normal, State, State}, State);
 handle_call({Id, next}, _, #process{} = Proc) ->
     try terminate_check(Id, handleContinue(bpe:processFlow(Proc), [], Id), Proc) catch
         _X:_Y:Z -> {stop, {error, 'next/1', Z}, {error, 'next/1', Z}, Proc}
@@ -249,7 +267,7 @@ handle_call({Id, modify, Form, remove, Continue}, _, Proc) ->
         _X:_Y:Z -> {stop, {error, 'remove/2', Z}, {error, 'remove/2', Z}, Proc}
     end;
 handle_call(Command, _, Proc) ->
-    {stop, unknown, {unknown, Command}, Proc}.
+    terminate_check(kvs:seq([], []), {stop, unknown, {unknown, Command}, Proc}, Proc).
 
 handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], Proc) ->
   spawn(fun() -> apply(Module, Fn, Args) end),
@@ -307,9 +325,10 @@ init(Process) ->
                                         {timer, ping})}}.
 
 handle_cast({Id, asyncEvent, Event}, Proc) ->
-    try terminate_check(Id, handleContinue(process_event(async, Event, Proc), [], Id), Proc) catch
+    X = try terminate_check(Id, handleContinue(process_event(async, Event, Proc), [], Id), Proc) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/2', Z}, Proc}
-    end;
+    end,
+    X;
 handle_cast({Id, asyncEvent, Event, [#continue{} | _] = Continue}, Proc) ->
     try handleContinue(process_event(async, Event, Proc), Continue, Id) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/3', Z}, Proc}
@@ -321,7 +340,7 @@ handle_cast({Id, broadcastEvent, Event}, Proc) ->
 
 handle_cast(Msg, State) ->
     logger:notice("BPE: Unknown API async: ~p.", [Msg]),
-    {stop, {error, {unknown_cast, Msg}}, State}.
+    terminate_check(kvs:seq([], []), {stop, {error, {unknown_cast, Msg}}, State}, State).
 
 handle_info({timer, ping},
             State = #process{timer = _Timer, id = Id,
@@ -346,7 +365,7 @@ handle_info({'EXIT', _, Reason} = Msg, State) ->
     terminate_check(kvs:seq([], []), {stop, Reason, State}, State);
 handle_info(Info, State = #process{}) ->
     logger:notice("BPE: Unrecognized info: ~p", [Info]),
-    {stop, unknown_info, State}.
+    terminate_check(kvs:seq([], []), {stop, unknown_info, State}, State).
 
 terminate(Reason, #process{id = Id} = Proc) ->
     bpe:cache(processes, {process, Id}, undefined),
@@ -357,6 +376,7 @@ terminate(Reason, #process{id = Id} = Proc) ->
         _X:_Y:Z -> Z
       end
     end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
+    bpe:cache(terminateLocks, {terminate, Id}, undefined),
     ok.
 
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
