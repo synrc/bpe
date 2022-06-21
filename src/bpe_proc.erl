@@ -321,7 +321,7 @@ handle_cast({Id, asyncEvent, Event}, Proc) ->
         _X:_Y:Z -> {stop, {error, 'asyncEvent/2', Z}, Proc}
     end;
 handle_cast({Id, asyncEvent, Event, [#continue{} | _] = Continue}, Proc) ->
-    try handleContinue(process_event(async, Event, Proc), Continue, Id) catch
+    try handle_result(cast, Id, handleContinue(process_event(async, Event, Proc), Continue, Id), Proc) catch
         _X:_Y:Z -> {stop, {error, 'asyncEvent/3', Z}, Proc}
     end;
 handle_cast({Id, broadcastEvent, Event}, Proc) ->
