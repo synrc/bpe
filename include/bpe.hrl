@@ -40,7 +40,8 @@
                         condition=[] :: [] | condition() | binary(),
                         source=[] :: list(),
                         target=[] :: list(integer()) | list(list()),
-                        callbacks = [] :: [] | list(callback()) }).
+                        callbacks = [] :: [] | list(callback()),
+                        expression = [] :: [] | list() }).
 
 -record(beginEvent ,  { ?TASK }).
 -record(endEvent,     { ?TASK }).

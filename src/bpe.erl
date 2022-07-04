@@ -799,8 +799,7 @@ processAuthorized(true, _, Task, Flow,
                            Proc),
     NewExecuted = add_executed(Proc, Executed),
     add_sched(Proc, NewPointer, NewThreads),
-    #process{executors = Executors} = State,
-    NewState = State#process{executors = handleExecutors(Executors)},
+    NewState = State#process{executors = executors(State, Flow)},
     NewResult = Res#result{state = NewState, executed = NewExecuted},
     add_trace(NewState, [], Flow),
     bpe_proc:debug(NewState, Next, Src, Dst, Status, Reason),
@@ -836,6 +835,17 @@ add_executed(#process{id = Id, executors = PrevExecutors}, Executed0) ->
         {ok, #hist{} = Hist} -> kvs:append(Hist#hist{executors = NewExecuted}, Key)
     end,
     Executed.
+
+executors(#process{executors = E} = State, #sequenceFlow{source = S, target = T, expression = {save_executors, Task}}) ->
+  case S == Task orelse T == Task of
+    true -> E;
+    false -> []
+  end;
+executors(#process{module = Module} = State, #sequenceFlow{source = S, target = T}) ->
+  case erlang:function_exported(Module, executors, 2) of
+    true -> handleExecutors(Module:executors({request, S, T}, State));
+    false -> []
+  end.
 
 handleExecutors(Executors) ->
     lists:map(fun (#executor{} = R) -> R#executor{received = #ts{time = calendar:local_time()}} end, Executors).

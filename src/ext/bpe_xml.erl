@@ -123,7 +123,7 @@ parseExpression(#sequenceFlow{callbacks = C} = Flow, [X | T]) when is_tuple(X) -
     case expressionType(X) of
         callback -> parseExpression(Flow#sequenceFlow{callbacks = C ++ [X]}, T);
         condition -> parseExpression(Flow#sequenceFlow{condition = X}, T);
-        _ -> parseExpression(Flow, T)
+        _ -> parseExpression(Flow#sequenceFlow{expression = X}, T)
     end;
 parseExpression(Flow, X) when is_tuple(X) -> parseExpression(Flow, [X]);
 parseExpression(Flow, _) -> Flow.
