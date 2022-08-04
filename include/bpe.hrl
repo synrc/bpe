@@ -152,7 +152,7 @@
                         userStarted   = [] :: term(),
                         userModified  = [] :: term(),
                         userFinished  = [] :: term(),
-                        params        = [] :: term(),
+                        root          = [] :: term(),
                         filters       = [] :: term(),
                         etc           = [] :: term(),
                         flags         = [] :: term(),
