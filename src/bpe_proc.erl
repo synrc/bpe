@@ -93,6 +93,13 @@ process_task(Stage, Proc, NoFlow) ->
             {Status, {Reason, Target}, ProcState}
     end.
 
+behavior_fun_args(handle_call, Req, From, St) -> [Req, From, St];
+behavior_fun_args(_, Req, _, St) -> [Req, St].
+
+behavior_fun(asyncEvent, _) -> handle_cast;
+behavior_fun(broadcastEvent, {_, broadcastEvent, #broadcastEvent{type = immediate}}) -> handle_cast;
+behavior_fun(_, _) -> handle_call.
+
 convert_api_args(proc, [Id, _ProcId]) -> {Id, get};
 convert_api_args(update, [Id, _ProcId, State]) -> {Id, set, State};
 convert_api_args(assign, [Id, _ProcId]) -> {Id, ensure_mon};
@@ -265,7 +272,8 @@ handle_continue([#continue{type=spawn, module=Module, fn=Fn, args=Args} | T], Pr
   spawn(fun() -> apply(Module, Fn, Args) end),
   {noreply, Proc, {continue, T}};
 handle_continue([#continue{id = Id, type=bpe, fn=Fn, args=Args} | T], Proc) ->
-    Result = try handle_call(convert_api_args(Fn, [Id | Args]), [], Proc)
+    BpeArgs = convert_api_args(Fn, [Id | Args]),
+    Result = try apply(bpe_proc, behavior_fun(Fn, BpeArgs), behavior_fun_args(behavior_fun(Fn, BpeArgs), BpeArgs, [], Proc))
              catch
                _X:_Y:Z -> {stop, {error, Z}, Proc}
              end,
