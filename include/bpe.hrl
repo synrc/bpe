@@ -107,7 +107,8 @@
                     received = [] :: [] | #ts{},
                     started  = [] :: [] | #ts{},
                     executed = [] :: [] | #ts{},
-                    status   = [] :: [] | #status{} }).
+                    status   = [] :: [] | #status{},
+                    routing   = [] :: [] | list() }).
 
 -record(hist,         { id        = [] :: [] | #step{},
                         prev      = [] :: [] | integer(),
