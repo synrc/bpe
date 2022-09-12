@@ -108,7 +108,8 @@
                     started  = [] :: [] | #ts{},
                     executed = [] :: [] | #ts{},
                     status   = [] :: [] | #status{},
-                    routing   = [] :: [] | list() }).
+                    routing   = [] :: [] | list(),
+                    permanent = false :: false | boolean() }).
 
 -record(hist,         { id        = [] :: [] | #step{},
                         prev      = [] :: [] | integer(),
