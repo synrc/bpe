@@ -120,6 +120,7 @@ handle_result(T, Id, X, #process{id = Pid} = DefState) ->
   handle_result(T, terminate_check(Id, X, bpe:cache(terminateLocks, {terminateLock, Pid}), DefState)).
 
 terminate_check(_, _, #terminateLock{limit = L, counter = C}, #process{id = Pid} = DefState) when C >= L ->
+  logger:notice("TERMINATE LOCK LIMIT: ~tp", [Pid]),
   bpe:cache(terminateLocks, {terminate, Pid}, true), {stop, normal, DefState};
 terminate_check(Id, X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
   bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
@@ -153,15 +154,19 @@ handleContinue(X, _, _) -> X.
 
 % BPMN 2.0 Инфотех
 handle_call({Id, mon_link, MID}, _, Proc) ->
+    logger:notice("BPE MON_LINK: ~p.", [Proc#process.id]),
     ProcNew = Proc#process{monitor = MID},
     handle_result(call, Id, {reply, ProcNew, ProcNew}, Proc);
 handle_call({Id, ensure_mon}, _, Proc) ->
+    logger:notice("BPE ENSURE_MON: ~p.", [Proc#process.id]),
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
     handle_result(call, Id, {stop, normal, Mon, ProcNew}, Proc);
-handle_call({Id, get}, _, Proc) -> handle_result(call, Id, {stop, normal, Proc, Proc}, Proc);
+handle_call({Id, get}, _, Proc) -> logger:notice("BPE GET: ~p.", [Proc#process.id]), handle_result(call, Id, {stop, normal, Proc, Proc}, Proc);
 handle_call({Id, set, State}, _, Proc) ->
+    logger:notice("BPE SET: ~p.", [Proc#process.id]),
     handle_result(call, Id, {stop, normal, Proc, State}, State);
-handle_call({Id, persist, State}, _, #process{} = _Proc) ->
+handle_call({Id, persist, State}, _, #process{} = Proc) ->
+    logger:notice("BPE PERSIST: ~p.", [Proc#process.id]),
     kvs:append(State, "/bpe/proc"),
     handle_result(call, Id, {stop, normal, State, State}, State);
 handle_call({Id, next}, _, #process{} = Proc) ->
@@ -223,14 +228,18 @@ handle_call({Id, modify, Form, remove}, _, Proc) ->
     end;
 
 handle_call({Id, mon_link, MID, Continue}, _, Proc) ->
+    logger:notice("BPE MON_LINK CONTINUE: ~p.", [Proc#process.id]),
     ProcNew = Proc#process{monitor = MID},
     handle_result(call, Id, handleContinue({stop, normal, ProcNew, ProcNew}, Continue, Id), Proc);
 handle_call({Id, ensure_mon, Continue}, _, Proc) ->
+    logger:notice("BPE ENSURE_MON CONTINUE: ~p.", [Proc#process.id]),
     {Mon, ProcNew} = bpe:ensure_mon(Proc),
     handle_result(call, Id, handleContinue({stop, normal, Mon, ProcNew}, Continue, Id), Proc);
 handle_call({Id, set, State, Continue}, _, Proc) ->
+    logger:notice("BPE SET CONTINUE: ~p.", [Proc#process.id]),
     handle_result(call, Id, handleContinue({stop, normal, Proc, State}, Continue, Id), State);
-handle_call({Id, persist, State, Continue}, _, #process{} = _Proc) ->
+handle_call({Id, persist, State, Continue}, _, #process{} = Proc) ->
+    logger:notice("BPE PERSIST CONTINUE: ~p.", [Proc#process.id]),
     kvs:append(State, "/bpe/proc"),
     handle_result(call, Id, handleContinue({stop, normal, State, State}, Continue, Id), State);
 handle_call({Id, next, Stage, Continue}, _, Proc) ->
