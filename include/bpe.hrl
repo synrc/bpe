@@ -107,7 +107,9 @@
                     received = [] :: [] | #ts{},
                     started  = [] :: [] | #ts{},
                     executed = [] :: [] | #ts{},
-                    status   = [] :: [] | #status{} }).
+                    status   = [] :: [] | #status{},
+                    routing   = [] :: [] | list(),
+                    permanent = false :: false | boolean() }).
 
 -record(hist,         { id        = [] :: [] | #step{},
                         prev      = [] :: [] | integer(),
@@ -152,7 +154,7 @@
                         userStarted   = [] :: term(),
                         userModified  = [] :: term(),
                         userFinished  = [] :: term(),
-                        params        = [] :: term(),
+                        root          = [] :: term(),
                         filters       = [] :: term(),
                         etc           = [] :: term(),
                         flags         = [] :: term(),

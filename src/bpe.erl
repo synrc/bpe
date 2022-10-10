@@ -52,6 +52,7 @@
          till/2]).
 
 -export([assign/1,
+         delete/1,
          complete/1,
          next/1,
          gw_unblock/1,
@@ -134,6 +135,17 @@ cleanup(P) ->
      || #sched{id = Id} <- sched(P)],
     kvs:delete(writer, key("/bpe/flow/", P)),
     kvs:delete("/bpe/proc", P).
+
+delete(#process{id = Pid, parent = Parent, monitor = Mid} = Proc) ->
+  gw_unblock(Pid),
+  unsubscribe(Pid, Parent),
+  kvs:remove(Proc, "/bpe/proc"),
+  case kvs:get(key("/bpe/mon/", Mid), Pid) of
+    {ok, X} -> kvs:remove(X, key("/bpe/mon/", Mid));
+    _ -> []
+  end,
+  kvs:append(Proc#process{status = "deleted"}, "/bpe/deleted"),
+  Proc#process{status = "deleted"}.
 
 current_task(#process{id = Id} = Proc) ->
     case bpe:head(Id) of
