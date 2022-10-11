@@ -14,6 +14,7 @@ metainfo() ->
           #table{name = messageEvent, fields=record_info(fields, messageEvent), instance = #messageEvent{}},
           #table{name = asyncEvent, fields=record_info(fields, asyncEvent), instance = #asyncEvent{}},
           #table{name = subscription, fields=record_info(fields, subscription), instance = #subscription{}, keys=record_info(fields, subscription)},
-          #table{name = gw_block, fields=record_info(fields, gw_block), instance = #gw_block{}, keys=record_info(fields, gw_block)}
+          #table{name = gw_block, fields=record_info(fields, gw_block), instance = #gw_block{}, keys=record_info(fields, gw_block)},
+          #table{name = terminateLock, fields=record_info(fields, terminateLock), instance = #terminateLock{}, keys=record_info(fields, terminateLock)}
          ]}.
 

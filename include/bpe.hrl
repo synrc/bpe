@@ -193,9 +193,8 @@
                         opt       = [] :: term(),
                         executed  = [] :: list(#executor{}) }).
 
--record(terminateLock,  { messages        = [] :: list() | binary(),
-                          limit     = 50 :: integer(),
-                          counter   = 0  :: integer() }).
+-record(terminateLock,  { id        = [] :: [] | binary(),
+                          pid       = [] :: [] | binary() }).
 
 -record('Next', { id=[]   :: [] | binary() }).
 -record('Proc', { id=[]   :: [] | binary() }).

@@ -4,6 +4,7 @@
 
 -include("bpe.hrl").
 
+-include_lib("kvs/include/kvs.hrl").
 -include_lib("kvs/include/cursors.hrl").
 
 -behaviour(gen_server).
@@ -21,6 +22,8 @@
 -export([debug/6,
          process_task/2,
          process_task/3]).
+
+-define(REQUEST_LIMIT, application:get_env(bpe, request_limit, 500)).
 
 start_link(Parameters) ->
     gen_server:start_link(?MODULE, Parameters, []).
@@ -110,28 +113,27 @@ continueId([#continue{} | _] = X, Id) ->
   lists:map(fun (C) -> C#continue{id = Id} end, X);
 continueId(_, _) -> [].
 
-delete_lock(Id, #terminateLock{messages = M} = L, Pid) ->
-  bpe:cache(terminateLocks, {terminateLock, Pid}, L#terminateLock{messages = lists:filter(fun(X) -> X =/= Id end, M)}).
+delete_lock(Id) -> kvs:delete(terminateLock, Id, #kvs{mod=kvs_mnesia}).
 
 handle_result(call, {noreply, S}) -> {reply, ok, S};
 handle_result(call, {noreply, S, X}) -> {reply, ok, S, X};
 handle_result(_, X) -> X.
 handle_result(T, Id, X, #process{id = Pid} = DefState) ->
-  handle_result(T, terminate_check(Id, X, bpe:cache(terminateLocks, {terminateLock, Pid}), DefState)).
+  handle_result(T, terminate_check(Id, X, kvs:index(terminateLock, pid, Pid, #kvs{mod=kvs_mnesia}), ?REQUEST_LIMIT, DefState)).
 
-terminate_check(_, _, #terminateLock{limit = L, counter = C}, #process{id = Pid} = DefState) when C >= L ->
+terminate_check(_, _, L, Limit, #process{id = Pid} = DefState) when length(L) > Limit ->
   logger:notice("TERMINATE LOCK LIMIT: ~tp", [Pid]),
-  bpe:cache(terminateLocks, {terminate, Pid}, true), {stop, normal, DefState};
-terminate_check(Id, X, #terminateLock{messages=[I]}, #process{id = Pid}) when Id == I ->
-  bpe:cache(terminateLocks, {terminateLock, Pid}, undefined),
-  bpe:cache(terminateLocks, {terminate, Pid}, erlang:element(1, X) == stop),
-  X;
-terminate_check(Id, {stop, normal, S}, #terminateLock{} = L, #process{id = Pid}) ->
-  delete_lock(Id, L, Pid), {noreply, S};
-terminate_check(Id, {stop, normal, Reply, S}, #terminateLock{} = L, #process{id = Pid}) ->
-  delete_lock(Id, L, Pid), {reply, Reply, S};
-terminate_check(_, X, _, #process{id = Pid}) ->
-  bpe:cache(terminateLocks, {terminate, Pid}, erlang:element(1, X) == stop), X.
+  bpe:cache(terminateLocks, {terminate, Pid}, self()),
+  {stop, normal, DefState};
+terminate_check(Id, X, [#terminateLock{id=MsgId}], _, #process{id = Pid}) when Id == MsgId ->
+  case element(1, X) == stop of true -> bpe:cache(terminateLocks, {terminate, Pid}, self()); _ -> [] end,
+  delete_lock(Id), X;
+terminate_check(Id, {stop, normal, S}, _, _, #process{}) ->
+  delete_lock(Id), {noreply, S};
+terminate_check(Id, {stop, normal, Reply, S}, _, _, #process{}) ->
+  delete_lock(Id), {reply, Reply, S};
+terminate_check(_, X, _, _, #process{id = Pid}) ->
+  case element(1, X) == stop of true -> bpe:cache(terminateLocks, {terminate, Pid}, self()); _ -> [] end, X.
 
 handleContinue({noreply, State}, Continue, Id) when Continue =/= [] ->
   {noreply, State, {continue, continueId(lists:flatten(Continue), Id)}};
@@ -153,6 +155,7 @@ handleContinue(X, _, _) -> X.
 
 
 % BPMN 2.0 Инфотех
+handle_call({stop, Reason}, _, Proc) -> {stop, Reason, Proc};
 handle_call({Id, mon_link, MID}, _, Proc) ->
     logger:notice("BPE MON_LINK: ~p.", [Proc#process.id]),
     ProcNew = Proc#process{monitor = MID},
@@ -317,6 +320,7 @@ handle_continue([], Proc) ->
 
 init(Process) ->
     process_flag(trap_exit, true),
+    bpe:cache(terminateLocks, {terminate, Process#process.id}, undefined),
     Proc = bpe:load(Process#process.id, Process),
     logger:notice("BPE: ~ts spawned as ~p",
                   [Proc#process.id, self()]),
@@ -376,15 +380,14 @@ handle_info(Info, State = #process{}) ->
     handle_result(info, kvs:seq([], []), {stop, unknown_info, State}, State).
 
 terminate(Reason, #process{id = Id} = Proc) ->
-    bpe:cache(processes, {process, Id}, undefined),
-    bpe:cache(terminateLocks, {terminateLock, Id}, undefined),
-    logger:notice("BPE: ~ts terminate Reason: ~p", [Id, Reason]),
+    bpe:cache(terminateLocks, {terminate, Id}, self()),
+    logger:notice("BPE: ~ts terminate Reason: ~p ~tp", [Id, Reason, self()]),
     lists:foreach(fun (Event) ->
       try process_event(async, Event, Proc) catch
         _X:_Y:Z -> Z
       end
     end, kvs:all(bpe:key("/bpe/messages/queue/", Id))),
-    bpe:cache(terminateLocks, {terminate, Id}, undefined),
+    bpe:cache(processes, {process, Id}, undefined),
     ok.
 
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
