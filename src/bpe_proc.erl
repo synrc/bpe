@@ -125,6 +125,9 @@ terminate_check(_, _, L, Limit, #process{id = Pid} = DefState) when length(L) > 
   logger:error("TERMINATE LOCK LIMIT: ~tp", [Pid]),
   bpe:cache(terminateLocks, {terminate, Pid}, self()),
   {stop, normal, DefState};
+terminate_check(Id, X, [#terminateLock{id=Id}], _, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminate, Pid}, case element(1, X) of stop -> self(); _ -> undefined end),
+  delete_lock(Id), X;
 terminate_check(Id, {stop, normal, S}, [#terminateLock{} | _], _, #process{}) ->
   delete_lock(Id), {noreply, S};
 terminate_check(Id, {stop, normal, Reply, S}, [#terminateLock{} | _], _, #process{}) ->
