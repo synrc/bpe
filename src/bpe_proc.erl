@@ -122,18 +122,16 @@ handle_result(T, Id, X, #process{id = Pid} = DefState) ->
   handle_result(T, terminate_check(Id, X, kvs:index(terminateLock, pid, Pid, #kvs{mod=kvs_mnesia}), ?REQUEST_LIMIT, DefState)).
 
 terminate_check(_, _, L, Limit, #process{id = Pid} = DefState) when length(L) > Limit ->
-  logger:notice("TERMINATE LOCK LIMIT: ~tp", [Pid]),
+  logger:error("TERMINATE LOCK LIMIT: ~tp", [Pid]),
   bpe:cache(terminateLocks, {terminate, Pid}, self()),
   {stop, normal, DefState};
-terminate_check(Id, X, [#terminateLock{id=MsgId}], _, #process{id = Pid}) when Id == MsgId ->
-  case element(1, X) == stop of true -> bpe:cache(terminateLocks, {terminate, Pid}, self()); _ -> [] end,
-  delete_lock(Id), X;
-terminate_check(Id, {stop, normal, S}, _, _, #process{}) ->
+terminate_check(Id, {stop, normal, S}, [#terminateLock{} | _], _, #process{}) ->
   delete_lock(Id), {noreply, S};
-terminate_check(Id, {stop, normal, Reply, S}, _, _, #process{}) ->
+terminate_check(Id, {stop, normal, Reply, S}, [#terminateLock{} | _], _, #process{}) ->
   delete_lock(Id), {reply, Reply, S};
-terminate_check(_, X, _, _, #process{id = Pid}) ->
-  case element(1, X) == stop of true -> bpe:cache(terminateLocks, {terminate, Pid}, self()); _ -> [] end, X.
+terminate_check(Id, X, _, _, #process{id = Pid}) ->
+  bpe:cache(terminateLocks, {terminate, Pid}, case element(1, X) of stop -> self(); _ -> undefined end),
+  delete_lock(Id), X.
 
 handleContinue({noreply, State}, Continue, Id) when Continue =/= [] ->
   {noreply, State, {continue, continueId(lists:flatten(Continue), Id)}};

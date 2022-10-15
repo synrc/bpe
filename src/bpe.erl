@@ -221,14 +221,15 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
         receive {'DOWN', Mon, process, P, _} ->
           receive {'EXIT', P, R} -> R after 10 -> shutdown end, unlink(P), demonitor(Mon)
         after ?SHUTDOWN_TIMEOUT ->
+          logger:error("BPE SHUTDOWN TIMEOUT: ~tp", [Id]),
           unlink(P), demonitor(Mon)
         end;
       _ -> []
     end,
     case supervisor:start_child(bpe_otp, ChildSpec) of
-        {ok, _} = Res -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
-        {ok, _, _} = Res -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
-        {error, already_present} -> Res = supervisor:restart_child(bpe_otp, Id), {ok, Id};
+        {ok, _} -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
+        {ok, _, _} -> mon_link(Monitor, Proc, ProcRec), {ok, Id};
+        {error, already_present} -> supervisor:restart_child(bpe_otp, Id), {ok, Id};
         {error, Reason} -> {error, Reason}
     end.
 
@@ -823,7 +824,7 @@ add_executed(#process{id = Id, executors = PrevExecutors}, Executed0) ->
     end,
     Executed.
 
-executors(#process{executors = E} = State, #sequenceFlow{source = S, target = T, expression = {save_executors, Task}}) ->
+executors(#process{executors = E}, #sequenceFlow{source = S, target = T, expression = {save_executors, Task}}) ->
   case S == Task orelse T == Task of
     true -> E;
     false -> []
