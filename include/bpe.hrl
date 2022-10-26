@@ -100,7 +100,8 @@
                       subject = [] :: [] | term() }).
 
 -record(status  , { id    = [] :: [] | atom(),
-                    state = [] :: [] | term() }).
+                    state = [] :: [] | term(),
+                    routing = [] :: [] | atom() }).
 
 -record(executor, { id       = [] :: [] | term(),
                     object   = [] :: [] | tuple(),
