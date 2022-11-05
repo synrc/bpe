@@ -37,27 +37,27 @@ def() ->
    P#process{tasks = bpe_xml:fillInOut(P#process.tasks,P#process.flows)}.
 
 action({request,"Created",_}, Proc) ->
-    {reply,Proc};
+    #result{type=reply,state=Proc};
 
 action({request,"Init",_}, Proc) ->
-    {reply,Proc};
+    #result{type=reply,state=Proc};
 
 action({request,"Payment",_X}, Proc) ->
     Payment = bpe:doc({payment_notification},Proc),
     case Payment of
-         [] -> {reply,"Process",Proc#process{docs=[#tx{}]}};
-          _ -> {reply,"Signatory",Proc} end;
+         [] -> #result{type=reply,reply="Process",state=Proc#process{docs=[#tx{}]}};
+          _ -> #result{type=reply,reply="Signatory",state=Proc} end;
 
 action({request,"Signatory",_}, Proc) ->
-    {reply,"Process",Proc};
+    #result{type=reply,reply="Process",state=Proc};
 
 action({request,"Process",_X}, Proc) ->
     case bpe:doc(#close_account{},Proc) of
-         [#close_account{}] -> {reply,"Final",Proc};
-                          _ -> {reply,"Process",Proc} end;
+         [#close_account{}] -> #result{type=reply,reply="Final",state=Proc};
+                          _ -> #result{type=reply,reply="Process",state=Proc} end;
 
 action({request,"Upload",_}, Proc) ->
-    {reply,Proc};
+    #result{type=reply,state=Proc};
 
 action({request,"Final",_}, Proc) ->
-    {reply,Proc}.
+    #result{type=stop,state=Proc}.
