@@ -768,25 +768,21 @@ processAuthorized(true, _, Task, Flow,
                   #sched{id = SchedId, pointer = Pointer,
                          state = Threads},
                   Proc) ->
-    Inserted = get_inserted(Task, Flow, SchedId, Proc),
-    NewThreads = lists:sublist(Threads, Pointer - 1) ++
-                     Inserted ++ lists:nthtail(Pointer, Threads),
-    NewPointer = if Pointer == length(Threads) -> 1;
-                    true -> Pointer + length(Inserted)
-                 end,
     #sequenceFlow{id = Next, source = Src, target = Dst} =
         Flow,
-    case application:get_env(bpe, debug, true) of
-        true -> skip; % logger:notice("BPE: Flow ~p", [Flow]);
-        false -> skip
-    end,
     #result{state=State, reason=Reason, type=Status, executed = Executed} = Res =
       bpe_task:task_action(Proc#process.module,
                            Src,
                            Dst,
                            Proc),
+    Inserted = get_inserted(Task, Flow, SchedId, State),
+    NewThreads = lists:sublist(Threads, Pointer - 1) ++
+                     Inserted ++ lists:nthtail(Pointer, Threads),
+    NewPointer = if Pointer == length(Threads) -> 1;
+                    true -> Pointer + length(Inserted)
+                 end,
     NewExecuted = add_executed(Proc, Executed),
-    add_sched(Proc, NewPointer, NewThreads),
+    add_sched(State, NewPointer, NewThreads),
     NewState = State#process{executors = executors(State, Flow)},
     NewResult = Res#result{state = NewState, executed = NewExecuted},
     add_trace(NewState, [], Flow),
