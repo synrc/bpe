@@ -691,11 +691,13 @@ till(Now, TTL) ->
     end.
 
 reload(Module) ->
-    {Module, Binary, Filename} =
-        code:get_object_code(Module),
-    case code:load_binary(Module, Filename, Binary) of
-        {module, Module} -> {reloaded, Module};
-        {error, Reason} -> {load_error, Module, Reason}
+    case code:get_object_code(Module) of
+      error -> {load_error, Module};
+      {Module, Binary, Filename} ->
+        case code:load_binary(Module, Filename, Binary) of
+          {module, Module} -> {reloaded, Module};
+          {error, Reason} -> {load_error, Module, Reason}
+        end
     end.
 
 constructResult(#result{type=reply, opt=[], reply=R, state=St}) ->
