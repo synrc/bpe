@@ -207,7 +207,7 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
           #hist{task = Stage} = add_trace(SProc, [], Task),
           add_sched(SProc, 1, [first_flow(SProc)]),
           SProc#process{stage = Stage};
-        _ -> Proc
+        _ -> SProc
       end,
     Restart = transient,
     Shutdown = ?SHUTDOWN_TIMEOUT,
