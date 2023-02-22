@@ -197,16 +197,16 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
     Pid = proplists:get_value(notification,
                               Options,
                               undefined),
-    Proc = Proc0#process{id = Id, docs = Options,
+    SProc = Proc0#process{id = Id, docs = Options,
                          notifications = Pid,
                          modified = #ts{time = calendar:local_time()},
                          started = #ts{time = calendar:local_time()}},
     Proc =
       case Hist of
         empty ->
-          NewHist = add_trace(Proc, [], Task),
-          add_sched(Proc, 1, [first_flow(Proc)]),
-          Proc#process{stage = NewHist};
+          #hist{task = Stage} = add_trace(SProc, [], Task),
+          add_sched(SProc, 1, [first_flow(SProc)]),
+          SProc#process{stage = Stage};
         _ -> Proc
       end,
     Restart = transient,
