@@ -150,7 +150,7 @@
                         beginEvent    = [] :: list() | atom(),
                         endEvent      = [] :: list() | atom(),
                         status        = [] :: term(), % future reserved
-                        current       = [] :: term(),
+                        stage         = [] :: term(),
                         rules         = [] :: term(),
                         userStarted   = [] :: term(),
                         userModified  = [] :: term(),

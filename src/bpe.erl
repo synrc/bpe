@@ -169,11 +169,11 @@ add_error(Proc, Name, Task) ->
 
 add_hist(Key, #process{executors = Executors} = Proc, Name, Task) ->
     Writer = kvs:writer(Key),
-    kvs:append(#hist{id =
-                         key({step, Writer#writer.count, Proc#process.id}),
-                     name = Name, time = #ts{time = calendar:local_time()},
-                     docs = Proc#process.docs, task = Task, executors = Executors},
-               Key).
+    Hist = #hist{id = key({step, Writer#writer.count, Proc#process.id}),
+                 name = Name, time = #ts{time = calendar:local_time()},
+                 docs = Proc#process.docs, task = Task, executors = Executors},
+    kvs:append(Hist, Key),
+    Hist.
 
 add_sched(Proc, Pointer, State) ->
     Key = key("/bpe/flow/", Proc#process.id),
@@ -201,12 +201,14 @@ start(Proc0, Options, {Monitor, ProcRec}) ->
                          notifications = Pid,
                          modified = #ts{time = calendar:local_time()},
                          started = #ts{time = calendar:local_time()}},
-    case Hist of
+    Proc =
+      case Hist of
         empty ->
-            add_trace(Proc, [], Task),
-            add_sched(Proc, 1, [first_flow(Proc)]);
-        _ -> skip
-    end,
+          NewHist = add_trace(Proc, [], Task),
+          add_sched(Proc, 1, [first_flow(Proc)]),
+          Proc#process{stage = NewHist};
+        _ -> Proc
+      end,
     Restart = transient,
     Shutdown = ?SHUTDOWN_TIMEOUT,
     ChildSpec = {Id,
@@ -787,9 +789,9 @@ processAuthorized(true, _, Task, Flow,
     add_sched(State, NewPointer, NewThreads),
     NewState = State#process{executors = executors(State, Flow)},
     NewResult = Res#result{state = NewState, executed = NewExecuted},
-    add_trace(NewState, [], Flow),
+    #hist{task = NewTask} = add_trace(NewState, [], Flow),
     bpe_proc:debug(NewState, Next, Src, Dst, Status, Reason),
-    kvs:append(NewState, "/bpe/proc"),
+    kvs:append(NewState#process{stage = NewTask}, "/bpe/proc"),
     flow_callback(Flow, NewResult, Proc),
     NewResult.
 
