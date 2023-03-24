@@ -4,7 +4,7 @@ defmodule BPE.Mixfile do
   def project do
     [
       app: :bpe,
-      version: "8.2.1",
+      version: "8.12.1",
       description: "BPE Business Process Engine",
       package: package(),
       deps: deps()
