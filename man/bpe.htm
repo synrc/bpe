@@ -57,17 +57,17 @@
          <p>Retrieves current process state (if running) from the runtime.
             This function should be protected against admin authorization.</p>
         <h4 id="next/1">next(pid()) -> {complete, any()}.</h4>
-         <p>Invokes BPMN 2.0 process shcheduler tick.</p>
+         <p>Invokes BPMN 2.0 process scheduler tick.</p>
         <h4 id="next/2">next(any(), pid()) -> {complete, any()}.</h4>
-         <p>Invokes BPMN 2.0 process shcheduler tick on particular flow (if allowed).</p>
+         <p>Invokes BPMN 2.0 process scheduler tick on particular flow (if allowed).</p>
         <h4 id="complete/1">complete(pid()) -> {complete, any()}.</h4>
-         <p>Invokes BPMN 1.0 process shcheduler tick.</p>
+         <p>Invokes BPMN 1.0 process scheduler tick.</p>
         <h4 id="complete/2">complete(any(), pid()) -> {complete, any()}.</h4>
-         <p>Invokes BPMN 1.0 process shcheduler tick on particular flow (if allowed).</p>
+         <p>Invokes BPMN 1.0 process scheduler tick on particular flow (if allowed).</p>
         <h4 id="amend">amend(pid(), any()) -> {complete, any()}.</h4>
-         <p>Invokes BPMN 2.0 process shcheduler tick with additional document in the state as an argument.</p>
+         <p>Invokes BPMN 2.0 process scheduler tick with additional document in the state as an argument.</p>
         <h4 id="discard">discard(pid(), any()) -> {complete, any()}.</h4>
-         <p>Invokes BPMN 2.0 process shcheduler tick with additional document removal from the the state.</p>
+         <p>Invokes BPMN 2.0 process scheduler tick with additional document removal from the the state.</p>
         <h4 id="append">append(pid(), any()) -> {complete, any()}.</h4>
          <p>Modifies current state of the process with additional document.</p>
         <h4 id="remove">remove(pid(), any()) -> {complete, any()}.</h4>
