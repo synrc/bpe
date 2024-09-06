@@ -1,9 +1,0 @@
-language: erlang
-otp_release:
-  - 21.0
-  - 22.0
-script:
-  - "curl -fsSL https://raw.github.com/synrc/mad/master/mad > mad"
-  - "chmod +x mad"
-  - "./mad dep com"
-  - "rebar3 dialyzer"
