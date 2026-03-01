@@ -12,12 +12,12 @@ defmodule BPE.Mixfile do
   end
 
   def application do
-    [mod: {:bpe_otp, []}, applications: [:xmerl,:syn, :kvs]]
+    [mod: {BPE.OTP, []}, applications: [:xmerl, :syn, :kvs]]
   end
 
   def package do
     [
-      files: ~w(include lib priv src mix.exs rebar.config),
+      files: ~w(include lib priv mix.exs),
       licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
@@ -27,10 +27,10 @@ defmodule BPE.Mixfile do
 
   def deps do
     [
-      {:ex_doc, "~> 0.11", only: :dev},
-      {:syn, "~> 2.1.0"},
-      {:rocksdb, "~> 1.9.0"},
-      {:kvs, "~> 10.8.2"}
+      {:ex_doc, "~> 0.40", only: :dev},
+      {:syn, "~> 3.4"},
+      {:rocksdb, "~> 2.5"},
+      {:kvs, "~> 13.3.1"}
     ]
   end
 end

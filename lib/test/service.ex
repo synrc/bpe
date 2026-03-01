@@ -4,12 +4,12 @@ defmodule Test.Service do
 
   def def(), do: xml("/priv/service.bpmn")
   def auth(_), do: true
-  def action(_message,state), do: BPE.result(state: state)
+  def action(_message, state), do: result(state: state)
 
   @doc_type :direction
 
-  def dir_right(proc), do: [{@doc_type, :right}] === :bpe.doc({@doc_type},proc)
-  def dir_left(proc),  do: [{@doc_type, :left}]  === :bpe.doc({@doc_type},proc)
+  def dir_right(proc), do: [{@doc_type, :right}] === BPE.doc({@doc_type}, proc)
+  def dir_left(proc),  do: [{@doc_type, :left}]  === BPE.doc({@doc_type}, proc)
 
   def test() do
     test0()
@@ -19,29 +19,28 @@ defmodule Test.Service do
   end
 
   def test0() do
-    {:ok, pid} = :bpe.start def(), []
-    {:complete, 'some'} = :bpe.next pid
-    :Final = :bpe.next pid
+    {:ok, pid} = BPE.start(def(), [])
+    {:complete, ~c"some"} = BPE.next(pid)
+    :Final = BPE.next(pid)
   end
 
   def test1() do
-    {:ok, pid} = :bpe.start def(), []
-    {:complete, 'some'} = :bpe.amend pid, {@doc_type, :right}
-    {:complete, 'right'} = :bpe.next pid
-    {:complete, 'any'} = :bpe.next pid
-    {:complete, 'epilog'} = :bpe.next pid
-    {:complete, 'finish'} = :bpe.next pid
-    :Final = :bpe.next pid
+    {:ok, pid} = BPE.start(def(), [])
+    {:complete, ~c"some"}   = BPE.amend(pid, {@doc_type, :right})
+    {:complete, ~c"right"}  = BPE.next(pid)
+    {:complete, ~c"any"}    = BPE.next(pid)
+    {:complete, ~c"epilog"} = BPE.next(pid)
+    {:complete, ~c"finish"} = BPE.next(pid)
+    :Final = BPE.next(pid)
   end
 
   def test2() do
-    {:ok, pid} = :bpe.start def(), []
-    {:complete, 'some'} = :bpe.amend pid, {@doc_type, :left}
-    {:complete, 'left'} = :bpe.next pid
-    {:complete, 'any'} = :bpe.next pid
-    {:complete, 'epilog'} = :bpe.next pid
-    {:complete, 'finish'} = :bpe.next pid
-    :Final = :bpe.next pid
+    {:ok, pid} = BPE.start(def(), [])
+    {:complete, ~c"some"}   = BPE.amend(pid, {@doc_type, :left})
+    {:complete, ~c"left"}   = BPE.next(pid)
+    {:complete, ~c"any"}    = BPE.next(pid)
+    {:complete, ~c"epilog"} = BPE.next(pid)
+    {:complete, ~c"finish"} = BPE.next(pid)
+    :Final = BPE.next(pid)
   end
-
 end
