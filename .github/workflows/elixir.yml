@@ -7,15 +7,12 @@ jobs:
     - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
       with:
-        otp-version: 27.x
-        elixir-version: 1.18.x
+        otp-version: 28.x
+        elixir-version: 1.19.x
     - name: System packages
-      run: sudo apt-get install -y cmake build-essential libsnappy-dev
+      run: sudo apt-get install -y cmake build-essential  liblz4-dev libsnappy-dev zlib1g-dev libbz2-dev libzstd-dev build-essential libcsv3 libcsv-dev cmake
     - name: Dependencies
-      run: |
-        mix local.rebar --force
-        mix local.hex --force
-        mix deps.get
+      run: mix deps.get
     - name: Compilation
       run: mix compile
     - name: Tests
