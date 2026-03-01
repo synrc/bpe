@@ -4,13 +4,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
       with:
-        otp-version: 24.x
-        elixir-version: 1.13.x
-    - name: CMake
-      run: sudo apt-get install -y cmake
+        otp-version: 27.x
+        elixir-version: 1.18.x
+    - name: System packages
+      run: sudo apt-get install -y cmake build-essential libsnappy-dev
     - name: Dependencies
       run: |
         mix local.rebar --force
@@ -18,3 +18,5 @@ jobs:
         mix deps.get
     - name: Compilation
       run: mix compile
+    - name: Tests
+      run: mix test
