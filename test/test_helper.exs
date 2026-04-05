@@ -4,6 +4,7 @@ ExUnit.start()
 require BPE
 
 defmodule BPE.Test do
+  @moduledoc false
   use ExUnit.Case, async: true
   test "compare" do
     assert Test.Compare.test == :ok
