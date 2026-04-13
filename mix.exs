@@ -17,7 +17,7 @@ defmodule BPE.Mixfile do
 
   def package do
     [
-      files: ~w(include lib priv mix.exs),
+      files: ~w(include man lib config priv mix.exs LICENSE README.md),
       licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
