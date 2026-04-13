@@ -3,6 +3,11 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        backend: [mnesia, rocksdb]
+    env:
+      BPE_BACKEND: ${{ matrix.backend }}
     steps:
     - uses: actions/checkout@v2
     - uses: erlef/setup-beam@v1
@@ -18,3 +23,5 @@ jobs:
         mix deps.get
     - name: Compilation
       run: mix compile
+    - name: Tests
+      run: mix test
