@@ -21,6 +21,7 @@ jobs:
         mix local.rebar --force
         mix local.hex --force
         mix deps.get
+        mix deps.clean --unused
     - name: Compilation
       run: mix compile
     - name: Tests
