@@ -628,14 +628,14 @@ defmodule BPE do
 
   # ── syn helpers ────────────────────────────────────────────────────────────
 
-  def send(pool, message), do: :syn.publish(:erlang.term_to_binary(pool), message)
+  def send(pool, message), do: :syn.publish(:devices, :erlang.term_to_binary(pool), message)
 
   def reg(pool), do: reg(pool, :undefined)
 
   def reg(pool, _value) do
     case :erlang.get({:pool, pool}) do
       :undefined ->
-        :syn.join(:erlang.term_to_binary(pool), self())
+        :syn.join(:devices, :erlang.term_to_binary(pool), self())
         :erlang.put({:pool, pool}, pool)
       _ -> :skip
     end
@@ -645,7 +645,7 @@ defmodule BPE do
     case :erlang.get({:pool, pool}) do
       :undefined -> :skip
       _ ->
-        :syn.leave(pool, self())
+        :syn.leave(:devices, pool, self())
         :erlang.erase({:pool, pool})
     end
   end

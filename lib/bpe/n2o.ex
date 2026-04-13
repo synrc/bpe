@@ -25,7 +25,7 @@ defmodule BPE.N2O do
   end
 
   def info({:Make, m, docs}, r, s) do
-    {:reply, {:bert, io(data: BPE.start(apply(:nitro.to_atom(m), :def, []), docs))}, r, s}
+    {:reply, {:bert, io(data: BPE.start(apply(:io_lib.format(~c"~p",[m]), :def, []), docs))}, r, s}
   end
 
   def info(m, r, s), do: {:unknown, m, r, s}
