@@ -8,7 +8,8 @@ defmodule BPE.Mixfile do
       description:
         "ERP/1 BPMN ДСТУ ISO/IEC 19510:2015 Business Process Model Notation",
       package: package(),
-      deps: deps()
+      deps: deps(),
+      xref: [exclude: [:rocksdb]]
     ]
   end
 
