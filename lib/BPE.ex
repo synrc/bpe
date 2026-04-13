@@ -1041,7 +1041,13 @@ defmodule BPE do
         end
       end)
 
-    case :kvs.get(k, key({:step, writer(w, :count) - 1, id})) do
+    tab =
+      case :application.get_env(:kvs, :dba, :kvs_mnesia) do
+        :kvs_rocks  -> k
+        :kvs_mnesia -> :hist
+      end
+
+    case :kvs.get(tab, key({:step, writer(w, :count) - 1, id})) do
       {:error, _}      -> []
       {:ok, hist() = h} -> :kvs.append(hist(h, executors: new_executed), k)
     end
