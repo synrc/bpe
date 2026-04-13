@@ -4,8 +4,8 @@ defmodule BPE.Mixfile do
   def project do
     [
       app: :bpe,
-      version: "9.9.7",
-      description: "BPE Business Process Engine",
+      version: "11.4.13",
+      description: "ERP/1 BPMN ДСТУ ISO/IEC 19510:2015 Business Process Model Notation",
       package: package(),
       deps: deps(),
       docs: docs()
@@ -32,14 +32,12 @@ defmodule BPE.Mixfile do
       extras: ["README.md"],
       skip_undefined_reference_warnings_on: [:all],
 
-      # Much stricter filter + only Elixir modules
       filter_modules: fn mod, _ ->
         mod_str = Atom.to_string(mod)
         String.starts_with?(mod_str, "Elixir.BPE") and
         not String.starts_with?(mod_str, "Elixir.Test.")
       end,
 
-      # Extra safety
       ignore_apps: [:ex_doc, :eex]
     ]
   end
