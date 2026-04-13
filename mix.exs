@@ -31,7 +31,7 @@ defmodule BPE.Mixfile do
     deps = [
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:syn, "~> 3.4"},
-      {:kvs, "~> 13.4.13"}
+      {:kvs, "~> 13.4.14"}
     ]
 
     if System.get_env("BPE_BACKEND") == "rocksdb" do
