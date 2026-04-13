@@ -21,7 +21,7 @@ defmodule BPE.Mixfile do
       licenses: ["ISC"],
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
-      links: %{"GitHub" => "https://github.com/synrc/bpe"}
+      links: %{"GitHub" => "https://github.com/synrc/bpmn"}
     ]
   end
 
@@ -29,7 +29,7 @@ defmodule BPE.Mixfile do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:syn, "~> 3.4"},
-      {:rocksdb, "~> 2.5"},
+      {:rocksdb, "~> 2.5", optional: true},
       {:kvs, "~> 13.4.13"}
     ]
   end
