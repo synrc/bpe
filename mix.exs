@@ -26,11 +26,16 @@ defmodule BPE.Mixfile do
   end
 
   def deps do
-    [
+    deps = [
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:syn, "~> 3.4"},
-      {:rocksdb, "~> 2.5", optional: true},
       {:kvs, "~> 13.4.13"}
     ]
+
+    if System.get_env("BPE_BACKEND") == "rocksdb" do
+      deps ++ [{:rocksdb, "~> 2.5", optional: true}]
+    else
+      deps
+    end
   end
 end
