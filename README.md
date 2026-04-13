@@ -1,5 +1,5 @@
-BPMN: ISO/IEC 19510:2015 Erlang/OTP 1:1 Mapping Engine
-======================================================
+BPMN: ISO/IEC 19510:2015 Erlang/OTP 1:1 Engine
+==============================================
 
 [![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Hex pm](https://img.shields.io/hexpm/v/bpe.svg?style=flat)](https://hex.pm/packages/bpe)
