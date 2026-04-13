@@ -6,3 +6,4 @@ Mnesia*/
 deps
 rocksdb/
 *.log
+doc/
