@@ -1,0 +1,7 @@
+{
+  "extends": "bpmnlint:recommended",
+  "rules": {
+    "no-overlapping-elements": "off",
+    "label-required": "off"
+  }
+}
