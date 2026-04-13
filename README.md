@@ -198,7 +198,9 @@ current states as leaves of execution graph.
 Full set of BPMN 2.0 fields could be obtained
 at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0), page 3-7.
 
-Author
-------
+Authors
+-------
 
-Максим Сохацький, Інформаційні Судові Системи
+* Максим Сохацький
+* Євгеній Гадібіров
+* Георгій Мельник-Веттштайн
