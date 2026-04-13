@@ -4,10 +4,11 @@ defmodule BPE.Mixfile do
   def project do
     [
       app: :bpe,
-      version: "9.9.6",
+      version: "9.9.7",
       description: "BPE Business Process Engine",
       package: package(),
-      deps: deps()
+      deps: deps(),
+      docs: docs()
     ]
   end
 
@@ -22,6 +23,24 @@ defmodule BPE.Mixfile do
       maintainers: ["Namdak Tonpa"],
       name: :bpe,
       links: %{"GitHub" => "https://github.com/synrc/bpe"}
+    ]
+  end
+
+  def docs do
+    [
+      main: "BPE",
+      extras: ["README.md"],
+      skip_undefined_reference_warnings_on: [:all],
+
+      # Much stricter filter + only Elixir modules
+      filter_modules: fn mod, _ ->
+        mod_str = Atom.to_string(mod)
+        String.starts_with?(mod_str, "Elixir.BPE") and
+        not String.starts_with?(mod_str, "Elixir.Test.")
+      end,
+
+      # Extra safety
+      ignore_apps: [:ex_doc, :eex]
     ]
   end
 
