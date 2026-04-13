@@ -1,6 +1,17 @@
 defmodule BPE do
+  @moduledoc """
+  Business Process Engine (BPE).
+
+  This module serves as the primary entry point for managing BPMN 2.0 processes.
+  It handles process lifecycle, persistence, state transitions, events, gateways,
+  and history execution trace routing. BPE connects abstract BPMN workflows to
+  actual executable code.
+  """
   require Record
 
+  @doc """
+  Compiles BPMN XML file into executable Erlang records.
+  """
   defmacro xml(source) do
     mod = __CALLER__.module
     file = Mix.Project.app_path() <> source
@@ -56,15 +67,23 @@ defmodule BPE do
 
   # ── key helpers ────────────────────────────────────────────────────────────
 
+  @doc "Constructs a step key or passes through unmodified PID keys."
   def key({:step, n, [208 | _] = pid}), do: {:step, n, :erlang.list_to_binary(pid)}
   def key(pid), do: pid
 
+  @doc "Creates a composite binary key out of a prefix and a PID."
   def key(prefix, pid), do: :erlang.iolist_to_binary([prefix, pid, "/"])
 
   # ── load / cleanup ─────────────────────────────────────────────────────────
 
+  @doc """
+  Loads a BPE process instance by its ID.
+  """
   def load(id), do: load(id, [])
 
+  @doc """
+  Loads a BPE process instance by its ID, returning a default value if not found.
+  """
   def load(id, default) do
     case :application.get_env(:kvs, :dba, :kvs_mnesia) do
       :kvs_mnesia ->
@@ -80,6 +99,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Cleans up history, scheduling data, and process record for a given process ID."
   def cleanup(p) do
     for hist(id: id) <- proc_hist(process(p, :id)), do: :kvs.delete("/bpe/hist", id)
     :kvs.delete(:writer, key("/bpe/hist/", p))
@@ -88,6 +108,7 @@ defmodule BPE do
     :kvs.delete("/bpe/proc", p)
   end
 
+  @doc "Marks the process as deleted, removes its active record and unblocks gateways."
   def delete(process(id: pid, parent: parent, monitor: mid) = proc) do
     gw_unblock(pid)
     unsubscribe(pid, parent)
@@ -102,6 +123,7 @@ defmodule BPE do
 
   # ── current task ───────────────────────────────────────────────────────────
 
+  @doc "Retrieves the current task currently being executed by the process instance."
   def current_task(process(id: id) = proc) do
     case head(id) do
       []                                                       -> {:empty, first_task(proc)}
@@ -112,15 +134,18 @@ defmodule BPE do
 
   # ── trace / history ────────────────────────────────────────────────────────
 
+  @doc "Appends a trace event to the process history."
   def add_trace(proc, name, task) do
     add_hist(key("/bpe/hist/", process(proc, :id)), proc, name, task)
   end
 
+  @doc "Appends an error to the process history and logs a notice."
   def add_error(proc, name, task) do
     :logger.notice(~c"BPE: Error for PID ~ts: ~p ~p", [process(proc, :id), name, task])
     add_hist(key("/bpe/error/", process(proc, :id)), proc, name, task)
   end
 
+  @doc "Appends an entry to the general history track for the process."
   def add_hist(k, process(executors: executors) = proc, name, task) do
     w = :kvs.writer(k)
     h = hist(
@@ -135,6 +160,7 @@ defmodule BPE do
     h
   end
 
+  @doc "Appends a scheduling state representation to the process flow."
   def add_sched(proc, pointer, state) do
     k = key("/bpe/flow/", process(proc, :id))
     w = :kvs.writer(k)
@@ -150,6 +176,11 @@ defmodule BPE do
 
   # ── start / monitors ───────────────────────────────────────────────────────
 
+  @doc """
+  Starts a BPE process instance.
+  If the second argument is an empty list, it initializes using the documents in the process record.
+  Otherwise, it starts using the specified options.
+  """
   def start(process(docs: docs) = proc, []) do
     start(proc, docs, {[], procRec()})
   end
@@ -158,6 +189,7 @@ defmodule BPE do
     start(proc, options, {[], procRec()})
   end
 
+  @doc "Starts an instance under `BPE.OTP` dynamically, binding to its given task."
   def start(proc0, options, {monitor, proc_rec}) do
     id =
       :erlang.iolist_to_binary([
@@ -220,14 +252,16 @@ defmodule BPE do
     id
   end
 
+  @doc "Links a monitor to a newly started or existing BPE process."
   def mon_link(mon, proc, proc_rec), do: mon_link(mon, proc, proc_rec, false)
-
   def mon_link([], proc, _, _), do: :kvs.append(proc, "/bpe/proc")
 
+  @doc false
   def mon_link(monitor(parent: []) = m, process(parentMonitor: pmid) = p, pr, e) when pmid != [] do
     mon_link(monitor(m, parent: pmid), p, pr, e)
   end
 
+  @doc false
   def mon_link(monitor(id: mid, parent: pmid) = m, process(id: proc_id) = proc, proc_rec, embedded) do
     k = key("/bpe/mon/", mid)
     :kvs.append(m, "/bpe/monitors")
@@ -262,16 +296,20 @@ defmodule BPE do
     end
   end
 
+  @doc "Retrieves children monitors."
   def mon_children(mid), do: :kvs.all(key("/bpe/mon/", mid))
 
+  @doc "Fetches the `pid` of the given process ID from the registry cache."
   def pid(id), do: cache(:processes, {:process, :erlang.iolist_to_binary([id])})
 
+  @doc "Ensures the given process has a valid monitor attached."
   def ensure_mon(process(monitor: [], id: id) = proc) do
     mon      = monitor(id: bpe_id(:monitor))
     proc_rec = procRec()
     {mon, mon_link(mon, proc, procRec(proc_rec, id: id), true)}
   end
 
+  @doc false
   def ensure_mon(process(monitor: mid) = proc) do
     case :kvs.get("/bpe/monitors", mid) do
       {:error, x} -> throw({:error, x})
@@ -281,6 +319,7 @@ defmodule BPE do
 
   # ── API: proc / update / persist ──────────────────────────────────────────
 
+  @doc "Retrieves the current process state state by process ID."
   def proc(proc_id) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -292,6 +331,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Updates the process instance with the new internal state."
   def update(proc_id, state) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -303,6 +343,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def update(proc_id, state, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -314,6 +355,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Persists the modified process layout and states."
   def persist(proc_id, state) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -325,6 +367,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def persist(proc_id, state, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -338,6 +381,7 @@ defmodule BPE do
 
   # ── assign ─────────────────────────────────────────────────────────────────
 
+  @doc "Assigns the process to an executor, starting it if not yet started."
   def assign(proc_id) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -349,6 +393,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def assign(proc_id, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -362,6 +407,7 @@ defmodule BPE do
 
   # ── complete ───────────────────────────────────────────────────────────────
 
+  @doc "Directs the execution to complete the current stage and step."
   def complete(proc_id) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -373,6 +419,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def complete(proc_id, [continue() | _] = cont) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -384,6 +431,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Directs the execution to complete the process task at a given explicit stage."
   def complete(proc_id, stage) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -395,6 +443,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def complete(proc_id, stage, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -408,6 +457,7 @@ defmodule BPE do
 
   # ── next ───────────────────────────────────────────────────────────────────
 
+  @doc "Steps the process state to the next task in the workflow."
   def next(proc_id) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -419,6 +469,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def next(proc_id, [continue() | _] = cont) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -430,6 +481,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Steps explicitly to a given target stage directly."
   def next(proc_id, stage) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -441,6 +493,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def next(proc_id, stage, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -454,6 +507,7 @@ defmodule BPE do
 
   # ── amend / discard / modify ───────────────────────────────────────────────
 
+  @doc "Amends a document form to the process instance."
   def amend(proc_id, form) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -465,6 +519,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def amend(proc_id, form, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -476,6 +531,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Discards a given document form from the process instance."
   def discard(proc_id, form) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -487,6 +543,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def discard(proc_id, form, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -498,6 +555,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Modifies existing process arguments or documents."
   def modify(proc_id, form, arg) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -509,6 +567,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def modify(proc_id, form, arg, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -522,6 +581,7 @@ defmodule BPE do
 
   # ── events ─────────────────────────────────────────────────────────────────
 
+  @doc "Sends a synchronous message event to the process instance."
   def message_event(proc_id, event) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -533,6 +593,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def message_event(proc_id, event, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -544,6 +605,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Casts an asynchronous message event to the process instance."
   def async_event(proc_id, event) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -555,6 +617,7 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def async_event(proc_id, event, continue) do
     id = terminate_lock(proc_id)
     start(load(proc_id), [])
@@ -566,6 +629,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Broadcasts an event message topic to its subscribed process elements."
   def broadcast_event(topic, broadcastEvent(type: :immediate) = ev) do
     Enum.each(
       :kvs.index(:subscription, :topic, topic, kvs(mod: :kvs_mnesia)),
@@ -583,6 +647,7 @@ defmodule BPE do
     )
   end
 
+  @doc false
   def broadcast_event(topic, broadcastEvent() = ev) do
     Enum.each(
       :kvs.index(:subscription, :topic, topic, kvs(mod: :kvs_mnesia)),
@@ -597,6 +662,7 @@ defmodule BPE do
 
   # ── gateway block / subscribe ──────────────────────────────────────────────
 
+  @doc "Blocks progression at a particular gateway pending an event."
   def gw_block(bpe_pid, gw, subject) do
     case :kvs.index_match(gw_block(id: :_, pid: bpe_pid, subject: subject, gw: gw), :pid, kvs(mod: :kvs_mnesia)) do
       [] -> :kvs.put(gw_block(id: :kvs.seq([], []), pid: bpe_pid, subject: subject, gw: gw), kvs(mod: :kvs_mnesia))
@@ -604,16 +670,19 @@ defmodule BPE do
     end
   end
 
+  @doc "Unblocks all gateway blocks for a process."
   def gw_unblock(bpe_pid) do
     :kvs.index_match(gw_block(id: :_, pid: bpe_pid, subject: :_, gw: :_), :pid, kvs(mod: :kvs_mnesia))
     |> Enum.each(fn gw_block(id: id) -> :kvs.delete(:gw_block, id, kvs(mod: :kvs_mnesia)) end)
   end
 
+  @doc "Unblocks a specific gateway target for a process instance."
   def gw_unblock(bpe_pid, gw, subject) do
     :kvs.index_match(gw_block(id: :_, pid: bpe_pid, subject: subject, gw: gw), :subject, kvs(mod: :kvs_mnesia))
     |> Enum.each(fn gw_block(id: id) -> :kvs.delete(:gw_block, id, kvs(mod: :kvs_mnesia)) end)
   end
 
+  @doc "Subscribes a process element to a pub-sub topic."
   def subscribe(bpe_pid, topic) do
     case :kvs.index_match(subscription(id: :_, who: bpe_pid, topic: topic), :who, kvs(mod: :kvs_mnesia)) do
       [] -> :kvs.put(subscription(id: :kvs.seq([], []), who: bpe_pid, topic: topic), kvs(mod: :kvs_mnesia))
@@ -621,6 +690,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Unsubscribes a process element from a topic."
   def unsubscribe(bpe_pid, topic) do
     :kvs.index_match(subscription(id: :_, who: bpe_pid, topic: topic), :who, kvs(mod: :kvs_mnesia))
     |> Enum.each(fn subscription(id: id) -> :kvs.delete(:subscription, id, kvs(mod: :kvs_mnesia)) end)
@@ -628,10 +698,13 @@ defmodule BPE do
 
   # ── syn helpers ────────────────────────────────────────────────────────────
 
+  @doc "Publishes a message to a registered process pool."
   def send(pool, message), do: :syn.publish(:devices, :erlang.term_to_binary(pool), message)
 
+  @doc "Registers the current process in the global syn registry."
   def reg(pool), do: reg(pool, :undefined)
 
+  @doc false
   def reg(pool, _value) do
     case :erlang.get({:pool, pool}) do
       :undefined ->
@@ -641,6 +714,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Unregisters the current process from the syn pool."
   def unreg(pool) do
     case :erlang.get({:pool, pool}) do
       :undefined -> :skip
@@ -652,11 +726,13 @@ defmodule BPE do
 
   # ── flow / task helpers ────────────────────────────────────────────────────
 
+  @doc "Gets the first sequence flow ID of a process instance."
   def first_flow(process(beginEvent: begin_event, flows: flows)) do
     f = Enum.find(flows, fn f -> sequenceFlow(f, :source) == begin_event end)
     sequenceFlow(f, :id)
   end
 
+  @doc "Gets the target task ID of the first begin event."
   def first_task(process(tasks: tasks)) do
     case for beginEvent(id: n) <- tasks, do: n do
       []         -> []
@@ -666,6 +742,7 @@ defmodule BPE do
 
   # ── head / hist / sched ────────────────────────────────────────────────────
 
+  @doc "Retrieves the history head step from the process storage."
   def head(proc_id) do
     k =
       case :application.get_env(:kvs, :dba, :kvs_mnesia) do
@@ -682,6 +759,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Retrieves the scheduled head step from the flow storage."
   def sched_head(proc_id) do
     k =
       case :application.get_env(:kvs, :dba, :kvs_mnesia) do
@@ -698,12 +776,16 @@ defmodule BPE do
     end
   end
 
+  @doc "Fetches all errors recorded for the process instance."
   def errors(proc_id), do: :kvs.all(key("/bpe/error/", proc_id))
 
   # renamed from hist/1, hist/2 to avoid clash with hist record macro
+  @doc "Fetches full process history based on process step or ID."
   def proc_hist(step(proc: proc_id, id: n)), do: proc_hist(proc_id, n)
+  @doc false
   def proc_hist(proc_id), do: :kvs.all(key("/bpe/hist/", proc_id))
 
+  @doc false
   def proc_hist(proc_id, n) do
     k =
       case :application.get_env(:kvs, :dba, :kvs_mnesia) do
@@ -717,6 +799,7 @@ defmodule BPE do
   end
 
   # renamed from step/2 to avoid clash with step record macro
+  @doc "Finds a specific step/task in the process by name."
   def find_step(proc, name) do
     case for t <- tasks(proc), elem(t, 1) == name, do: t do
       [t] -> t
@@ -725,28 +808,40 @@ defmodule BPE do
     end
   end
 
+  @doc "Returns documents initialized for the process."
   def docs(proc) do
     h = head(process(proc, :id))
     hist(h, :docs)
   end
 
+  @doc "Returns the process tasks."
   def tasks(proc),  do: process(proc, :tasks)
+  @doc "Returns the process flows."
   def flows(proc),  do: process(proc, :flows)
+  @doc "Returns the process events."
   def events(proc), do: process(proc, :events)
 
+  @doc "Extracts an environment document mapping corresponding to the process."
   def doc(r, proc) do
     {x, _} = BPE.Env.find(:env, proc, r)
     x
   end
 
+  @doc "Locates a sequence_flow structurally by id."
   def flow(flow_id, process(flows: flows)) do
     Enum.find(flows, fn f -> sequenceFlow(f, :id) == flow_id end) || false
   end
 
+  @doc "Extracts current flow id scheduled on a given pointer state."
   def flow_id(sched(state: flows, pointer: n)), do: Enum.at(flows, n - 1)
 
   # ── cache ──────────────────────────────────────────────────────────────────
 
+  @doc """
+  Manages cached values dynamically.
+  Deletes a cache entry if the value is `:undefined`.
+  Otherwise, sets a default cached value with dynamic TTL.
+  """
   def cache(table, key_val, :undefined), do: :ets.delete(table, key_val)
 
   def cache(table, key_val, value) do
@@ -754,11 +849,13 @@ defmodule BPE do
     value
   end
 
+  @doc "Stores a key-value pair in a cache table explicitly until `till_val` expiration."
   def cache(table, key_val, value, till_val) do
     :ets.insert(table, {key_val, till_val, value})
     value
   end
 
+  @doc "Retrieves a value from a cache table returning `:undefined` upon expiry."
   def cache(table, key_val) do
     val =
       case :ets.lookup(table, key_val) do
@@ -779,8 +876,10 @@ defmodule BPE do
     end
   end
 
+  @doc "Default time-to-live for cache properties."
   def ttl, do: :application.get_env(:bpe, :ttl, 60 * 15)
 
+  @doc "Calculates gregorian seconds until a ttl duration given a present timestamp."
   def till(now, ttl_val) do
     if is_atom(ttl_val) do
       ttl_val
@@ -791,6 +890,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Hot reloads code and purges old application states."
   def reload(module) do
     case :code.get_object_code(module) do
       :error                      -> {:load_error, module}
@@ -804,18 +904,25 @@ defmodule BPE do
 
   # ── construct result ───────────────────────────────────────────────────────
 
+  @doc "Normalizes internal BPE results for proper process replies."
   def construct_result(result(type: :reply, opt: [], reply: r, state: st)),
     do: {:reply, r, st}
+  @doc false
   def construct_result(result(type: :reply, opt: o, reply: r, state: st)),
     do: {:reply, r, st, flatten_opt(o)}
+  @doc false
   def construct_result(result(type: :noreply, opt: [], state: st)),
     do: {:noreply, st}
+  @doc false
   def construct_result(result(type: :noreply, opt: opt, state: st)),
     do: {:noreply, st, flatten_opt(opt)}
+  @doc false
   def construct_result(result(type: :stop, reply: [], reason: reason, state: st)),
     do: {:stop, reason, st}
+  @doc false
   def construct_result(result(type: :stop, reply: reply, reason: reason, state: st)),
     do: {:stop, reason, reply, st}
+  @doc false
   def construct_result(_),
     do: {:stop, :error, "Invalid return value", []}
 
@@ -824,6 +931,7 @@ defmodule BPE do
 
   # ── process flow ───────────────────────────────────────────────────────────
 
+  @doc "Forced specific flow initiation from the process instance."
   def process_flow(forced_flow_id, process() = proc) do
     case flow(forced_flow_id, proc) do
       false ->
@@ -845,14 +953,17 @@ defmodule BPE do
     end
   end
 
+  @doc "Primary process logic runner traversing the internal scheduler pointer."
   def process_flow(process() = proc) do
     construct_result(process_sched(sched_head(process(proc, :id)), proc))
   end
 
+  @doc false
   def process_sched(sched(state: []), proc) do
     result(type: :stop, reason: :normal, reply: :Final, state: proc)
   end
 
+  @doc false
   def process_sched(sched() = s, proc) do
     f = flow(flow_id(s), proc)
     src = sequenceFlow(f, :source)
@@ -866,11 +977,13 @@ defmodule BPE do
     process_authorized(authorized, source_task, target_task, f, s, proc)
   end
 
+  @doc false
   def process_authorized(false, source_task, _target_task, flow_rec, _sched_rec, proc) do
     add_error(proc, "Access denied", flow_rec)
     result(type: :reply, reply: {:error, "Access denied", source_task}, state: proc)
   end
 
+  @doc false
   def process_authorized(true, _, target_task, flow_rec,
       sched(id: sched_id, pointer: pointer, state: threads), proc) do
     sequenceFlow(id: next, source: src, target: dst) = flow_rec
@@ -956,6 +1069,7 @@ defmodule BPE do
   # ── get_inserted ───────────────────────────────────────────────────────────
 
   # output field is at 1-based tuple position 5, 0-based index 4
+  @doc false
   def get_inserted(t, flow_rec, sched_id, proc) do
     if :erlang.element(5, t) == [] do
       []
@@ -991,18 +1105,27 @@ defmodule BPE do
 
   defp do_get_inserted({t, _, _, proc}), do: apply(__MODULE__, driver(), [t, proc])
 
+  @doc "Evaluates exclusive path by checking conditional logic of flow sequences."
   def exclusive(t, proc),  do: first_matched_flow(:erlang.element(5, t), proc)
+
+  @doc "Selects the last active sequence flow path."
   def last(t, _proc),      do: [List.last(:erlang.element(5, t))]
+
+  @doc "Selects the first declared sequence flow path."
   def first(t, _proc),     do: [hd(:erlang.element(5, t))]
 
+  @doc "Randomly selects an outgoing sequence path."
   def random(t, _proc) do
     out = :erlang.element(5, t)
     [Enum.at(out, :rand.uniform(length(out)) - 1)]
   end
 
+  @doc "Checks if all incoming necessary flows have historically activated before the gateway pointer."
   def check_all_flows([], _), do: true
+  @doc false
   def check_all_flows(_, step(id: 0)), do: false
 
+  @doc false
   def check_all_flows(needed, step(id: id) = sched_id) do
     case proc_hist(sched_id) do
       hist(task: sequenceFlow(id: fid)) ->
@@ -1011,8 +1134,10 @@ defmodule BPE do
     end
   end
 
+  @doc "Helper resolving the first flow sequentially whose boolean condition meets execution."
   def first_matched_flow([], _proc), do: []
 
+  @doc false
   def first_matched_flow([h | flows], proc) do
     case check_flow_condition(flow(h, proc), proc) do
       true  -> [h]
@@ -1020,6 +1145,7 @@ defmodule BPE do
     end
   end
 
+  @doc "Evaluates declarative conditional properties embedded inside sequenceFlow definitions."
   def check_flow_condition(sequenceFlow(condition: {:compare, bpe_doc_param, field, const}), proc) do
     case doc(bpe_doc_param, proc) do
       [] ->
@@ -1031,17 +1157,21 @@ defmodule BPE do
     end
   end
 
+  @doc false
   def check_flow_condition(sequenceFlow(source: gw, condition: {:service, :gw_block}), process(id: bpe_pid)) do
     :kvs.index_match(gw_block(id: :_, gw: gw, subject: bpe_pid, pid: :_), :subject, kvs(mod: :kvs_mnesia)) == []
   end
 
+  @doc false
   def check_flow_condition(sequenceFlow(condition: {:service, fun}), process(module: module) = proc) do
     apply(module, fun, [proc])
   end
 
+  @doc false
   def check_flow_condition(sequenceFlow(condition: {:service, fun, mod}), proc) do
     apply(mod, fun, [proc])
   end
 
+  @doc false
   def check_flow_condition(sequenceFlow(condition: []), _proc), do: true
 end
