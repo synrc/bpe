@@ -1,5 +1,5 @@
-BPMN: Business Process Model Notation ISO/IEC 19510:2015
-========================================================
+BPMN: ISO/IEC 19510:2015 Engine
+===============================
 
 [![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Hex pm](https://img.shields.io/hexpm/v/bpe.svg?style=flat)](https://hex.pm/packages/bpe)
