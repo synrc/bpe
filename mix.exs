@@ -5,7 +5,8 @@ defmodule BPE.Mixfile do
     [
       app: :bpe,
       version: "11.4.14",
-      description: "ERP/1 BPMN ДСТУ ISO/IEC 19510:2015 Business Process Model Notation",
+      description:
+        "ERP/1 BPMN ДСТУ ISO/IEC 19510:2015 Business Process Model Notation",
       package: package(),
       deps: deps()
     ]
