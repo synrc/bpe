@@ -1,7 +1,6 @@
 defmodule BPE.XML do
   require Record
   require BPE
-  import BPE, except: [load: 1, load: 2]
 
   @model :"http://www.omg.org/spec/BPMN/20100524/MODEL"
 
@@ -50,8 +49,6 @@ defmodule BPE.XML do
     end
   end
 
-  def def, do: load(~c"priv/sample.bpmn")
-
   def load(file), do: load(file, __MODULE__)
 
   def load(file, module) do
@@ -62,91 +59,91 @@ defmodule BPE.XML do
           {:definitions, find(c, :"bpmn:process"), attr(c)}
         id   = :proplists.get_value(:id, attrs)
         name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-        proc = reduce(elements, process(id: id, name: name, module: module))
-        tasks1 = fill_in_out(process(proc, :tasks), process(proc, :flows))
-        tasks2 = fix_roles(tasks1, process(proc, :roles))
-        process(proc, id: [], tasks: tasks2, xml: :filename.basename(file, ~c".bpmn"), events: process(proc, :events))
+        proc = reduce(elements, BPE.process(id: id, name: name, module: module))
+        tasks1 = fill_in_out(BPE.process(proc, :tasks), BPE.process(proc, :flows))
+        tasks2 = fix_roles(tasks1, BPE.process(proc, :roles))
+        BPE.process(proc, id: [], tasks: tasks2, xml: :filename.basename(file, ~c".bpmn"), events: BPE.process(proc, :events))
     end
   end
 
   def reduce([], acc), do: acc
 
-  def reduce([{:"bpmn:task", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:task", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [task(id: id, name: name) | tasks]))
+    reduce(t, BPE.process(proc, tasks: [BPE.task(id: id, name: name) | tasks]))
   end
 
-  def reduce([{:"bpmn:startEvent", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:startEvent", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [beginEvent(id: id, name: name) | tasks], beginEvent: id))
+    reduce(t, BPE.process(proc, tasks: [BPE.beginEvent(id: id, name: name) | tasks], beginEvent: id))
   end
 
-  def reduce([{:"bpmn:endEvent", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:endEvent", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [endEvent(id: id, name: name) | tasks], endEvent: id))
+    reduce(t, BPE.process(proc, tasks: [BPE.endEvent(id: id, name: name) | tasks], endEvent: id))
   end
 
-  def reduce([{:"bpmn:sequenceFlow", body, attrs} | t], process(flows: flows) = proc) do
+  def reduce([{:"bpmn:sequenceFlow", body, attrs} | t], BPE.process(flows: flows) = proc) do
     id     = :proplists.get_value(:id, attrs)
     name   = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
     source = :proplists.get_value(:sourceRef, attrs)
     target = :proplists.get_value(:targetRef, attrs)
-    f      = sequenceFlow(id: id, name: name, source: source, target: target)
+    f      = BPE.sequenceFlow(id: id, name: name, source: source, target: target)
     flow   = reduce(body, f)
-    reduce(t, process(proc, flows: [flow | flows]))
+    reduce(t, BPE.process(proc, flows: [flow | flows]))
   end
 
-  def reduce([{:"bpmn:conditionExpression", body, _attrs} | t], sequenceFlow() = flow) do
+  def reduce([{:"bpmn:conditionExpression", body, _attrs} | t], BPE.sequenceFlow() = flow) do
     reduce(t, parse_expression(flow, parse(hd(body))))
   end
 
-  def reduce([{:"bpmn:parallelGateway", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:parallelGateway", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [gateway(id: id, name: name, type: :parallel) | tasks]))
+    reduce(t, BPE.process(proc, tasks: [BPE.gateway(id: id, name: name, type: :parallel) | tasks]))
   end
 
-  def reduce([{:"bpmn:exclusiveGateway", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:exclusiveGateway", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id      = :proplists.get_value(:id, attrs)
     default = :proplists.get_value(:default, attrs, [])
     name    = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [gateway(id: id, name: name, type: :exclusive, def: default) | tasks]))
+    reduce(t, BPE.process(proc, tasks: [BPE.gateway(id: id, name: name, type: :exclusive, def: default) | tasks]))
   end
 
-  def reduce([{:"bpmn:inclusiveGateway", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:inclusiveGateway", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [gateway(id: id, name: name, type: :inclusive) | tasks]))
+    reduce(t, BPE.process(proc, tasks: [BPE.gateway(id: id, name: name, type: :inclusive) | tasks]))
   end
 
-  def reduce([{:"bpmn:complexGateway", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:complexGateway", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [gateway(id: id, name: name, type: :complex) | tasks]))
+    reduce(t, BPE.process(proc, tasks: [BPE.gateway(id: id, name: name, type: :complex) | tasks]))
   end
 
-  def reduce([{:"bpmn:gateway", _body, attrs} | t], process(tasks: tasks) = proc) do
+  def reduce([{:"bpmn:gateway", _body, attrs} | t], BPE.process(tasks: tasks) = proc) do
     id   = :proplists.get_value(:id, attrs)
     name = :unicode.characters_to_binary(:proplists.get_value(:name, attrs, []))
-    reduce(t, process(proc, tasks: [gateway(id: id, name: name) | tasks]))
+    reduce(t, BPE.process(proc, tasks: [BPE.gateway(id: id, name: name) | tasks]))
   end
 
   def reduce([{:"bpmn:laneSet", lanes, _attrs} | t], proc) do
     roles =
       for {_, tasks_xml, att} <- lanes do
-        role(
+        BPE.role(
           id:    :proplists.get_value(:id, att, []),
           tasks: for({_, [], {:value, name}} <- tasks_xml, do: name),
           name:  :unicode.characters_to_binary(:proplists.get_value(:name, att, []), :utf16)
         )
       end
-    reduce(t, process(proc, roles: roles))
+    reduce(t, BPE.process(proc, roles: roles))
   end
 
-  def reduce([{skip_type, _body, _attrs} | t], process() = proc)
+  def reduce([{skip_type, _body, _attrs} | t], BPE.process() = proc)
       when skip_type in [:"bpmn:dataObjectReference", :"bpmn:dataObject",
                          :"bpmn:association", :"bpmn:textAnnotation",
                          :"bpmn:extensionElements"] do
@@ -155,7 +152,7 @@ defmodule BPE.XML do
 
   def fill_in_out(tasks, []), do: tasks
 
-  def fill_in_out(tasks, [sequenceFlow(id: name, source: source, target: target) | flows]) do
+  def fill_in_out(tasks, [BPE.sequenceFlow(id: name, source: source, target: target) | flows]) do
     tasks1 = BPE.Gateways.key_push_value(name, BPE.Gateways.output_pos(), source, tasks)
     tasks2 = BPE.Gateways.key_push_value(name, BPE.Gateways.input_pos(),  target, tasks1)
     fill_in_out(tasks2, flows)
@@ -163,7 +160,7 @@ defmodule BPE.XML do
 
   def fix_roles(tasks, []), do: tasks
 
-  def fix_roles(tasks, [role(id: id, tasks: xml_tasks) | lanes]) do
+  def fix_roles(tasks, [BPE.role(id: id, tasks: xml_tasks) | lanes]) do
     fix_roles(update_roles(xml_tasks, tasks, id), lanes)
   end
 
@@ -185,11 +182,11 @@ defmodule BPE.XML do
     value
   end
 
-  defp parse_expression(sequenceFlow(callbacks: c) = flow, [x | t]) when is_tuple(x) do
+  defp parse_expression(BPE.sequenceFlow(callbacks: c) = flow, [x | t]) when is_tuple(x) do
     case expression_type(x) do
-      :callback  -> parse_expression(sequenceFlow(flow, callbacks: c ++ [x]), t)
-      :condition -> parse_expression(sequenceFlow(flow, condition: x), t)
-      _          -> parse_expression(sequenceFlow(flow, expression: x), t)
+      :callback  -> parse_expression(BPE.sequenceFlow(flow, callbacks: c ++ [x]), t)
+      :condition -> parse_expression(BPE.sequenceFlow(flow, condition: x), t)
+      _          -> parse_expression(BPE.sequenceFlow(flow, expression: x), t)
     end
   end
 
