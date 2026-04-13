@@ -1,5 +1,5 @@
-BPMN: ISO/IEC 19510:2015 Erlang/OTP 1:1 Engine
-==============================================
+BPMN: ISO/IEC 19510:2015 Erlang/OTP
+===================================
 
 [![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Hex pm](https://img.shields.io/hexpm/v/bpe.svg?style=flat)](https://hex.pm/packages/bpe)
@@ -81,7 +81,7 @@ values from Erlang messages being sent to BPE process.
                  next=[] :: [] | integer(),
                  pointer = -1 :: integer(),
                  state = [] :: list(list()) }).
-                 
+
 -record(hist,         { id = [] :: [] | #step{},
                         prev=[] :: [] | integer(),
                         next=[] :: [] | integer(),
@@ -198,89 +198,7 @@ current states as leaves of execution graph.
 Full set of BPMN 2.0 fields could be obtained
 at [http://www.omg.org/spec/BPMN/2.0](http://www.omg.org/spec/BPMN/2.0), page 3-7.
 
-Sample Session
---------------
-
-```erlang
-(bpe@127.0.0.1)1> rr(bpe).
-[beginEvent,container,endEvent,history,id_seq,iterator,
- messageEvent,process,sequenceFlow,serviceTask,task,userTask]
-(bpe@127.0.0.1)2> bpe:start(spawnproc:def(),[]).
-bpe_proc:Process 39 spawned <0.12399.0>
-{ok,<0.12399.0>}
-(bpe@127.0.0.1)3> bpe:complete(39).
-(bpe@127.0.0.1)4> bpe:complete(39).
-(bpe@127.0.0.1)5> bpe:complete(39).
-(bpe@127.0.0.1)5> bpe:hist(39).
-[#history{id = 28,version = undefined,container = feed,
-          feed_id = {history,39},
-          prev = 27,next = undefined,feeds = [],guard = true,
-          etc = undefined,name = "Order11",
-          task = {task,"end"}},
- #history{id = 27,version = undefined,container = feed,
-          feed_id = {history,39},
-          prev = 26,next = 28,feeds = [],guard = true,etc = undefined,
-          name = "Order11",
-          task = {task,"end2"}},
- #history{id = 26,version = undefined,container = feed,
-          feed_id = {history,39},
-          prev = undefined,next = 27,feeds = [],guard = true,
-          etc = undefined,name = "Order11",
-          task = {task,"begin"}}]
-```
-
-Process Instances
------------------
-
-Instantiation of process means creating persistent context of document flow.
-
-```erlang
-load(ProcName)
-start(Proc,Docs)
-amend(Proc,Docs)
-complete(Proc)
-history(ProcId)
-task(Name,Proc)
-doc(Name,Proc)
-events(Proc)
-tasks(Proc)
-```
-
-Using 'tasks' API you can fetch current documents attached to the given
-process at particular stage. Using 'amend' API you can upload or
-change document at current stage. 'push' API moves current
-stage documents further by workflow.
-
-Let us see how we could create initial 'Wire Transfer' transaction:
-
-```erlang
-> rr(bpe).
-[ beginEvent,boundaryEvent,container,endEvent,history,id_seq,
-  interval,iterator,kvs,log,messageEvent,operation,process,
-  receiveTask,sequenceFlow,serviceTask,task,timeoutEvent,userTask ]
-
-> rr(kvs).
-[column,config,container,id_seq,interval,iterator,kvs,log,
- operation,query,schema,table,user,user2]
-
-> Proc = bpe:load(39).
-
-> bpe:tasks(Proc).
-  [#userTask{name = 'Init',roles = [], module = spawnproc},
-   #userTask{name = 'Signatory',roles = [], module = spawnproc},
-   #serviceTask{name = 'Payment',roles = [], module = spawnproc},
-   #serviceTask{name = 'Process',roles = [], module = spawnproc},
-   #endEvent{name = 'Final',module = []}]
-
-> bpe:docs(Proc).
-  []
-
-> bpe:amend(39,[{'WireTransfer',#user{id=1},#user{id=2}}]).
-
-> bpe:docs(bpe:load(39)).
-```
-
-Автор
------
+Author
+------
 
 Максим Сохацький, Інформаційні Судові Системи
