@@ -7,13 +7,12 @@ defmodule BPE.Mixfile do
       version: "11.4.13",
       description: "ERP/1 BPMN ДСТУ ISO/IEC 19510:2015 Business Process Model Notation",
       package: package(),
-      deps: deps(),
-      docs: docs()
+      deps: deps()
     ]
   end
 
   def application do
-    [mod: {BPE.OTP, []}, applications: [:xmerl, :syn, :kvs]]
+    [mod: {BPE.OTP, []}, extra_applications: [:xmerl, :syn, :kvs]]
   end
 
   def package do
@@ -26,25 +25,9 @@ defmodule BPE.Mixfile do
     ]
   end
 
-  def docs do
-    [
-      main: "BPE",
-      extras: ["README.md"],
-      skip_undefined_reference_warnings_on: [:all],
-
-      filter_modules: fn mod, _ ->
-        mod_str = Atom.to_string(mod)
-        String.starts_with?(mod_str, "Elixir.BPE") and
-        not String.starts_with?(mod_str, "Elixir.Test.")
-      end,
-
-      ignore_apps: [:ex_doc, :eex]
-    ]
-  end
-
   def deps do
     [
-      {:ex_doc, "~> 0.40", only: :dev},
+      {:ex_doc, ">= 0.0.0", only: :dev},
       {:syn, "~> 3.4"},
       {:rocksdb, "~> 2.5"},
       {:kvs, "~> 13.3.1"}
