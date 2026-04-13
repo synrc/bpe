@@ -1,5 +1,5 @@
-BPE: Business Process Engine
-============================
+BPMN: Business Process Model Notation ISO/IEC 19510:2015
+========================================================
 
 [![Actions Status](https://github.com/synrc/bpe/workflows/mix/badge.svg)](https://github.com/synrc/bpe/actions)
 [![Hex pm](https://img.shields.io/hexpm/v/bpe.svg?style=flat)](https://hex.pm/packages/bpe)
@@ -7,7 +7,7 @@ BPE: Business Process Engine
 Overview
 --------
 
-BPE is a Business Process Engine that brings BPMN to Erlang and Erlang to Enterprises.
+BPMN is a Business Process Model Notation Engine that brings BPMN to Erlang and Erlang to Enterprises.
 It provides infrastructure for Workflow Definitions, Process Orchestration,
 Rule Based Production Systems and Distributed Storage.
 
