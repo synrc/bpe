@@ -13,6 +13,16 @@ Rule Based Production Systems and Distributed Storage.
 
 <img src="https://bpe.n2o.dev/man/img/camunda.png" width=600/>
 
+Requirements
+------------
+
+* Based on HRL files so Erlang also can work
+* Raw KV backend Storage
+* Mnesia Storage
+
+Sample Session
+--------------
+
 ```
 
  iex(1)> {_,p} = :bpe.start :bpe_xml.def, []
@@ -48,6 +58,9 @@ Rule Based Production Systems and Distributed Storage.
    {:sched, {:step, 7, '77012724426000'}, 1, []}
  ]
 ```
+
+Formal Spec
+===========
 
 Processes
 ---------
