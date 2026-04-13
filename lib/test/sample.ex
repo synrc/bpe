@@ -4,21 +4,19 @@ defmodule Test.Sample do
 
   def def(), do: xml("/priv/sample.bpmn")
   def auth(_), do: true
-  def action(_message,state), do: BPE.result(state: state)
+  def action(_message, state), do: result(state: state)
 
   def test() do
-    {:ok, pid} = :bpe.start def(), []
-    {:complete, 'either'} = :bpe.next(pid)
-    {:complete, 'left'} = :bpe.next(pid, 'x2')
-    {:complete, 'right'} = :bpe.next(pid, 'x3')
-    {:complete, 'join'} = :bpe.next(pid, 'x5')
-    {:error, _, _} = :bpe.next(pid, 'x6')
-    {:complete, 'join'} = :bpe.next(pid, 'x4')
-    {:complete, 'epilog'} = :bpe.next(pid)
-    {:complete, 'finish'} = :bpe.next(pid)
-    :Final = :bpe.next(pid)
+    {:ok, pid} = BPE.start(def(), [])
+    {:complete, ~c"either"} = BPE.next(pid)
+    {:complete, ~c"left"}   = BPE.next(pid, ~c"x2")
+    {:complete, ~c"right"}  = BPE.next(pid, ~c"x3")
+    {:complete, ~c"join"}   = BPE.next(pid, ~c"x5")
+    {:error, _, _}          = BPE.next(pid, ~c"x6")
+    {:complete, ~c"join"}   = BPE.next(pid, ~c"x4")
+    {:complete, ~c"epilog"} = BPE.next(pid)
+    {:complete, ~c"finish"} = BPE.next(pid)
+    :Final = BPE.next(pid)
     :ok
   end
-
 end
-

@@ -1,9 +1,0 @@
-{application, bpe,
- [
-  {description, "BPE Business Process Engine"},
-  {vsn, "7.11.0"},
-  {registered, []},
-  {applications, [kernel,stdlib,kvs,syn]},
-  {mod, { bpe_otp, []}},
-  {env, []}
- ]}.

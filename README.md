@@ -267,10 +267,7 @@ Let us see how we could create initial 'Wire Transfer' transaction:
 > bpe:docs(bpe:load(39)).
 ```
 
-Authors
--------
+Автор
+-----
 
-* Максим Сохацький
-* Євгеній Гадібіров
-* Георгій Мельник-Веттштайн
-
+Максим Сохацький, Інформаційні Судові Системи
