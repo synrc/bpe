@@ -4,9 +4,8 @@ defmodule BPE.Mixfile do
   def project do
     [
       app: :bpe,
-      version: "11.4.15",
-      description:
-        "ERP/1 BPMN ISO/IEC 19510:2015 Business Process Model Notation",
+      version: "11.4.16",
+      description: "ERP/1 BPMN ISO/IEC 19510:2015 Business Process Model Notation",
       package: package(),
       deps: deps(),
       xref: [exclude: [:rocksdb]]
