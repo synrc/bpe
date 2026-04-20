@@ -13,7 +13,7 @@ defmodule BPE.Mixfile do
   end
 
   def application do
-    [mod: {BPE.OTP, []}, extra_applications: [:xmerl, :syn, :crypto, :kvs]]
+    [mod: {BPE.OTP, []}, extra_applications: [ :logger, :xmerl, :syn, :crypto, :kvs ] ]
   end
 
   def package do

@@ -1,4 +1,9 @@
 defmodule BPE.Account do
+  @moduledoc """
+  Bank Account Process.
+
+  This module serves as example of long-term banking process formalization in SYNRC/BPE.
+  """
   require BPE
   import BPE
 

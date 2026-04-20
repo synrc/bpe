@@ -8,6 +8,10 @@ else
   import_config "config.mnesia.exs"
 end
 
+config :logger, level: :debug
+
+config :syn, scopes: [:devices]
+
 config :bpe,
   logger_level: :debug,
   logger: [
